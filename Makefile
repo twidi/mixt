@@ -22,6 +22,7 @@ install:  ## Install the project in the current environment, with its dependenci
 dev:  ## Install the project in the current environment, with its dependencies, including the ones needed in a development environment
 	@echo "$(BOLD)Installing $(PROJECT_NAME) $(PROJECT_VERSION) in dev mode$(RESET)"
 	@pip install -e .[dev]
+	@mixt-post-install
 
 .PHONY: dev-upgrade
 dev-upgrade:  ## Upgrade all default+dev dependencies defined in setup.cfg
@@ -40,12 +41,12 @@ mypy:  ## Run the mypy tool
 .PHONY: check-black
 check-black:  ## Run the black tool in check mode only (won't modify files)
 	@echo "$(BOLD)Checking black$(RESET)"
-	@black --check src/ 2>&1
+	@black --check `find src/ -name '*.py' | grep -v '/pyxl/'` 2>&1
 
 .PHONY: black
 black:  ## Run the black tool and update files that need to
 	@echo "$(BOLD)Running black$(RESET)"
-	@black src/
+	@black `find src/ -name '*.py' | grep -v '/pyxl/'`
 
 .PHONY: flake8
 flake8:  ## Run the flake8 tool

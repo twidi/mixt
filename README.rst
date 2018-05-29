@@ -13,9 +13,12 @@ More text to come ;)
 Installation
 ************
 
+Run these two commands. The second one will tell python how to understand files with html inside.
+
 .. code-block:: shell
 
     pip install mixt
+    mixt-post-install
 
 
 ************
