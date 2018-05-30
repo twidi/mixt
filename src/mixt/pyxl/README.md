@@ -12,6 +12,7 @@ What we changed:
 - Removed `form_error` tag (`<form:error>` is not an html tag)
 - Renamed `html.rawhtml` function to `html.Raw`
 - Manage boolean attributes (specifically without value)
+- Allow passing attributes as kwargs `<input type="text" {**someattrs} />`
 
 
 You'll find the original README of this library below:

@@ -51,6 +51,7 @@ class Tag(object):
         self.attrs = OrderedDict()
         self.endtag = False
         self.startendtag = False
+        self.kwargs_attrs = []
 
 class ParseError(Exception):
     pass
@@ -107,11 +108,11 @@ class HTMLTokenizer(object):
         if self.tag.startendtag and self.tag.endtag:
             raise ParseError("both startendtag and endtag!?")
         if self.tag.startendtag:
-            self.handle_startendtag(self.tag.tag_name, self.tag.attrs)
+            self.handle_startendtag(self.tag.tag_name, self.tag.attrs, self.tag.kwargs_attrs)
         elif self.tag.endtag:
             self.handle_endtag(self.tag.tag_name)
         else:
-            self.handle_starttag(self.tag.tag_name, self.tag.attrs)
+            self.handle_starttag(self.tag.tag_name, self.tag.attrs, self.tag.kwargs_attrs)
 
     def emit_comment(self):
         self.handle_comment(self.data)
@@ -397,18 +398,27 @@ class HTMLTokenizer(object):
                             State.ATTRIBUTE_VALUE_SINGLE_QUOTED,
                             State.ATTRIBUTE_VALUE_UNQUOTED]:
             self.attribute_value.append(tokens)
+        elif self.state in [State.BEFORE_ATTRIBUTE_NAME,
+                            State.AFTER_ATTRIBUTE_NAME]:
+            self.tag.kwargs_attrs.append([tokens])
         else:
-            raise ParseError("python not allow in state %r" % State.state_name(self.state))
+            raise ParseError("Python not allowed in state %r" % State.state_name(self.state))
 
 class HTMLTokenDumper(HTMLTokenizer):
     def handle_data(self, data):
         print("DATA %r" % data)
 
-    def handle_starttag(self, tag_name, attrs):
-        print("STARTTAG %r %r" % (tag_name, attrs))
+    def handle_starttag(self, tag_name, attrs, kwargs_attrs=None):
+        if kwargs_attrs:
+            print("STARTTAG %r %r %r" % (tag_name, attrs, kwargs_attrs))
+        else:
+            print("STARTTAG %r %r" % (tag_name, attrs))
 
-    def handle_startendtag(self, tag_name, attrs):
-        print("STARTENDTAG %r %r" % (tag_name, attrs))
+    def handle_startendtag(self, tag_name, attrs, kwargs_attrs=None):
+        if kwargs_attrs:
+            print("STARTENDTAG %r %r %r" % (tag_name, attrs, kwargs_attrs))
+        else:
+            print("STARTENDTAG %r %r" % (tag_name, attrs))
 
     def handle_endtag(self, tag_name):
         print("ENDTAG %r" % tag_name)

@@ -75,6 +75,13 @@ class PyxlParser(HTMLTokenizer):
                             State.ATTRIBUTE_VALUE_SINGLE_QUOTED,
                             State.ATTRIBUTE_VALUE_UNQUOTED]:
             super().feed_python(tokens)
+        elif self.state in [State.BEFORE_ATTRIBUTE_NAME,
+                            State.AFTER_ATTRIBUTE_NAME]:
+            # will only allow **somedict kind of python
+            super().feed_python(tokens)
+        else:
+            raise ParseError("Python not allowed in state state %r" %
+                             State.state_name(self.state), tstart)
 
     def feed_position_only(self, token):
         """update with any whitespace we might have missed, and advance position to after the
@@ -167,7 +174,7 @@ class PyxlParser(HTMLTokenizer):
                     output.append(', ')
                 output.append('))')
 
-        self.output.extend(output)
+        return output
 
     @staticmethod
     def _normalize_data_whitespace(data, prev_was_py, next_is_py):
@@ -187,7 +194,7 @@ class PyxlParser(HTMLTokenizer):
         data = data.replace('\n', ' ')
         return data
 
-    def handle_starttag(self, tag, attrs, call=True):
+    def handle_starttag(self, tag, attrs, kwargs_attrs=None, call=True):
         self.open_tags.append({'tag':tag, 'row': self.end[0]})
         if tag == 'if':
             if len(attrs) != 1:
@@ -196,7 +203,7 @@ class PyxlParser(HTMLTokenizer):
                 raise ParseError("if tag must contain the 'cond' attr", self.end)
 
             self.output.append('html._push_condition(bool(')
-            self._handle_attr_value(attrs['cond'])
+            self.output.extend(self._handle_attr_value(attrs['cond']))
             self.output.append(')) and html.Fragment()(')
             self.last_thing_was_python = False
             self.last_thing_was_close_if_tag = False
@@ -228,7 +235,24 @@ class PyxlParser(HTMLTokenizer):
 
             self.output.append(self.safe_attr_name(attr_name))
             self.output.append('=')
-            self._handle_attr_value(attr_value)
+            self.output.extend(self._handle_attr_value(attr_value))
+
+        if kwargs_attrs:
+            for kwargs_attr in kwargs_attrs:
+                if first_attr: first_attr = False
+                else: self.output.append(', ')
+
+                handled_kwargs_attr = ''.join(self._handle_attr_value(kwargs_attr))
+                left_striped_handled_kwargs_attr = handled_kwargs_attr.lstrip()
+
+                if not left_striped_handled_kwargs_attr.startswith('**'):
+                    start = kwargs_attr[0][0][2][1]
+                    raise ParseError("Only **kwargs style is allowed", (
+                        kwargs_attr[0][0][2][0],
+                        kwargs_attr[0][0][2][1] + len(handled_kwargs_attr) - len(left_striped_handled_kwargs_attr) + 1)
+                    )
+
+                self.output.append(handled_kwargs_attr)
 
         self.output.append(')')
         if call:
@@ -259,8 +283,8 @@ class PyxlParser(HTMLTokenizer):
             self.output.append(",")
         self.last_thing_was_python = False
 
-    def handle_startendtag(self, tag_name, attrs):
-        self.handle_starttag(tag_name, attrs, call=False)
+    def handle_startendtag(self, tag_name, attrs, kwargs_attrs=None):
+        self.handle_starttag(tag_name, attrs, kwargs_attrs, call=False)
         self.handle_endtag(tag_name, call=False)
 
     def handle_data(self, data):
