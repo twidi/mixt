@@ -13,7 +13,7 @@ def test_basics():
 
 def test_escaping():
     assert str(<div class="&">&{'&'}</div>) == '<div class="&amp;">&&amp;</div>'
-    assert str(<div>{html.rawhtml('&')}</div>) == '<div>&</div>'
+    assert str(<div>{html.Raw('&')}</div>) == '<div>&</div>'
 
 def test_comments():
     pyxl = (
@@ -36,9 +36,6 @@ def test_conditional_comment():
 def test_decl():
     assert (str(<script><![CDATA[<div><div>]]></script>)
         == '<script><![CDATA[<div><div>]]></script>')
-
-def test_form_error():
-    assert str(<form_error name="foo" />) == '<form:error name="foo" />'
 
 def test_enum_attrs():
     class Foo(Base):

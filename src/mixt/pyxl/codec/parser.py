@@ -204,9 +204,14 @@ class PyxlParser(HTMLTokenizer):
             self.last_thing_was_close_if_tag = False
             return
 
-        if hasattr(html, tag):
-            self.output.append('html.')
-        self.output.append('%s(' % tag)
+        capitalized_tag = tag.capitalize()
+        if tag.lower() == tag and hasattr(html, capitalized_tag) and \
+                issubclass(getattr(html, capitalized_tag), html.HtmlBaseElement):
+            self.output.append('html.%s(' % capitalized_tag)
+        elif hasattr(html, tag):
+            self.output.append('html.%s(' % tag)
+        else:
+            self.output.append('%s(' % tag)
 
         first_attr = True
         for attr_name, attr_value in attrs.items():
@@ -259,7 +264,7 @@ class PyxlParser(HTMLTokenizer):
         # XXX XXX mimics old pyxl, but this is gross and likely wrong. I'm pretty sure we actually
         # want %r instead of this crazy quote substitution and u"%s".
         data = data.replace('"', '\\"')
-        self.output.append('html.rawhtml(u"%s"), ' % data)
+        self.output.append('html.Raw(u"%s"), ' % data)
 
         self.last_thing_was_python = False
         self.last_thing_was_close_if_tag = False

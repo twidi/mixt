@@ -6,8 +6,11 @@ What we changed:
 
 - the python codec used to parse files  is not `pyxl` anymore but `mixt`, to allow users to have both the original `pyxl` module AND `mixt` installed
 - removed RSS related stuff
-- use simpler ``super`` calls (thanks to python 3)
-- removed the ``x_`` prefix needed for tag classes
+- use simpler `super` calls (thanks to python 3)
+- removed the `x_` prefix needed for tag classes
+- Capitalized classes in `html`, but kept html tags in "mixt" encoding as lowercased
+- Removed `form_error` tag (`<form:error>` is not an html tag)
+- Renamed `html.rawhtml` function to `html.Raw`
 
 
 You'll find the original README of this library below:

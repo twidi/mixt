@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from .utils import escape
-from .base import Base
+from .base import Base, BaseMetaclass
 
 # for backwards compatibility.
 from .browser_hacks import ConditionalComment
@@ -18,11 +18,24 @@ def _leave_if():
     _last_if_condition = _if_condition_stack.pop()
     return []
 
-class HtmlElement(Base):
+
+class HtmlElementMetaclass(BaseMetaclass):
+    def __init__(self, name, parents, attrs):
+        super().__init__(name, parents, attrs)
+        setattr(self, '__tag__', name.lower())
+
+
+class HtmlBaseElement(Base, metaclass=HtmlElementMetaclass):
+    def _render_attributes(self):
+        result = []
+        for name, value in self.__attributes__.items():
+            result.extend((' ', name, '="', escape(value), '"'))
+        return result
+
+class HtmlElement(HtmlBaseElement):
     def _to_list(self, l):
         l.extend(('<', self.__tag__))
-        for name, value in self.__attributes__.items():
-            l.extend((' ', name, '="', escape(value), '"'))
+        l.extend(self._render_attributes())
         l.append('>')
 
         for child in self.__children__:
@@ -30,15 +43,16 @@ class HtmlElement(Base):
 
         l.extend(('</', self.__tag__, '>'))
 
-class HtmlElementNoChild(Base):
+
+class HtmlElementNoChild(HtmlBaseElement):
     def append(self, child):
         raise Exception('<%s> does not allow children.', self.__tag__)
 
     def _to_list(self, l):
         l.extend(('<', self.__tag__))
-        for name, value in self.__attributes__.items():
-            l.extend((' ', name, '="', escape(value), '"'))
+        l.extend(self._render_attributes())
         l.append(' />')
+
 
 class HtmlComment(Base):
     __attrs__ = {
@@ -83,7 +97,7 @@ class RawHtml(HtmlElementNoChild):
         else:
             l.append(self.text)
 
-def rawhtml(text):
+def Raw(text):
     return RawHtml(text=text)
 
 class Fragment(Base):
@@ -91,7 +105,7 @@ class Fragment(Base):
         for child in self.__children__:
             self._render_child_to_list(child, l)
 
-class a(HtmlElement):
+class A(HtmlElement):
     __attrs__ = {
         'href': str,
         'rel': str,
@@ -101,16 +115,16 @@ class a(HtmlElement):
         'download': str,
         }
 
-class abbr(HtmlElement):
+class Abbr(HtmlElement):
     pass
 
-class acronym(HtmlElement):
+class Acronym(HtmlElement):
     pass
 
-class address(HtmlElement):
+class Address(HtmlElement):
     pass
 
-class area(HtmlElementNoChild):
+class Area(HtmlElementNoChild):
     __attrs__ = {
         'alt': str,
         'coords': str,
@@ -119,37 +133,37 @@ class area(HtmlElementNoChild):
         'target': str,
         }
 
-class article(HtmlElement):
+class Article(HtmlElement):
     pass
 
-class aside(HtmlElement):
+class Aside(HtmlElement):
     pass
 
-class audio(HtmlElement):
+class Audio(HtmlElement):
     __attrs__ = {
         'src': str
         }
 
-class b(HtmlElement):
+class B(HtmlElement):
    pass
 
-class big(HtmlElement):
+class Big(HtmlElement):
    pass
 
-class blockquote(HtmlElement):
+class Blockquote(HtmlElement):
     __attrs__ = {
         'cite': str,
         }
 
-class body(HtmlElement):
+class Body(HtmlElement):
     __attrs__ = {
         'contenteditable': str,
         }
 
-class br(HtmlElementNoChild):
+class Br(HtmlElementNoChild):
    pass
 
-class button(HtmlElement):
+class Button(HtmlElement):
     __attrs__ = {
         'disabled': str,
         'name': str,
@@ -157,22 +171,22 @@ class button(HtmlElement):
         'value': str,
         }
 
-class canvas(HtmlElement):
+class Canvas(HtmlElement):
     __attrs__ = {
         'height': str,
         'width': str,
         }
 
-class caption(HtmlElement):
+class Caption(HtmlElement):
    pass
 
-class cite(HtmlElement):
+class Cite(HtmlElement):
    pass
 
-class code(HtmlElement):
+class Code(HtmlElement):
    pass
 
-class col(HtmlElementNoChild):
+class Col(HtmlElementNoChild):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -182,7 +196,7 @@ class col(HtmlElementNoChild):
         'width': str,
         }
 
-class colgroup(HtmlElement):
+class Colgroup(HtmlElement):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -192,36 +206,36 @@ class colgroup(HtmlElement):
         'width': str,
         }
 
-class datalist(HtmlElement):
+class Datalist(HtmlElement):
     pass
 
-class dd(HtmlElement):
+class Dd(HtmlElement):
    pass
 
-class del_(HtmlElement):
+class Del(HtmlElement):
     __attrs__ = {
         'cite': str,
         'datetime': str,
         }
 
-class div(HtmlElement):
+class Div(HtmlElement):
    __attrs__ = {
         'contenteditable': str,
        }
 
-class dfn(HtmlElement):
+class Dfn(HtmlElement):
    pass
 
-class dl(HtmlElement):
+class Dl(HtmlElement):
    pass
 
-class dt(HtmlElement):
+class Dt(HtmlElement):
    pass
 
-class em(HtmlElement):
+class Em(HtmlElement):
    pass
 
-class embed(HtmlElement):
+class Embed(HtmlElement):
     __attrs__ = {
         'src': str,
         'width': str,
@@ -232,19 +246,19 @@ class embed(HtmlElement):
         'type': str,
         }
 
-class figure(HtmlElement):
+class Figure(HtmlElement):
    pass
 
-class figcaption(HtmlElement):
+class Figcaption(HtmlElement):
    pass
 
-class fieldset(HtmlElement):
+class Fieldset(HtmlElement):
    pass
 
-class footer(HtmlElement):
+class Footer(HtmlElement):
     pass
 
-class form(HtmlElement):
+class Form(HtmlElement):
     __attrs__ = {
         'action': str,
         'accept': str,
@@ -257,15 +271,7 @@ class form(HtmlElement):
         'target': str,
         }
 
-class form_error(Base):
-    __attrs__ = {
-        'name': str
-        }
-
-    def _to_list(self, l):
-        l.extend(('<form:error name="', self.attr('name'), '" />'))
-
-class frame(HtmlElementNoChild):
+class Frame(HtmlElementNoChild):
     __attrs__ = {
         'frameborder': str,
         'longdesc': str,
@@ -277,42 +283,42 @@ class frame(HtmlElementNoChild):
         'src': str,
         }
 
-class frameset(HtmlElement):
+class Frameset(HtmlElement):
     __attrs__ = {
         'rows': str,
         'cols': str,
         }
 
-class h1(HtmlElement):
+class H1(HtmlElement):
    pass
 
-class h2(HtmlElement):
+class H2(HtmlElement):
    pass
 
-class h3(HtmlElement):
+class H3(HtmlElement):
    pass
 
-class h4(HtmlElement):
+class H4(HtmlElement):
    pass
 
-class h5(HtmlElement):
+class H5(HtmlElement):
    pass
 
-class h6(HtmlElement):
+class H6(HtmlElement):
    pass
 
-class head(HtmlElement):
+class Head(HtmlElement):
     __attrs__ = {
         'profile': str,
         }
 
-class header(HtmlElement):
+class Header(HtmlElement):
     pass
 
-class hr(HtmlElementNoChild):
+class Hr(HtmlElementNoChild):
     pass
 
-class html(HtmlElement):
+class Html(HtmlElement):
     __attrs__ = {
         'content': str,
         'scheme': str,
@@ -322,10 +328,10 @@ class html(HtmlElement):
         'xmlns:fb': str,
         }
 
-class i(HtmlElement):
+class I(HtmlElement):
    pass
 
-class iframe(HtmlElement):
+class Iframe(HtmlElement):
     __attrs__ = {
         'frameborder': str,
         'height': str,
@@ -342,7 +348,7 @@ class iframe(HtmlElement):
         'allowfullscreen': str,
         }
 
-class video(HtmlElement):
+class Video(HtmlElement):
     __attrs__ = {
         'autoplay': str,
         'controls': str,
@@ -355,7 +361,7 @@ class video(HtmlElement):
         'width': str,
         }
 
-class img(HtmlElementNoChild):
+class Img(HtmlElementNoChild):
     __attrs__ = {
         'alt': str,
         'src': str,
@@ -367,7 +373,7 @@ class img(HtmlElementNoChild):
         'width': str,
         }
 
-class input(HtmlElementNoChild):
+class Input(HtmlElementNoChild):
     __attrs__ = {
         'accept': str,
         'align': str,
@@ -395,27 +401,27 @@ class input(HtmlElementNoChild):
         'multiple': str,
         }
 
-class ins(HtmlElement):
+class Ins(HtmlElement):
     __attrs__ = {
         'cite': str,
         'datetime': str,
         }
 
-class kbd(HtmlElement):
+class Kbd(HtmlElement):
     pass
 
-class label(HtmlElement):
+class Label(HtmlElement):
     __attrs__ = {
         'for': str,
         }
 
-class legend(HtmlElement):
+class Legend(HtmlElement):
    pass
 
-class li(HtmlElement):
+class Li(HtmlElement):
    pass
 
-class link(HtmlElementNoChild):
+class Link(HtmlElementNoChild):
     __attrs__ = {
         'charset': str,
         'href': str,
@@ -428,19 +434,19 @@ class link(HtmlElementNoChild):
         'type': str,
         }
 
-class main(HtmlElement):
+class Main(HtmlElement):
     # we are not enforcing the w3 spec of one and only one main element on the
     # page
     __attrs__ = {
         'role': str,
     }
 
-class map(HtmlElement):
+class Map(HtmlElement):
     __attrs__ = {
         'name': str,
         }
 
-class meta(HtmlElementNoChild):
+class Meta(HtmlElementNoChild):
     __attrs__ = {
         'content': str,
         'http-equiv': str,
@@ -450,16 +456,16 @@ class meta(HtmlElementNoChild):
         'charset': str,
         }
 
-class nav(HtmlElement):
+class Nav(HtmlElement):
     pass
 
-class noframes(HtmlElement):
+class Noframes(HtmlElement):
    pass
 
-class noscript(HtmlElement):
+class Noscript(HtmlElement):
    pass
 
-class object(HtmlElement):
+class Object(HtmlElement):
     __attrs__ = {
         'align': str,
         'archive': str,
@@ -479,16 +485,16 @@ class object(HtmlElement):
         'width': str,
         }
 
-class ol(HtmlElement):
+class Ol(HtmlElement):
    pass
 
-class optgroup(HtmlElement):
+class Optgroup(HtmlElement):
     __attrs__ = {
         'disabled': str,
         'label': str,
         }
 
-class option(HtmlElement):
+class Option(HtmlElement):
     __attrs__ = {
         'disabled': str,
         'label': str,
@@ -496,10 +502,10 @@ class option(HtmlElement):
         'value': str,
         }
 
-class p(HtmlElement):
+class P(HtmlElement):
    pass
 
-class param(HtmlElement):
+class Param(HtmlElement):
     __attrs__ = {
         'name': str,
         'type': str,
@@ -507,24 +513,24 @@ class param(HtmlElement):
         'valuetype': str,
         }
 
-class pre(HtmlElement):
+class Pre(HtmlElement):
    pass
 
-class progress(HtmlElement):
+class Progress(HtmlElement):
     __attrs__ = {
         'max': int,
         'value': int,
     }
 
-class q(HtmlElement):
+class Q(HtmlElement):
     __attrs__ = {
         'cite': str,
         }
 
-class samp(HtmlElement):
+class Samp(HtmlElement):
    pass
 
-class script(HtmlElement):
+class Script(HtmlElement):
     __attrs__ = {
         'async': str,
         'charset': str,
@@ -533,10 +539,10 @@ class script(HtmlElement):
         'type': str,
         }
 
-class section(HtmlElement):
+class Section(HtmlElement):
     pass
 
-class select(HtmlElement):
+class Select(HtmlElement):
     __attrs__ = {
         'disabled': str,
         'multiple': str,
@@ -545,28 +551,28 @@ class select(HtmlElement):
         'required': str,
         }
 
-class small(HtmlElement):
+class Small(HtmlElement):
    pass
 
-class span(HtmlElement):
+class Span(HtmlElement):
    pass
 
-class strong(HtmlElement):
+class Strong(HtmlElement):
    pass
 
-class style(HtmlElement):
+class Style(HtmlElement):
     __attrs__ = {
         'media': str,
         'type': str,
         }
 
-class sub(HtmlElement):
+class Sub(HtmlElement):
    pass
 
-class sup(HtmlElement):
+class Sup(HtmlElement):
    pass
 
-class table(HtmlElement):
+class Table(HtmlElement):
     __attrs__ = {
         'border': str,
         'cellpadding': str,
@@ -577,7 +583,7 @@ class table(HtmlElement):
         'width': str,
         }
 
-class tbody(HtmlElement):
+class Tbody(HtmlElement):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -585,7 +591,7 @@ class tbody(HtmlElement):
         'valign': str,
         }
 
-class td(HtmlElement):
+class Td(HtmlElement):
     __attrs__ = {
         'abbr': str,
         'align': str,
@@ -599,7 +605,7 @@ class td(HtmlElement):
         'valign': str,
         }
 
-class textarea(HtmlElement):
+class Textarea(HtmlElement):
     __attrs__ = {
         'cols': str,
         'rows': str,
@@ -615,7 +621,7 @@ class textarea(HtmlElement):
         'required': str,
         }
 
-class tfoot(HtmlElement):
+class Tfoot(HtmlElement):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -623,7 +629,7 @@ class tfoot(HtmlElement):
         'valign': str,
         }
 
-class th(HtmlElement):
+class Th(HtmlElement):
     __attrs__ = {
         'abbr': str,
         'align': str,
@@ -636,7 +642,7 @@ class th(HtmlElement):
         'valign': str,
         }
 
-class thead(HtmlElement):
+class Thead(HtmlElement):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -644,15 +650,15 @@ class thead(HtmlElement):
         'valign': str,
         }
 
-class time(HtmlElement):
+class Time(HtmlElement):
     __attrs__ = {
         'datetime': str,
         }
 
-class title(HtmlElement):
+class Title(HtmlElement):
    pass
 
-class tr(HtmlElement):
+class Tr(HtmlElement):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -660,14 +666,14 @@ class tr(HtmlElement):
         'valign': str,
         }
 
-class tt(HtmlElement):
+class Tt(HtmlElement):
     pass
 
-class u(HtmlElement):
+class U(HtmlElement):
     pass
 
-class ul(HtmlElement):
+class Ul(HtmlElement):
     pass
 
-class var(HtmlElement):
+class Var(HtmlElement):
     pass
