@@ -1,4 +1,4 @@
 # coding: mixt
 from mixt.pyxl import html
 def test():
-    assert str(<frag><img src="barbaz{'foo'}" /></frag>) == """<img src="barbazfoo" />"""
+    assert str(<Fragment><img src="barbaz{'foo'}" /></Fragment>) == """<img src="barbazfoo" />"""

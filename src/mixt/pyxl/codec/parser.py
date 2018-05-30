@@ -189,7 +189,7 @@ class PyxlParser(HTMLTokenizer):
 
             self.output.append('html._push_condition(bool(')
             self._handle_attr_value(attrs['cond'])
-            self.output.append(')) and html.x_frag()(')
+            self.output.append(')) and html.Fragment()(')
             self.last_thing_was_python = False
             self.last_thing_was_close_if_tag = False
             return
@@ -199,18 +199,14 @@ class PyxlParser(HTMLTokenizer):
             if not self.last_thing_was_close_if_tag:
                 raise ParseError("<else> tag must come right after </if>", self.end)
 
-            self.output.append('(not html._last_if_condition) and html.x_frag()(')
+            self.output.append('(not html._last_if_condition) and html.Fragment()(')
             self.last_thing_was_python = False
             self.last_thing_was_close_if_tag = False
             return
 
-        module, dot, identifier = tag.rpartition('.')
-        identifier = 'x_%s' % identifier
-        x_tag = module + dot + identifier
-
-        if hasattr(html, x_tag):
+        if hasattr(html, tag):
             self.output.append('html.')
-        self.output.append('%s(' % x_tag)
+        self.output.append('%s(' % tag)
 
         first_attr = True
         for attr_name, attr_value in attrs.items():
@@ -269,16 +265,16 @@ class PyxlParser(HTMLTokenizer):
         self.last_thing_was_close_if_tag = False
 
     def handle_comment(self, data):
-        self.handle_startendtag("html_comment", {"comment": [data.strip()]})
+        self.handle_startendtag("HtmlComment", {"comment": [data.strip()]})
         self.last_thing_was_python = False
         self.last_thing_was_close_if_tag = False
 
     def handle_doctype(self, data):
-        self.handle_startendtag("html_decl", {"decl": ['DOCTYPE ' + data]})
+        self.handle_startendtag("HtmlDeclaration", {"decl": ['DOCTYPE ' + data]})
         self.last_thing_was_python = False
         self.last_thing_was_close_if_tag = False
 
     def handle_cdata(self, data):
-        self.handle_startendtag("html_marked_decl", {"decl": ['CDATA[' + data]})
+        self.handle_startendtag("HtmlMarkedDeclaration", {"decl": ['CDATA[' + data]})
         self.last_thing_was_python = False
         self.last_thing_was_close_if_tag = False

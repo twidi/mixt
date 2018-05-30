@@ -2,11 +2,11 @@
 from mixt.pyxl import html
 
 def test():
-    assert str(<frag>
+    assert str(<Fragment>
                    <if cond="{True}">true</if>
                    <else>false</else>
-               </frag>) == "true"
-    assert str(<frag>
+               </Fragment>) == "true"
+    assert str(<Fragment>
                    <if cond="{False}">true</if>
                    <else>false</else>
-               </frag>) == "false"
+               </Fragment>) == "false"

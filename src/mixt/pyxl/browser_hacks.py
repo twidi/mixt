@@ -12,10 +12,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from .base import x_base
+from .base import Base
 from .utils import escape
 
-class x_cond_comment(x_base):
+class ConditionalComment(Base):
     __attrs__ = {
         'cond': str,
         }
@@ -28,11 +28,11 @@ class x_cond_comment(x_base):
         l.extend(('<!--[if ', cond, ']>'))
 
         for child in self.__children__:
-            x_base._render_child_to_list(child, l)
+            self._render_child_to_list(child, l)
 
         l.append('<![endif]-->')
 
-class x_cond_noncomment(x_base):
+class ConditionalNonComment(Base):
     ''' This is a conditional comment where browsers which don't support conditional comments
         will parse the children by default. '''
     __attrs__ = {
@@ -47,7 +47,7 @@ class x_cond_noncomment(x_base):
         l.extend(('<!--[if ', cond, ']><!-->'))
 
         for child in self.__children__:
-            x_base._render_child_to_list(child, l)
+            self._render_child_to_list(child, l)
 
         l.append('<!--<![endif]-->')
 

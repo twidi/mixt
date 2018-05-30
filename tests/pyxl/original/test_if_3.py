@@ -2,7 +2,7 @@
 from mixt.pyxl import html
 
 def test():
-    assert str(<frag>
+    assert str(<Fragment>
                    <if cond="{True}">
                        <if cond="{True}">
                            one
@@ -19,9 +19,9 @@ def test():
                            four
                        </else>
                    </else>
-               </frag>) == "one"
+               </Fragment>) == "one"
 
-    assert str(<frag>
+    assert str(<Fragment>
                    <if cond="{True}">
                        <if cond="{False}">
                            one
@@ -38,9 +38,9 @@ def test():
                            four
                        </else>
                    </else>
-               </frag>) == "two"
+               </Fragment>) == "two"
 
-    assert str(<frag>
+    assert str(<Fragment>
                    <if cond="{False}">
                        <if cond="{False}">
                            one
@@ -57,9 +57,9 @@ def test():
                            four
                        </else>
                    </else>
-               </frag>) == "three"
+               </Fragment>) == "three"
 
-    assert str(<frag>
+    assert str(<Fragment>
                    <if cond="{False}">
                        <if cond="{False}">
                            one
@@ -76,4 +76,4 @@ def test():
                            four
                        </else>
                    </else>
-               </frag>) == "four"
+               </Fragment>) == "four"

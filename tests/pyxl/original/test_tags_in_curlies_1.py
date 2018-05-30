@@ -1,4 +1,4 @@
 # coding: mixt
 from mixt.pyxl import html
 def test():
-    assert str(<frag>{'<br />'}</frag>) == """&lt;br /&gt;"""
+    assert str(<Fragment>{'<br />'}</Fragment>) == """&lt;br /&gt;"""
