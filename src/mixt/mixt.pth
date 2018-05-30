@@ -1,0 +1,4 @@
+try:
+    import mixt.pyxl.codec.register
+except ImportError:
+    pass
