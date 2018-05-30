@@ -277,6 +277,9 @@ class HTMLTokenizer(object):
             if c in '\t\n\f ':
                 self.got_attribute()
                 self.state = State.BEFORE_ATTRIBUTE_NAME
+            elif c == '/':
+                self.got_attribute()
+                self.state = State.SELF_CLOSING_START_TAG
             elif c == '>':
                 self.got_attribute()
                 self.emit_tag()
