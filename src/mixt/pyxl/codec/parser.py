@@ -142,24 +142,32 @@ class PyxlParser(HTMLTokenizer):
                         yield part
                     prev_was_python = False
 
-        attr_value = list(format_parts())
-        if len(attr_value) == 1:
-            part = attr_value[0]
-            if type(part) == list:
-                self.output.append(Untokenizer().untokenize(part))
-            else:
-                self.output.append(repr(part))
+        output = []
+
+        if attr_value is True:
+            # special case where we force the value to True for attributes without value
+            output.append('True')
         else:
-            self.output.append('u"".join((')
-            for part in attr_value:
+            attr_value = list(format_parts())
+            if len(attr_value) == 1:
+                part = attr_value[0]
                 if type(part) == list:
-                    self.output.append('str(')
-                    self.output.append(Untokenizer().untokenize(part))
-                    self.output.append(')')
+                    output.append(Untokenizer().untokenize(part))
                 else:
-                    self.output.append(repr(part))
-                self.output.append(', ')
-            self.output.append('))')
+                    output.append(repr(part))
+            else:
+                output.append('u"".join((')
+                for part in attr_value:
+                    if type(part) == list:
+                        output.append('str(')
+                        output.append(Untokenizer().untokenize(part))
+                        output.append(')')
+                    else:
+                        output.append(repr(part))
+                    output.append(', ')
+                output.append('))')
+
+        self.output.extend(output)
 
     @staticmethod
     def _normalize_data_whitespace(data, prev_was_py, next_is_py):

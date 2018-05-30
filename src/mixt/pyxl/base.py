@@ -183,6 +183,36 @@ class Base(object, metaclass=BaseMetaclass):
                         self.__tag__, self.__class__.__name__, value, name, values_enum)
                     raise PyxlException(msg)
 
+            elif attr_type is bool:
+                # Special case for bool.
+                # We can have True:
+                #     In html5, bool attributes can set to an empty string or the attribute name.
+                #     We also accept python True or a string that is 'true' lowercased.
+                #     We force the value to True.
+                # We can have False:
+                #     In html5, bool attributes can set to an empty string or the attribute name
+                #     We also accept python True or a string that is 'true' lowercased.
+                #     We force the value to True.
+                # All other cases generate an error
+
+                if value in ('', name, True):
+                    value = True
+                elif value is False:
+                    value = False
+                else:
+                    str_value = str(value).capitalize()
+                    if str_value == 'True':
+                        value = True
+                    elif str_value  == 'False':
+                        value = False
+                    else:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        msg = '%s: %s: incorrect value for boolean "%s". expected nothing, ' \
+                              'an empty string, "%s", or True or False, as python bool ' \
+                              'or as string, got %s: %s' % (
+                            self.__tag__, self.__class__.__name__, name, name, type(value), value)
+                        exception = PyxlException(msg)
+                        raise exception.with_traceback(exc_tb)
             else:
                 try:
                     # Validate type of attr and cast to correct type if possible

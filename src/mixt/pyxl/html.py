@@ -29,7 +29,11 @@ class HtmlBaseElement(Base, metaclass=HtmlElementMetaclass):
     def _render_attributes(self):
         result = []
         for name, value in self.__attributes__.items():
-            result.extend((' ', name, '="', escape(value), '"'))
+            if self.__attrs__.get(name, None) is bool:
+                if value:
+                    result.extend((' ', name))
+            else:
+                result.extend((' ', name, '="', escape(value), '"'))
         return result
 
 class HtmlElement(HtmlBaseElement):
@@ -165,7 +169,7 @@ class Br(HtmlElementNoChild):
 
 class Button(HtmlElement):
     __attrs__ = {
-        'disabled': str,
+        'disabled': bool,
         'name': str,
         'type': str,
         'value': str,
@@ -267,7 +271,7 @@ class Form(HtmlElement):
         'enctype': str,
         'method': str,
         'name': str,
-        'novalidate': str,
+        'novalidate': bool,
         'target': str,
         }
 
@@ -345,16 +349,16 @@ class Iframe(HtmlElement):
         'width': str,
         # rk: 'allowTransparency' is not in W3C's HTML spec, but it's supported in most modern browsers.
         'allowtransparency': str,
-        'allowfullscreen': str,
+        'allowfullscreen': bool,
         }
 
 class Video(HtmlElement):
     __attrs__ = {
-        'autoplay': str,
+        'autoplay': bool,
         'controls': str,
         'height': str,
-        'loop': str,
-        'muted': str,
+        'loop': bool,
+        'muted': bool,
         'poster': str,
         'preload': str,
         'src': str,
@@ -366,7 +370,7 @@ class Img(HtmlElementNoChild):
         'alt': str,
         'src': str,
         'height': str,
-        'ismap': str,
+        'ismap': bool,
         'longdesc': str,
         'usemap': str,
         'vspace': str,
@@ -378,9 +382,9 @@ class Input(HtmlElementNoChild):
         'accept': str,
         'align': str,
         'alt': str,
-        'autofocus': str,
-        'checked': str,
-        'disabled': str,
+        'autofocus': bool,
+        'checked': bool,
+        'disabled': bool,
         'list': str,
         'max': str,
         'maxlength': str,
@@ -396,9 +400,9 @@ class Input(HtmlElementNoChild):
         'value': str,
         'autocomplete': str,
         'autocorrect': str,
-        'required': str,
+        'required': bool,
         'spellcheck': str,
-        'multiple': str,
+        'multiple': bool,
         }
 
 class Ins(HtmlElement):
@@ -474,7 +478,7 @@ class Object(HtmlElement):
         'codebase': str,
         'codetype': str,
         'data': str,
-        'declare': str,
+        'declare': bool,
         'height': str,
         'hspace': str,
         'name': str,
@@ -490,15 +494,15 @@ class Ol(HtmlElement):
 
 class Optgroup(HtmlElement):
     __attrs__ = {
-        'disabled': str,
+        'disabled': bool,
         'label': str,
         }
 
 class Option(HtmlElement):
     __attrs__ = {
-        'disabled': str,
+        'disabled': bool,
         'label': str,
-        'selected': str,
+        'selected': bool,
         'value': str,
         }
 
@@ -532,9 +536,9 @@ class Samp(HtmlElement):
 
 class Script(HtmlElement):
     __attrs__ = {
-        'async': str,
+        'async': bool,
         'charset': str,
-        'defer': str,
+        'defer': bool,
         'src': str,
         'type': str,
         }
@@ -544,11 +548,11 @@ class Section(HtmlElement):
 
 class Select(HtmlElement):
     __attrs__ = {
-        'disabled': str,
-        'multiple': str,
+        'disabled': bool,
+        'multiple': bool,
         'name': str,
         'size': str,
-        'required': str,
+        'required': bool,
         }
 
 class Small(HtmlElement):
@@ -609,16 +613,16 @@ class Textarea(HtmlElement):
     __attrs__ = {
         'cols': str,
         'rows': str,
-        'disabled': str,
+        'disabled': bool,
         'placeholder': str,
         'name': str,
-        'readonly': str,
+        'readonly': bool,
         'autocorrect': str,
         'autocomplete': str,
         'autocapitalize': str,
         'spellcheck': str,
         'autofocus': str,
-        'required': str,
+        'required': bool,
         }
 
 class Tfoot(HtmlElement):

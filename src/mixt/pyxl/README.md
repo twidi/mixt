@@ -11,6 +11,7 @@ What we changed:
 - Capitalized classes in `html`, but kept html tags in "mixt" encoding as lowercased
 - Removed `form_error` tag (`<form:error>` is not an html tag)
 - Renamed `html.rawhtml` function to `html.Raw`
+- Manage boolean attributes (specifically without value)
 
 
 You'll find the original README of this library below:

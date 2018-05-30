@@ -128,6 +128,9 @@ class HTMLTokenizer(object):
     def got_attribute(self):
         if self.attribute_name in self.tag.attrs:
             raise ParseError("repeat attribute name %r" % self.attribute_name)
+        if self.attribute_value is None:
+            # special boolean attributes case without values
+            self.attribute_value = True
         self.tag.attrs[self.attribute_name] = self.attribute_value
         self.attribute_name = None
         self.attribute_value = None
@@ -205,6 +208,7 @@ class HTMLTokenizer(object):
             elif c == '=':
                 self.state = State.BEFORE_ATTRIBUTE_VALUE
             elif c == '>':
+                self.got_attribute()
                 self.emit_tag()
                 self.state = State.DATA
             elif c in "\"'<":
@@ -226,6 +230,10 @@ class HTMLTokenizer(object):
                 self.state = State.DATA
             elif c in "\"'<":
                 raise BadCharError(self.state, c)
+            else:
+                self.got_attribute()
+                self.attribute_name = c.lower()
+                self.state = State.ATTRIBUTE_NAME
 
         elif self.state == State.BEFORE_ATTRIBUTE_VALUE:
             if c in '\t\n\f ':
