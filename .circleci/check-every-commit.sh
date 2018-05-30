@@ -62,7 +62,7 @@ GIST_ACCOUNT="mixtbot"
 GIST_ID="d1d436a981fd4e50c64a6acc8a51d6d2"
 CI="circleci"
 TOOL_NAME="commit-tester"
-MAKE_TARGETS="check test"
+MAKE_TARGETS="lint test"
 POST_FINAL_STATUS="${POST_FINAL_STATUS:-FALSE}"
 
 # End of configuration
