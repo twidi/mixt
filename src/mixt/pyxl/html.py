@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 from .utils import escape
-from .base import x_base
+from .base import Base
 
 # for backwards compatibility.
-from .browser_hacks import x_cond_comment
+from .browser_hacks import ConditionalComment
 
 _if_condition_stack = []
 _last_if_condition = None
@@ -18,7 +18,7 @@ def _leave_if():
     _last_if_condition = _if_condition_stack.pop()
     return []
 
-class x_html_element(x_base):
+class HtmlElement(Base):
     def _to_list(self, l):
         l.extend(('<', self.__tag__))
         for name, value in self.__attributes__.items():
@@ -26,11 +26,11 @@ class x_html_element(x_base):
         l.append('>')
 
         for child in self.__children__:
-            x_base._render_child_to_list(child, l)
+            self._render_child_to_list(child, l)
 
         l.extend(('</', self.__tag__, '>'))
 
-class x_html_element_nochild(x_base):
+class HtmlElementNoChild(Base):
     def append(self, child):
         raise Exception('<%s> does not allow children.', self.__tag__)
 
@@ -40,7 +40,7 @@ class x_html_element_nochild(x_base):
             l.extend((' ', name, '="', escape(value), '"'))
         l.append(' />')
 
-class x_html_comment(x_base):
+class HtmlComment(Base):
     __attrs__ = {
         'comment': str,
         }
@@ -48,7 +48,7 @@ class x_html_comment(x_base):
     def _to_list(self, l):
         pass
 
-class x_html_decl(x_base):
+class HtmlDeclaration(Base):
     __attrs__ = {
         'decl': str,
         }
@@ -56,7 +56,7 @@ class x_html_decl(x_base):
     def _to_list(self, l):
         l.extend(('<!', self.attr('decl'), '>'))
 
-class x_html_marked_decl(x_base):
+class HtmlMarkedDeclaration(Base):
     __attrs__ = {
         'decl': str,
         }
@@ -64,7 +64,7 @@ class x_html_marked_decl(x_base):
     def _to_list(self, l):
         l.extend(('<![', self.attr('decl'), ']]>'))
 
-class x_html_ms_decl(x_base):
+class HtmlMSDeclaration(Base):
     __attrs__ = {
         'decl': str,
         }
@@ -72,7 +72,7 @@ class x_html_ms_decl(x_base):
     def _to_list(self, l):
         l.extend(('<![', self.attr('decl'), ']>'))
 
-class x_rawhtml(x_html_element_nochild):
+class RawHtml(HtmlElementNoChild):
     __attrs__= {
         'text': str,
         }
@@ -84,14 +84,14 @@ class x_rawhtml(x_html_element_nochild):
             l.append(self.text)
 
 def rawhtml(text):
-    return x_rawhtml(text=text)
+    return RawHtml(text=text)
 
-class x_frag(x_base):
+class Fragment(Base):
     def _to_list(self, l):
         for child in self.__children__:
             self._render_child_to_list(child, l)
 
-class x_a(x_html_element):
+class a(HtmlElement):
     __attrs__ = {
         'href': str,
         'rel': str,
@@ -101,16 +101,16 @@ class x_a(x_html_element):
         'download': str,
         }
 
-class x_abbr(x_html_element):
+class abbr(HtmlElement):
     pass
 
-class x_acronym(x_html_element):
+class acronym(HtmlElement):
     pass
 
-class x_address(x_html_element):
+class address(HtmlElement):
     pass
 
-class x_area(x_html_element_nochild):
+class area(HtmlElementNoChild):
     __attrs__ = {
         'alt': str,
         'coords': str,
@@ -119,37 +119,37 @@ class x_area(x_html_element_nochild):
         'target': str,
         }
 
-class x_article(x_html_element):
+class article(HtmlElement):
     pass
 
-class x_aside(x_html_element):
+class aside(HtmlElement):
     pass
 
-class x_audio(x_html_element):
+class audio(HtmlElement):
     __attrs__ = {
         'src': str
         }
 
-class x_b(x_html_element):
+class b(HtmlElement):
    pass
 
-class x_big(x_html_element):
+class big(HtmlElement):
    pass
 
-class x_blockquote(x_html_element):
+class blockquote(HtmlElement):
     __attrs__ = {
         'cite': str,
         }
 
-class x_body(x_html_element):
+class body(HtmlElement):
     __attrs__ = {
         'contenteditable': str,
         }
 
-class x_br(x_html_element_nochild):
+class br(HtmlElementNoChild):
    pass
 
-class x_button(x_html_element):
+class button(HtmlElement):
     __attrs__ = {
         'disabled': str,
         'name': str,
@@ -157,22 +157,22 @@ class x_button(x_html_element):
         'value': str,
         }
 
-class x_canvas(x_html_element):
+class canvas(HtmlElement):
     __attrs__ = {
         'height': str,
         'width': str,
         }
 
-class x_caption(x_html_element):
+class caption(HtmlElement):
    pass
 
-class x_cite(x_html_element):
+class cite(HtmlElement):
    pass
 
-class x_code(x_html_element):
+class code(HtmlElement):
    pass
 
-class x_col(x_html_element_nochild):
+class col(HtmlElementNoChild):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -182,7 +182,7 @@ class x_col(x_html_element_nochild):
         'width': str,
         }
 
-class x_colgroup(x_html_element):
+class colgroup(HtmlElement):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -192,36 +192,36 @@ class x_colgroup(x_html_element):
         'width': str,
         }
 
-class x_datalist(x_html_element):
+class datalist(HtmlElement):
     pass
 
-class x_dd(x_html_element):
+class dd(HtmlElement):
    pass
 
-class x_del(x_html_element):
+class del_(HtmlElement):
     __attrs__ = {
         'cite': str,
         'datetime': str,
         }
 
-class x_div(x_html_element):
+class div(HtmlElement):
    __attrs__ = {
         'contenteditable': str,
        }
 
-class x_dfn(x_html_element):
+class dfn(HtmlElement):
    pass
 
-class x_dl(x_html_element):
+class dl(HtmlElement):
    pass
 
-class x_dt(x_html_element):
+class dt(HtmlElement):
    pass
 
-class x_em(x_html_element):
+class em(HtmlElement):
    pass
 
-class x_embed(x_html_element):
+class embed(HtmlElement):
     __attrs__ = {
         'src': str,
         'width': str,
@@ -232,19 +232,19 @@ class x_embed(x_html_element):
         'type': str,
         }
 
-class x_figure(x_html_element):
+class figure(HtmlElement):
    pass
 
-class x_figcaption(x_html_element):
+class figcaption(HtmlElement):
    pass
 
-class x_fieldset(x_html_element):
+class fieldset(HtmlElement):
    pass
 
-class x_footer(x_html_element):
+class footer(HtmlElement):
     pass
 
-class x_form(x_html_element):
+class form(HtmlElement):
     __attrs__ = {
         'action': str,
         'accept': str,
@@ -257,7 +257,7 @@ class x_form(x_html_element):
         'target': str,
         }
 
-class x_form_error(x_base):
+class form_error(Base):
     __attrs__ = {
         'name': str
         }
@@ -265,7 +265,7 @@ class x_form_error(x_base):
     def _to_list(self, l):
         l.extend(('<form:error name="', self.attr('name'), '" />'))
 
-class x_frame(x_html_element_nochild):
+class frame(HtmlElementNoChild):
     __attrs__ = {
         'frameborder': str,
         'longdesc': str,
@@ -277,42 +277,42 @@ class x_frame(x_html_element_nochild):
         'src': str,
         }
 
-class x_frameset(x_html_element):
+class frameset(HtmlElement):
     __attrs__ = {
         'rows': str,
         'cols': str,
         }
 
-class x_h1(x_html_element):
+class h1(HtmlElement):
    pass
 
-class x_h2(x_html_element):
+class h2(HtmlElement):
    pass
 
-class x_h3(x_html_element):
+class h3(HtmlElement):
    pass
 
-class x_h4(x_html_element):
+class h4(HtmlElement):
    pass
 
-class x_h5(x_html_element):
+class h5(HtmlElement):
    pass
 
-class x_h6(x_html_element):
+class h6(HtmlElement):
    pass
 
-class x_head(x_html_element):
+class head(HtmlElement):
     __attrs__ = {
         'profile': str,
         }
 
-class x_header(x_html_element):
+class header(HtmlElement):
     pass
 
-class x_hr(x_html_element_nochild):
+class hr(HtmlElementNoChild):
     pass
 
-class x_html(x_html_element):
+class html(HtmlElement):
     __attrs__ = {
         'content': str,
         'scheme': str,
@@ -322,10 +322,10 @@ class x_html(x_html_element):
         'xmlns:fb': str,
         }
 
-class x_i(x_html_element):
+class i(HtmlElement):
    pass
 
-class x_iframe(x_html_element):
+class iframe(HtmlElement):
     __attrs__ = {
         'frameborder': str,
         'height': str,
@@ -342,7 +342,7 @@ class x_iframe(x_html_element):
         'allowfullscreen': str,
         }
 
-class x_video(x_html_element):
+class video(HtmlElement):
     __attrs__ = {
         'autoplay': str,
         'controls': str,
@@ -355,7 +355,7 @@ class x_video(x_html_element):
         'width': str,
         }
 
-class x_img(x_html_element_nochild):
+class img(HtmlElementNoChild):
     __attrs__ = {
         'alt': str,
         'src': str,
@@ -367,7 +367,7 @@ class x_img(x_html_element_nochild):
         'width': str,
         }
 
-class x_input(x_html_element_nochild):
+class input(HtmlElementNoChild):
     __attrs__ = {
         'accept': str,
         'align': str,
@@ -395,27 +395,27 @@ class x_input(x_html_element_nochild):
         'multiple': str,
         }
 
-class x_ins(x_html_element):
+class ins(HtmlElement):
     __attrs__ = {
         'cite': str,
         'datetime': str,
         }
 
-class x_kbd(x_html_element):
+class kbd(HtmlElement):
     pass
 
-class x_label(x_html_element):
+class label(HtmlElement):
     __attrs__ = {
         'for': str,
         }
 
-class x_legend(x_html_element):
+class legend(HtmlElement):
    pass
 
-class x_li(x_html_element):
+class li(HtmlElement):
    pass
 
-class x_link(x_html_element_nochild):
+class link(HtmlElementNoChild):
     __attrs__ = {
         'charset': str,
         'href': str,
@@ -428,19 +428,19 @@ class x_link(x_html_element_nochild):
         'type': str,
         }
 
-class x_main(x_html_element):
+class main(HtmlElement):
     # we are not enforcing the w3 spec of one and only one main element on the
     # page
     __attrs__ = {
         'role': str,
     }
 
-class x_map(x_html_element):
+class map(HtmlElement):
     __attrs__ = {
         'name': str,
         }
 
-class x_meta(x_html_element_nochild):
+class meta(HtmlElementNoChild):
     __attrs__ = {
         'content': str,
         'http-equiv': str,
@@ -450,16 +450,16 @@ class x_meta(x_html_element_nochild):
         'charset': str,
         }
 
-class x_nav(x_html_element):
+class nav(HtmlElement):
     pass
 
-class x_noframes(x_html_element):
+class noframes(HtmlElement):
    pass
 
-class x_noscript(x_html_element):
+class noscript(HtmlElement):
    pass
 
-class x_object(x_html_element):
+class object(HtmlElement):
     __attrs__ = {
         'align': str,
         'archive': str,
@@ -479,16 +479,16 @@ class x_object(x_html_element):
         'width': str,
         }
 
-class x_ol(x_html_element):
+class ol(HtmlElement):
    pass
 
-class x_optgroup(x_html_element):
+class optgroup(HtmlElement):
     __attrs__ = {
         'disabled': str,
         'label': str,
         }
 
-class x_option(x_html_element):
+class option(HtmlElement):
     __attrs__ = {
         'disabled': str,
         'label': str,
@@ -496,10 +496,10 @@ class x_option(x_html_element):
         'value': str,
         }
 
-class x_p(x_html_element):
+class p(HtmlElement):
    pass
 
-class x_param(x_html_element):
+class param(HtmlElement):
     __attrs__ = {
         'name': str,
         'type': str,
@@ -507,24 +507,24 @@ class x_param(x_html_element):
         'valuetype': str,
         }
 
-class x_pre(x_html_element):
+class pre(HtmlElement):
    pass
 
-class x_progress(x_html_element):
+class progress(HtmlElement):
     __attrs__ = {
         'max': int,
         'value': int,
     }
 
-class x_q(x_html_element):
+class q(HtmlElement):
     __attrs__ = {
         'cite': str,
         }
 
-class x_samp(x_html_element):
+class samp(HtmlElement):
    pass
 
-class x_script(x_html_element):
+class script(HtmlElement):
     __attrs__ = {
         'async': str,
         'charset': str,
@@ -533,10 +533,10 @@ class x_script(x_html_element):
         'type': str,
         }
 
-class x_section(x_html_element):
+class section(HtmlElement):
     pass
 
-class x_select(x_html_element):
+class select(HtmlElement):
     __attrs__ = {
         'disabled': str,
         'multiple': str,
@@ -545,28 +545,28 @@ class x_select(x_html_element):
         'required': str,
         }
 
-class x_small(x_html_element):
+class small(HtmlElement):
    pass
 
-class x_span(x_html_element):
+class span(HtmlElement):
    pass
 
-class x_strong(x_html_element):
+class strong(HtmlElement):
    pass
 
-class x_style(x_html_element):
+class style(HtmlElement):
     __attrs__ = {
         'media': str,
         'type': str,
         }
 
-class x_sub(x_html_element):
+class sub(HtmlElement):
    pass
 
-class x_sup(x_html_element):
+class sup(HtmlElement):
    pass
 
-class x_table(x_html_element):
+class table(HtmlElement):
     __attrs__ = {
         'border': str,
         'cellpadding': str,
@@ -577,7 +577,7 @@ class x_table(x_html_element):
         'width': str,
         }
 
-class x_tbody(x_html_element):
+class tbody(HtmlElement):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -585,7 +585,7 @@ class x_tbody(x_html_element):
         'valign': str,
         }
 
-class x_td(x_html_element):
+class td(HtmlElement):
     __attrs__ = {
         'abbr': str,
         'align': str,
@@ -599,7 +599,7 @@ class x_td(x_html_element):
         'valign': str,
         }
 
-class x_textarea(x_html_element):
+class textarea(HtmlElement):
     __attrs__ = {
         'cols': str,
         'rows': str,
@@ -615,7 +615,7 @@ class x_textarea(x_html_element):
         'required': str,
         }
 
-class x_tfoot(x_html_element):
+class tfoot(HtmlElement):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -623,7 +623,7 @@ class x_tfoot(x_html_element):
         'valign': str,
         }
 
-class x_th(x_html_element):
+class th(HtmlElement):
     __attrs__ = {
         'abbr': str,
         'align': str,
@@ -636,7 +636,7 @@ class x_th(x_html_element):
         'valign': str,
         }
 
-class x_thead(x_html_element):
+class thead(HtmlElement):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -644,15 +644,15 @@ class x_thead(x_html_element):
         'valign': str,
         }
 
-class x_time(x_html_element):
+class time(HtmlElement):
     __attrs__ = {
         'datetime': str,
         }
 
-class x_title(x_html_element):
+class title(HtmlElement):
    pass
 
-class x_tr(x_html_element):
+class tr(HtmlElement):
     __attrs__ = {
         'align': str,
         'char': str,
@@ -660,14 +660,14 @@ class x_tr(x_html_element):
         'valign': str,
         }
 
-class x_tt(x_html_element):
+class tt(HtmlElement):
     pass
 
-class x_u(x_html_element):
+class u(HtmlElement):
     pass
 
-class x_ul(x_html_element):
+class ul(HtmlElement):
     pass
 
-class x_var(x_html_element):
+class var(HtmlElement):
     pass

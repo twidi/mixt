@@ -10,14 +10,16 @@ import sys
 
 from .utils import escape
 
+
 class PyxlException(Exception):
     pass
 
-class x_base_metaclass(type):
+
+class BaseMetaclass(type):
     def __init__(self, name, parents, attrs):
         super().__init__(name, parents, attrs)
-        x_base_parents = [parent for parent in parents if hasattr(parent, '__attrs__')]
-        parent_attrs = x_base_parents[0].__attrs__ if len(x_base_parents) else {}
+        base_parents = [parent for parent in parents if hasattr(parent, '__attrs__')]
+        parent_attrs = base_parents[0].__attrs__ if len(base_parents) else {}
         self_attrs = self.__dict__.get('__attrs__', {})
 
         # Dont allow '_' in attr names
@@ -28,9 +30,9 @@ class x_base_metaclass(type):
         combined_attrs = dict(parent_attrs)
         combined_attrs.update(self_attrs)
         setattr(self, '__attrs__', combined_attrs)
-        setattr(self, '__tag__', name[2:])
+        setattr(self, '__tag__', name)
 
-class x_base(object, metaclass=x_base_metaclass):
+class Base(object, metaclass=BaseMetaclass):
 
     __attrs__ = {
         # HTML attributes
@@ -84,7 +86,7 @@ class x_base(object, metaclass=x_base_metaclass):
         self.__children__ = []
 
         for name, value in kwargs.items():
-            self.set_attr(x_base._fix_attribute_name(name), value)
+            self.set_attr(self._fix_attribute_name(name), value)
 
     def __call__(self, *children):
         self.append_children(children)
@@ -111,7 +113,7 @@ class x_base(object, metaclass=x_base_metaclass):
 
         # filter by tag name
         else:
-            select = lambda x: x.__class__.__name__ == ('x_%s' % selector)
+            select = lambda x: x.__class__.__name__ == selector
 
         if exclude:
             func = lambda x: not select(x)
@@ -234,7 +236,7 @@ class x_base(object, metaclass=x_base_metaclass):
 
     @staticmethod
     def _render_child_to_list(child, l):
-        if isinstance(child, x_base): child._to_list(l)
+        if isinstance(child, Base): child._to_list(l)
         elif child is not None: l.append(escape(child))
 
     @staticmethod

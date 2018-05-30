@@ -2,14 +2,14 @@
 import pytest
 
 from mixt.pyxl import html
-from mixt.pyxl.base import PyxlException, x_base
+from mixt.pyxl.base import PyxlException, Base
 
 def test_basics():
     assert str(<div />) == '<div></div>'
     assert str(<img src="blah" />) == '<img src="blah" />'
     assert str(<div class="c"></div>) == '<div class="c"></div>'
     assert str(<div><span></span></div>) == '<div><span></span></div>'
-    assert str(<frag><span /><span /></frag>) == '<span></span><span></span>'
+    assert str(<Fragment><span /><span /></Fragment>) == '<span></span><span></span>'
 
 def test_escaping():
     assert str(<div class="&">&{'&'}</div>) == '<div class="&amp;">&&amp;</div>'
@@ -26,11 +26,11 @@ def test_comments():
         </div>)
     assert str(pyxl) == '<div class="blah">text</div>'
 
-def test_cond_comment():
+def test_conditional_comment():
     s = 'blahblah'
-    assert (str(<cond_comment cond="lt IE 8"><div class=">">{s}</div></cond_comment>)
+    assert (str(<ConditionalComment cond="lt IE 8"><div class=">">{s}</div></ConditionalComment>)
         == '<!--[if lt IE 8]><div class="&gt;">blahblah</div><![endif]-->')
-    assert (str(<cond_comment cond="(lt IE 8) & (gt IE 5)"><div>{s}</div></cond_comment>)
+    assert (str(<ConditionalComment cond="(lt IE 8) & (gt IE 5)"><div>{s}</div></ConditionalComment>)
         == '<!--[if (lt IE 8) & (gt IE 5)]><div>blahblah</div><![endif]-->')
 
 def test_decl():
@@ -41,7 +41,7 @@ def test_form_error():
     assert str(<form_error name="foo" />) == '<form:error name="foo" />'
 
 def test_enum_attrs():
-    class x_foo(x_base):
+    class Foo(Base):
         __attrs__ = {
             'value': ['a', 'b'],
         }
@@ -49,15 +49,15 @@ def test_enum_attrs():
         def _to_list(self, l):
             pass
 
-    assert (<foo />.attr('value')) == 'a'
-    assert (<foo />.value) == 'a'
-    assert (<foo value="b" />.attr('value')) == 'b'
-    assert (<foo value="b" />.value) == 'b'
+    assert (<Foo />.attr('value')) == 'a'
+    assert (<Foo />.value) == 'a'
+    assert (<Foo value="b" />.attr('value')) == 'b'
+    assert (<Foo value="b" />.value) == 'b'
 
     with pytest.raises(PyxlException):
-        <foo value="c" />
+        <Foo value="c" />
 
-    class x_bar(x_base):
+    class Bar(Base):
         __attrs__ = {
             'value': ['a', None, 'b'],
         }
@@ -66,12 +66,12 @@ def test_enum_attrs():
             pass
 
     with pytest.raises(PyxlException):
-        <bar />.attr('value')
+        <Bar />.attr('value')
 
     with pytest.raises(PyxlException):
-        <bar />.value
+        <Bar />.value
 
-    class x_baz(x_base):
+    class Baz(Base):
         __attrs__ = {
             'value': [None, 'a', 'b'],
         }
@@ -79,4 +79,4 @@ def test_enum_attrs():
         def _to_list(self, l):
             pass
 
-    assert (<baz />.value) == None
+    assert (<Baz />.value) == None

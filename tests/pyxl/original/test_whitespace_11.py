@@ -7,11 +7,11 @@ def test():
     assert str(get_frag1()) == str(get_frag2())
 
 def get_frag1():
-    return <frag>
+    return <Fragment>
         {'foo'}
-    </frag>
+    </Fragment>
 
 def get_frag2():
-    return (<frag>
+    return (<Fragment>
         {'foo'}
-    </frag>)
+    </Fragment>)

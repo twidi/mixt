@@ -7,6 +7,7 @@ What we changed:
 - the python codec used to parse files  is not `pyxl` anymore but `mixt`, to allow users to have both the original `pyxl` module AND `mixt` installed
 - removed RSS related stuff
 - use simpler ``super`` calls (thanks to python 3)
+- removed the ``x_`` prefix needed for tag classes
 
 
 You'll find the original README of this library below:

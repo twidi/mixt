@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from .base import x_base
+from .base import Base
 
-class x_element(x_base):
+class Element(Base):
 
     _element = None  # render() output cached by _rendered_element()
 
@@ -13,14 +13,14 @@ class x_element(x_base):
         cls = self.get_class()
         classes = set(cls.split(' ')) if cls else set()
 
-        while isinstance(out, x_element):
+        while isinstance(out, Element):
             new_out = out._rendered_element()
             cls = out.get_class()
             if cls:
                 classes.update(cls.split(' '))
             out = new_out
 
-        if classes and isinstance(out, x_base):
+        if classes and isinstance(out, Base):
             classes.update(out.get_class().split(' '))
             out.set_attr('class', ' '.join([_f for _f in classes if _f]))
 

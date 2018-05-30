@@ -6,9 +6,9 @@ def test():
     assert str(get_frag1()) == str(get_frag2())
 
 def get_frag1():
-    return <frag>{'foo'}
-    </frag>
+    return <Fragment>{'foo'}
+    </Fragment>
 
 def get_frag2():
-    return <frag>{'foo'} # lol
-    </frag>
+    return <Fragment>{'foo'} # lol
+    </Fragment>

@@ -7,25 +7,25 @@ from mixt.pyxl.codec.parser import ParseError
 def test_malformed_if():
     with pytest.raises(ParseError):
         pyxl_decode(b"""
-            <frag>
+            <Fragment>
                 <if cond="{true}">foo</if>
                 this is incorrect!
                 <else>bar</else>
-            </frag>""")
+            </Fragment>""")
 
 def test_multiple_else():
     with pytest.raises(ParseError):
         pyxl_decode(b"""
-            <frag>
+            <Fragment>
                 <if cond="{true}">foo</if>
                 <else>bar</else>
                 <else>baz</else>
-             </frag>""")
+             </Fragment>""")
 
 def test_nested_else():
     with pytest.raises(ParseError):
         pyxl_decode(b"""
-            <frag>
+            <Fragment>
                 <if cond="{true}">foo</if>
                 <else><else>bar</else></else>
-            </frag>""")
+            </Fragment>""")

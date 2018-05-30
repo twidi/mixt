@@ -2,5 +2,5 @@
 from mixt.pyxl import html
 
 def test():
-    assert str(<frag><if cond="{True}">true</if><else>false</else></frag>) == "true"
-    assert str(<frag><if cond="{False}">true</if><else>false</else></frag>) == "false"
+    assert str(<Fragment><if cond="{True}">true</if><else>false</else></Fragment>) == "true"
+    assert str(<Fragment><if cond="{False}">true</if><else>false</else></Fragment>) == "false"
