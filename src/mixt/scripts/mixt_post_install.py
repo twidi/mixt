@@ -8,12 +8,7 @@ import os.path
 
 PTH_FILENAME = "mixt.pth"
 PTH_CONTENT = (
-    """
-try:
-    import mixt.pyxl.codec.register
-except ImportError
-    pass
-""".lstrip()
+    "import sys; exec('try:\\n    import mixt.pyxl.codec.register\\nexcept ImportError:\\n    pass\\n')"
 )
 
 
