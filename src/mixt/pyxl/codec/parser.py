@@ -12,13 +12,13 @@ from .pytokenize import Untokenizer
 class ParseError(Exception):
     def __init__(self, message, pos=None):
         if pos is not None:
-            super(ParseError, self).__init__("%s at line %d char %d" % ((message,) + pos))
+            super().__init__("%s at line %d char %d" % ((message,) + pos))
         else:
-            super(ParseError, self).__init__(message)
+            super().__init__(message)
 
 class PyxlParser(HTMLTokenizer):
     def __init__(self, row, col):
-        super(PyxlParser, self).__init__()
+        super().__init__()
         self.start = self.end = (row, col)
         self.output = []
         self.open_tags = []
@@ -36,7 +36,7 @@ class PyxlParser(HTMLTokenizer):
 
         # interpret jumps on the same line as a single space
         elif tstart[1] > self.end[1]:
-            super(PyxlParser, self).feed(" ")
+            super().feed(" ")
 
         self.end = tstart
 
@@ -48,7 +48,7 @@ class PyxlParser(HTMLTokenizer):
                 else:
                     self.end = (self.end[0], self.end[1]+1)
                 try:
-                    super(PyxlParser, self).feed(c)
+                    super().feed(c)
                 except TokenizerParseError:
                     raise ParseError("HTML Parsing error", self.end)
         if self.done():
@@ -74,7 +74,7 @@ class PyxlParser(HTMLTokenizer):
                             State.ATTRIBUTE_VALUE_DOUBLE_QUOTED,
                             State.ATTRIBUTE_VALUE_SINGLE_QUOTED,
                             State.ATTRIBUTE_VALUE_UNQUOTED]:
-            super(PyxlParser, self).feed_python(tokens)
+            super().feed_python(tokens)
 
     def feed_position_only(self, token):
         """update with any whitespace we might have missed, and advance position to after the

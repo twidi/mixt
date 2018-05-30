@@ -57,7 +57,7 @@ class ParseError(Exception):
 
 class BadCharError(Exception):
     def __init__(self, state, char):
-        super(BadCharError, self).__init__("unexpected character %r in state %r" %
+        super().__init__("unexpected character %r in state %r" %
                                            (char, State.state_name(state)))
 
 class Unimplemented(Exception):

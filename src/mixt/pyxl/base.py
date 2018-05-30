@@ -15,7 +15,7 @@ class PyxlException(Exception):
 
 class x_base_metaclass(type):
     def __init__(self, name, parents, attrs):
-        super(x_base_metaclass, self).__init__(name, parents, attrs)
+        super().__init__(name, parents, attrs)
         x_base_parents = [parent for parent in parents if hasattr(parent, '__attrs__')]
         parent_attrs = x_base_parents[0].__attrs__ if len(x_base_parents) else {}
         self_attrs = self.__dict__.get('__attrs__', {})

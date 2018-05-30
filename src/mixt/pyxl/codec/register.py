@@ -30,7 +30,7 @@ class PyxlIncrementalDecoder(utf_8.IncrementalDecoder):
         if final:
             buff = self.buffer
             self.buffer = b''
-            return super(PyxlIncrementalDecoder, self).decode(
+            return super().decode(
                 pyxl_transform_string(buff).encode('utf-8'), final=True)
         else:
             return ''
