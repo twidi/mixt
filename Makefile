@@ -77,4 +77,5 @@ clean:  ## Clean python build related directories and files
 full-clean:  ## Like "clean" but will clean some other generated directories or files
 full-clean: clean
 	@echo "$(BOLD)Full cleaning$(RESET)"
-	@rm -rf .mypy_cache
+	find ./ -type d  \( -name '__pycache__' -or -name '.pytest_cache' -or -name '.mypy_cache'  \) -print0 | xargs -tr0 rm -r
+
