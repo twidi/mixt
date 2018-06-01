@@ -38,9 +38,8 @@ def test_new_element_without_attributes():
 
 def test_new_element_with_attributes():
     class Foo(Element):
-        __attrs__ = {
-            'name': str
-        }
+        class Attrs:
+            name: str
 
         def render(self):
             return <div data-name="{self.name}"/>

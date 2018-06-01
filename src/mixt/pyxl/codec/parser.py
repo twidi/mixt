@@ -127,14 +127,6 @@ class PyxlParser(HTMLTokenizer):
     def get_token(self):
         return (tokenize.STRING, ''.join(self.output), self.start, self.end, '')
 
-    @staticmethod
-    def safe_attr_name(name):
-        if name == "class":
-            return "xclass"
-        if name == "for":
-            return "xfor"
-        return name.replace('-', '_').replace(':', 'COLON')
-
     def _handle_attr_value(self, attr_value):
         def format_parts():
             prev_was_python = False
@@ -233,7 +225,12 @@ class PyxlParser(HTMLTokenizer):
             if first_attr: first_attr = False
             else: self.output.append(', ')
 
-            self.output.append(self.safe_attr_name(attr_name))
+            try:
+                safe_attr_name = html.Base.Attrs.to_python(attr_name)
+            except NameError:
+                raise ParseError("Invalid attribute name %s" % attr_name, self.start)
+
+            self.output.append(safe_attr_name)
             self.output.append('=')
             self.output.extend(self._handle_attr_value(attr_value))
 

@@ -5,8 +5,12 @@
 # insecure because these aren't being used for anything cryptographic and it's
 # much faster (2x). We're also not using NumPy (which is even faster) because
 # it's a difficult dependency to fulfill purely to generate random numbers.
+
+import keyword
 import random
 import sys
+
+from typing import get_type_hints, Sequence
 
 from .utils import escape
 
@@ -15,78 +19,111 @@ class PyxlException(Exception):
     pass
 
 
+class Choices(Sequence): ...
+
+
 class BaseMetaclass(type):
     def __init__(self, name, parents, attrs):
         super().__init__(name, parents, attrs)
-        base_parents = [parent for parent in parents if hasattr(parent, '__attrs__')]
-        parent_attrs = base_parents[0].__attrs__ if len(base_parents) else {}
-        self_attrs = self.__dict__.get('__attrs__', {})
 
-        # Dont allow '_' in attr names
-        for attr_name in self_attrs:
-            assert '_' not in attr_name, (
-                "%s: '_' not allowed in attr names, use '-' instead" % attr_name)
+        attrs_classes = []
 
-        combined_attrs = dict(parent_attrs)
-        combined_attrs.update(self_attrs)
-        setattr(self, '__attrs__', combined_attrs)
+        if 'Attrs' in attrs:
+            attrs_classes.append(attrs['Attrs'])
+
+        attrs_classes.extend([parent.Attrs for parent in parents[::-1] if hasattr(parent, 'Attrs')])
+
+        class Attrs(*attrs_classes):
+            pass
+
+        Attrs._types = get_type_hints(Attrs)
+
+        setattr(self, 'Attrs', Attrs)
+
         setattr(self, '__tag__', name)
 
 class Base(object, metaclass=BaseMetaclass):
 
-    __attrs__ = {
+    class Attrs:
+        # Rules for attributes names
+        # a starting `_` will be removed in final attribute
+        # a single `_` will be changed to `-`
+        # a double `__` will be changed to `:`
+
+        @staticmethod
+        def to_html(name):
+            if name.startswith('_'):
+                name = name[1:]
+            return name.replace('__', ':').replace('_', '-')
+
+        @staticmethod
+        def to_python(name):
+            name = name.replace('-', '_').replace(':', '__')
+            if not name.isidentifier():
+                raise NameError
+            if keyword.iskeyword(name):
+                name = '_' + name
+            return name
+
+        @classmethod
+        def allow(cls, name):
+            return name in cls._types or name.startswith('data_') or name.startswith('aria_')
+
+        @classmethod
+        def type(cls, name):
+            return cls._types.get(name, str)
+
         # HTML attributes
-        'accesskey': str,
-        'class': str,
-        'dir': str,
-        'id': str,
-        'lang': str,
-        'maxlength': str,
-        'role': str,
-        'style': str,
-        'tabindex': int,
-        'title': str,
-        'xml:lang': str,
+        accesskey: str
+        _class: str
+        dir: str
+        id: str
+        lang: str
+        maxlength: str
+        role: str
+        style: str
+        tabindex: int
+        title: str
+        xmllang: str
 
         # Microdata HTML attributes
-        'itemtype': str,
-        'itemscope': str,
-        'itemprop': str,
-        'itemid': str,
-        'itemref': str,
+        itemtype: str
+        itemscope: str
+        itemprop: str
+        itemid: str
+        itemref: str
 
         # JS attributes
-        'onabort': str,
-        'onblur': str,
-        'onchange': str,
-        'onclick': str,
-        'ondblclick': str,
-        'onerror': str,
-        'onfocus': str,
-        'onkeydown': str,
-        'onkeypress': str,
-        'onkeyup': str,
-        'onload': str,
-        'onmousedown': str,
-        'onmouseenter': str,
-        'onmouseleave': str,
-        'onmousemove': str,
-        'onmouseout': str,
-        'onmouseover': str,
-        'onmouseup': str,
-        'onreset': str,
-        'onresize': str,
-        'onselect': str,
-        'onsubmit': str,
-        'onunload': str,
-        }
+        onabort: str
+        onblur: str
+        onchange: str
+        onclick: str
+        ondblclick: str
+        onerror: str
+        onfocus: str
+        onkeydown: str
+        onkeypress: str
+        onkeyup: str
+        onload: str
+        onmousedown: str
+        onmouseenter: str
+        onmouseleave: str
+        onmousemove: str
+        onmouseout: str
+        onmouseover: str
+        onmouseup: str
+        onreset: str
+        onresize: str
+        onselect: str
+        onsubmit: str
+        onunload: str
 
     def __init__(self, **kwargs):
         self.__attributes__ = {}
         self.__children__ = []
 
         for name, value in kwargs.items():
-            self.set_attr(self._fix_attribute_name(name), value)
+            self.set_attr(name, value)
 
     def __call__(self, *children):
         self.append_children(children)
@@ -136,11 +173,11 @@ class Base(object, metaclass=BaseMetaclass):
         if len(name) > 4 and name.startswith('__') and name.endswith('__'):
             # For dunder name (e.g. __iter__),raise AttributeError, not PyxlException.
             raise AttributeError(name)
-        return self.attr(name.replace('_', '-'))
+        return self.attr(name)
 
-    def attr(self, name, default=None):
-        # this check is fairly expensive (~8% of cost)
-        if not self.allows_attribute(name):
+    def attr(self, name, default=None):  # TODO: default could maybe be `NotProvided` ?
+        name = self.Attrs.to_python(name)
+        if not self.Attrs.allow(name):
             raise PyxlException('<%s> has no attr named "%s"' % (self.__tag__, name))
 
         value = self.__attributes__.get(name)
@@ -148,34 +185,35 @@ class Base(object, metaclass=BaseMetaclass):
         if value is not None:
             return value
 
-        attr_type = self.__attrs__.get(name, str)
-        if type(attr_type) == list:
-            if not attr_type:
+        attr_type = self.Attrs.type(name)
+
+        if issubclass(attr_type, Choices):
+            values_enum = getattr(self.Attrs, name)
+
+            if not values_enum:
+                # TODO: this must be checked in the metaclass
                 raise PyxlException('Invalid attribute definition')
 
-            if None in attr_type[1:]:
+            if None in values_enum[1:]:
+                # TODO: this must be checked in the metaclass
                 raise PyxlException('None must be the first, default value')
 
-            return attr_type[0]
+            # TODO: return ``default`` if ``attr_type[0] is None``
+            return values_enum[0]
 
-        return default
-
-    def transfer_attributes(self, element):
-        for name, value in self.__attributes__.items():
-            if element.allows_attribute(name) and element.attr(name) is None:
-                element.set_attr(name, value)
+        return default  # TODO get value from Attrs if defined if default is None
 
     def set_attr(self, name, value):
-        # this check is fairly expensive (~8% of cost)
-        if not self.allows_attribute(name):
+        name = self.Attrs.to_python(name)
+        if not self.Attrs.allow(name):
             raise PyxlException('<%s> has no attr named "%s"' % (self.__tag__, name))
 
         if value is not None:
-            attr_type = self.__attrs__.get(name, str)
+            attr_type = self.Attrs.type(name)
 
-            if type(attr_type) == list:
+            if issubclass(attr_type, Choices):
                 # support for enum values in pyxl attributes
-                values_enum = attr_type
+                values_enum = getattr(self.Attrs, name)
                 assert values_enum, 'Invalid attribute definition'
 
                 if value not in values_enum:
@@ -250,9 +288,6 @@ class Base(object, metaclass=BaseMetaclass):
         for name, value in attrs_dict.items():
             self.set_attr(name, value)
 
-    def allows_attribute(self, name):
-        return (name in self.__attrs__ or name.startswith('data-') or name.startswith('aria-'))
-
     def to_string(self):
         l = []
         self._to_list(l)
@@ -268,9 +303,3 @@ class Base(object, metaclass=BaseMetaclass):
     def _render_child_to_list(child, l):
         if isinstance(child, Base): child._to_list(l)
         elif child is not None: l.append(escape(child))
-
-    @staticmethod
-    def _fix_attribute_name(name):
-        if name == 'xclass': return 'class'
-        if name == 'xfor': return 'for'
-        return name.replace('_', '-').replace('COLON', ':')

@@ -1,8 +1,9 @@
 # coding: mixt
+
 import pytest
 
 from mixt.pyxl import html
-from mixt.pyxl.base import PyxlException, Base
+from mixt.pyxl.base import PyxlException, Base, Choices
 
 def test_basics():
     assert str(<div />) == '<div></div>'
@@ -39,9 +40,8 @@ def test_decl():
 
 def test_enum_attrs():
     class Foo(Base):
-        __attrs__ = {
-            'value': ['a', 'b'],
-        }
+        class Attrs:
+            value: Choices = ['a', 'b']
 
         def _to_list(self, l):
             pass
@@ -55,9 +55,8 @@ def test_enum_attrs():
         <Foo value="c" />
 
     class Bar(Base):
-        __attrs__ = {
-            'value': ['a', None, 'b'],
-        }
+        class Attrs:
+            value: Choices = ['a', None, 'b']
 
         def _to_list(self, l):
             pass
@@ -69,11 +68,29 @@ def test_enum_attrs():
         <Bar />.value
 
     class Baz(Base):
-        __attrs__ = {
-            'value': [None, 'a', 'b'],
-        }
+        class Attrs:
+            value: Choices = [None, 'a', 'b']
 
         def _to_list(self, l):
             pass
 
     assert (<Baz />.value) == None
+
+
+def test_special_attributes():
+    class Foo(html.HtmlElement):
+        class Attrs:
+            _def: str
+            foo_bar__baz: str
+
+    # using "html" type attribute names
+    tag = <Foo def='fed' foo-bar:baz='qux' />
+    assert str(tag) == '<foo def="fed" foo-bar:baz="qux"></foo>'
+    assert tag._def == 'fed'
+    assert tag.foo_bar__baz == 'qux'
+
+    # using "python" type attributes names
+    tag = <Foo _def='fed' foo_bar__baz='qux' />
+    assert str(tag) == '<foo def="fed" foo-bar:baz="qux"></foo>'
+    assert tag._def == 'fed'
+    assert tag.foo_bar__baz == 'qux'
