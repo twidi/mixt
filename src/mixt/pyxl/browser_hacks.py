@@ -16,12 +16,12 @@ from .base import Base
 from .utils import escape
 
 class ConditionalComment(Base):
-    class Attrs:
+    class PropTypes:
         cond: str
 
     def _to_list(self, l):
         # allow '&', escape everything else from cond
-        cond = self.__attributes__.get('cond', '')
+        cond = self.__props__.get('cond', '')
         cond = '&'.join(map(escape, cond.split('&')))
 
         l.extend(('<!--[if ', cond, ']>'))
@@ -34,12 +34,12 @@ class ConditionalComment(Base):
 class ConditionalNonComment(Base):
     ''' This is a conditional comment where browsers which don't support conditional comments
         will parse the children by default. '''
-    class Attrs:
+    class PropTypes:
         cond: str
 
     def _to_list(self, l):
         # allow '&', escape everything else from cond
-        cond = self.__attributes__.get('cond', '')
+        cond = self.__props__.get('cond', '')
         cond = '&'.join(map(escape, cond.split('&')))
 
         l.extend(('<!--[if ', cond, ']><!-->'))

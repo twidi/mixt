@@ -38,37 +38,37 @@ def test_decl():
     assert (str(<script><![CDATA[<div><div>]]></script>)
         == '<script><![CDATA[<div><div>]]></script>')
 
-def test_enum_attrs():
+def test_enum_prop():
     class Foo(Base):
-        class Attrs:
+        class PropTypes:
             value: Choices = ['a', 'b']
 
         def _to_list(self, l):
             pass
 
-    assert (<Foo />.attr('value')) == 'a'
+    assert (<Foo />.prop('value')) == 'a'
     assert (<Foo />.value) == 'a'
-    assert (<Foo value="b" />.attr('value')) == 'b'
+    assert (<Foo value="b" />.prop('value')) == 'b'
     assert (<Foo value="b" />.value) == 'b'
 
     with pytest.raises(PyxlException):
         <Foo value="c" />
 
     class Bar(Base):
-        class Attrs:
+        class PropTypes:
             value: Choices = ['a', None, 'b']
 
         def _to_list(self, l):
             pass
 
     with pytest.raises(PyxlException):
-        <Bar />.attr('value')
+        <Bar />.prop('value')
 
     with pytest.raises(PyxlException):
         <Bar />.value
 
     class Baz(Base):
-        class Attrs:
+        class PropTypes:
             value: Choices = [None, 'a', 'b']
 
         def _to_list(self, l):
@@ -77,19 +77,19 @@ def test_enum_attrs():
     assert (<Baz />.value) == None
 
 
-def test_special_attributes():
+def test_special_prop_names():
     class Foo(html.HtmlElement):
-        class Attrs:
+        class PropTypes:
             _def: str
             foo_bar__baz: str
 
-    # using "html" type attribute names
+    # using "html" type props names
     tag = <Foo def='fed' foo-bar:baz='qux' />
     assert str(tag) == '<foo def="fed" foo-bar:baz="qux"></foo>'
     assert tag._def == 'fed'
     assert tag.foo_bar__baz == 'qux'
 
-    # using "python" type attributes names
+    # using "python" type props names
     tag = <Foo _def='fed' foo_bar__baz='qux' />
     assert str(tag) == '<foo def="fed" foo-bar:baz="qux"></foo>'
     assert tag._def == 'fed'

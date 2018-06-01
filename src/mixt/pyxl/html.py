@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from .utils import escape
-from .base import Base, BaseMetaclass
+from .base import Base, BaseMetaclass, BasePropTypes
 
 # for backwards compatibility.
 from .browser_hacks import ConditionalComment
@@ -28,9 +28,9 @@ class HtmlElementMetaclass(BaseMetaclass):
 class HtmlBaseElement(Base, metaclass=HtmlElementMetaclass):
     def _render_attributes(self):
         result = []
-        for name, value in self.__attributes__.items():
-            html_name = self.Attrs.to_html(name)
-            if self.Attrs.type(name) is bool:
+        for name, value in self.props.items():
+            html_name = BasePropTypes.to_html(name)
+            if self.PropTypes.type(name) is bool:
                 if value:
                     result.extend((' ', html_name))
             else:
@@ -60,35 +60,35 @@ class HtmlElementNoChild(HtmlBaseElement):
 
 
 class HtmlComment(Base):
-    class Attrs:
+    class PropTypes:
         comment: str
 
     def _to_list(self, l):
         pass
 
 class HtmlDeclaration(Base):
-    class Attrs:
+    class PropTypes:
         decl: str
 
     def _to_list(self, l):
-        l.extend(('<!', self.attr('decl'), '>'))
+        l.extend(('<!', self.prop('decl'), '>'))
 
 class HtmlMarkedDeclaration(Base):
-    class Attrs:
+    class PropTypes:
         decl: str
 
     def _to_list(self, l):
-        l.extend(('<![', self.attr('decl'), ']]>'))
+        l.extend(('<![', self.prop('decl'), ']]>'))
 
 class HtmlMSDeclaration(Base):
-    class Attrs:
+    class PropTypes:
         decl: str
 
     def _to_list(self, l):
-        l.extend(('<![', self.attr('decl'), ']>'))
+        l.extend(('<![', self.prop('decl'), ']>'))
 
 class RawHtml(HtmlElementNoChild):
-    class Attrs:
+    class PropTypes:
         text: str
 
     def _to_list(self, l):
@@ -106,7 +106,7 @@ class Fragment(Base):
             self._render_child_to_list(child, l)
 
 class A(HtmlElement):
-    class Attrs:
+    class PropTypes:
         href: str
         rel: str
         type: str
@@ -124,7 +124,7 @@ class Address(HtmlElement):
     pass
 
 class Area(HtmlElementNoChild):
-    class Attrs:
+    class PropTypes:
         alt: str
         coords: str
         href: str
@@ -138,7 +138,7 @@ class Aside(HtmlElement):
     pass
 
 class Audio(HtmlElement):
-    class Attrs:
+    class PropTypes:
         src: str
 
 class B(HtmlElement):
@@ -148,25 +148,25 @@ class Big(HtmlElement):
    pass
 
 class Blockquote(HtmlElement):
-    class Attrs:
+    class PropTypes:
         cite: str
 
 class Body(HtmlElement):
-    class Attrs:
+    class PropTypes:
         contenteditable: str
 
 class Br(HtmlElementNoChild):
    pass
 
 class Button(HtmlElement):
-    class Attrs:
+    class PropTypes:
         disabled: bool
         name: str
         type: str
         value: str
 
 class Canvas(HtmlElement):
-    class Attrs:
+    class PropTypes:
         height: str
         width: str
 
@@ -180,7 +180,7 @@ class Code(HtmlElement):
    pass
 
 class Col(HtmlElementNoChild):
-    class Attrs:
+    class PropTypes:
         align: str
         char: str
         charoff: int
@@ -189,7 +189,7 @@ class Col(HtmlElementNoChild):
         width: str
 
 class Colgroup(HtmlElement):
-    class Attrs:
+    class PropTypes:
         align: str
         char: str
         charoff: int
@@ -204,12 +204,12 @@ class Dd(HtmlElement):
    pass
 
 class Del(HtmlElement):
-    class Attrs:
+    class PropTypes:
         cite: str
         datetime: str
 
 class Div(HtmlElement):
-   class Attrs:
+   class PropTypes:
         contenteditable: str
 
 class Dfn(HtmlElement):
@@ -225,7 +225,7 @@ class Em(HtmlElement):
    pass
 
 class Embed(HtmlElement):
-    class Attrs:
+    class PropTypes:
         src: str
         width: str
         height: str
@@ -247,7 +247,7 @@ class Footer(HtmlElement):
     pass
 
 class Form(HtmlElement):
-    class Attrs:
+    class PropTypes:
         action: str
         accept: str
         accept_charset: str
@@ -259,7 +259,7 @@ class Form(HtmlElement):
         target: str
 
 class Frame(HtmlElementNoChild):
-    class Attrs:
+    class PropTypes:
         frameborder: str
         longdesc: str
         marginheight: str
@@ -270,7 +270,7 @@ class Frame(HtmlElementNoChild):
         src: str
 
 class Frameset(HtmlElement):
-    class Attrs:
+    class PropTypes:
         rows: str
         cols: str
 
@@ -293,7 +293,7 @@ class H6(HtmlElement):
    pass
 
 class Head(HtmlElement):
-    class Attrs:
+    class PropTypes:
         profile: str
 
 class Header(HtmlElement):
@@ -303,7 +303,7 @@ class Hr(HtmlElementNoChild):
     pass
 
 class Html(HtmlElement):
-    class Attrs:
+    class PropTypes:
         content: str
         scheme: str
         http_equiv: str
@@ -315,7 +315,7 @@ class I(HtmlElement):
    pass
 
 class Iframe(HtmlElement):
-    class Attrs:
+    class PropTypes:
         frameborder: str
         height: str
         longdesc: str
@@ -331,7 +331,7 @@ class Iframe(HtmlElement):
         allowfullscreen: bool
 
 class Video(HtmlElement):
-    class Attrs:
+    class PropTypes:
         autoplay: bool
         controls: str
         height: str
@@ -343,7 +343,7 @@ class Video(HtmlElement):
         width: str
 
 class Img(HtmlElementNoChild):
-    class Attrs:
+    class PropTypes:
         alt: str
         src: str
         height: str
@@ -354,7 +354,7 @@ class Img(HtmlElementNoChild):
         width: str
 
 class Input(HtmlElementNoChild):
-    class Attrs:
+    class PropTypes:
         accept: str
         align: str
         alt: str
@@ -381,7 +381,7 @@ class Input(HtmlElementNoChild):
         multiple: bool
 
 class Ins(HtmlElement):
-    class Attrs:
+    class PropTypes:
         cite: str
         datetime: str
 
@@ -389,7 +389,7 @@ class Kbd(HtmlElement):
     pass
 
 class Label(HtmlElement):
-    class Attrs:
+    class PropTypes:
         _for: str
 
 class Legend(HtmlElement):
@@ -399,7 +399,7 @@ class Li(HtmlElement):
    pass
 
 class Link(HtmlElementNoChild):
-    class Attrs:
+    class PropTypes:
         charset: str
         href: str
         hreflang: str
@@ -413,15 +413,15 @@ class Link(HtmlElementNoChild):
 class Main(HtmlElement):
     # we are not enforcing the w3 spec of one and only one main element on the
     # page
-    class Attrs:
+    class PropTypes:
         role: str
 
 class Map(HtmlElement):
-    class Attrs:
+    class PropTypes:
         name: str
 
 class Meta(HtmlElementNoChild):
-    class Attrs:
+    class PropTypes:
         content: str
         http_equiv: str
         name: str
@@ -439,7 +439,7 @@ class Noscript(HtmlElement):
    pass
 
 class Object(HtmlElement):
-    class Attrs:
+    class PropTypes:
         align: str
         archive: str
         border: str
@@ -461,12 +461,12 @@ class Ol(HtmlElement):
    pass
 
 class Optgroup(HtmlElement):
-    class Attrs:
+    class PropTypes:
         disabled: bool
         label: str
 
 class Option(HtmlElement):
-    class Attrs:
+    class PropTypes:
         disabled: bool
         label: str
         selected: bool
@@ -476,7 +476,7 @@ class P(HtmlElement):
    pass
 
 class Param(HtmlElement):
-    class Attrs:
+    class PropTypes:
         name: str
         type: str
         value: str
@@ -486,19 +486,19 @@ class Pre(HtmlElement):
    pass
 
 class Progress(HtmlElement):
-    class Attrs:
+    class PropTypes:
         max: int
         value: int
 
 class Q(HtmlElement):
-    class Attrs:
+    class PropTypes:
         cite: str
 
 class Samp(HtmlElement):
    pass
 
 class Script(HtmlElement):
-    class Attrs:
+    class PropTypes:
         async: bool
         charset: str
         defer: bool
@@ -509,7 +509,7 @@ class Section(HtmlElement):
     pass
 
 class Select(HtmlElement):
-    class Attrs:
+    class PropTypes:
         disabled: bool
         multiple: bool
         name: str
@@ -526,7 +526,7 @@ class Strong(HtmlElement):
    pass
 
 class Style(HtmlElement):
-    class Attrs:
+    class PropTypes:
         media: str
         type: str
 
@@ -537,7 +537,7 @@ class Sup(HtmlElement):
    pass
 
 class Table(HtmlElement):
-    class Attrs:
+    class PropTypes:
         border: str
         cellpadding: str
         cellspacing: str
@@ -547,14 +547,14 @@ class Table(HtmlElement):
         width: str
 
 class Tbody(HtmlElement):
-    class Attrs:
+    class PropTypes:
         align: str
         char: str
         charoff: str
         valign: str
 
 class Td(HtmlElement):
-    class Attrs:
+    class PropTypes:
         abbr: str
         align: str
         axis: str
@@ -567,7 +567,7 @@ class Td(HtmlElement):
         valign: str
 
 class Textarea(HtmlElement):
-    class Attrs:
+    class PropTypes:
         cols: str
         rows: str
         disabled: bool
@@ -582,14 +582,14 @@ class Textarea(HtmlElement):
         required: bool
 
 class Tfoot(HtmlElement):
-    class Attrs:
+    class PropTypes:
         align: str
         char: str
         charoff: str
         valign: str
 
 class Th(HtmlElement):
-    class Attrs:
+    class PropTypes:
         abbr: str
         align: str
         axis: str
@@ -601,21 +601,21 @@ class Th(HtmlElement):
         valign: str
 
 class Thead(HtmlElement):
-    class Attrs:
+    class PropTypes:
         align: str
         char: str
         charoff: str
         valign: str
 
 class Time(HtmlElement):
-    class Attrs:
+    class PropTypes:
         datetime: str
 
 class Title(HtmlElement):
    pass
 
 class Tr(HtmlElement):
-    class Attrs:
+    class PropTypes:
         align: str
         char: str
         charoff: str

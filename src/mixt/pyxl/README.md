@@ -13,7 +13,7 @@ What we changed:
 - Renamed `html.rawhtml` function to `html.Raw`
 - Manage boolean attributes (specifically without value)
 - Allow passing attributes as kwargs `<input type="text" {**someattrs} />`
-- Use typing to validate attrs, defined in a ``Attrs`` class inside tags classes instead of the dict ``__attrs__``
+- Use typing to validate attrs, now named props, defined in a ``Props`` class inside tags classes instead of the dict ``__attrs__``
 
 
 You'll find the original README of this library below:

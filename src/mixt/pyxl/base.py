@@ -22,57 +22,59 @@ class PyxlException(Exception):
 class Choices(Sequence): ...
 
 
+class BasePropTypes:
+    # Rules for props names
+    # a starting `_` will be removed in final html attribute
+    # a single `_` will be changed to `-`
+    # a double `__` will be changed to `:`
+
+    @staticmethod
+    def to_html(name):
+        if name.startswith('_'):
+            name = name[1:]
+        return name.replace('__', ':').replace('_', '-')
+
+    @staticmethod
+    def to_python(name):
+        name = name.replace('-', '_').replace(':', '__')
+        if not name.isidentifier():
+            raise NameError
+        if keyword.iskeyword(name):
+            name = '_' + name
+        return name
+
+    @classmethod
+    def allow(cls, name):
+        return name in cls._types or name.startswith('data_') or name.startswith('aria_')
+
+    @classmethod
+    def type(cls, name):
+        return cls._types.get(name, str)
+
+
 class BaseMetaclass(type):
     def __init__(self, name, parents, attrs):
         super().__init__(name, parents, attrs)
 
-        attrs_classes = []
+        proptypes_classes = []
 
-        if 'Attrs' in attrs:
-            attrs_classes.append(attrs['Attrs'])
+        if 'PropTypes' in attrs:
+            proptypes_classes.append(attrs['PropTypes'])
 
-        attrs_classes.extend([parent.Attrs for parent in parents[::-1] if hasattr(parent, 'Attrs')])
+        proptypes_classes.extend([parent.PropTypes for parent in parents[::-1] if hasattr(parent, 'PropTypes')])
 
-        class Attrs(*attrs_classes):
+        class PropTypes(*proptypes_classes):
             pass
 
-        Attrs._types = get_type_hints(Attrs)
+        PropTypes._types = get_type_hints(PropTypes)
 
-        setattr(self, 'Attrs', Attrs)
+        setattr(self, 'PropTypes', PropTypes)
 
         setattr(self, '__tag__', name)
 
 class Base(object, metaclass=BaseMetaclass):
 
-    class Attrs:
-        # Rules for attributes names
-        # a starting `_` will be removed in final attribute
-        # a single `_` will be changed to `-`
-        # a double `__` will be changed to `:`
-
-        @staticmethod
-        def to_html(name):
-            if name.startswith('_'):
-                name = name[1:]
-            return name.replace('__', ':').replace('_', '-')
-
-        @staticmethod
-        def to_python(name):
-            name = name.replace('-', '_').replace(':', '__')
-            if not name.isidentifier():
-                raise NameError
-            if keyword.iskeyword(name):
-                name = '_' + name
-            return name
-
-        @classmethod
-        def allow(cls, name):
-            return name in cls._types or name.startswith('data_') or name.startswith('aria_')
-
-        @classmethod
-        def type(cls, name):
-            return cls._types.get(name, str)
-
+    class PropTypes(BasePropTypes):
         # HTML attributes
         accesskey: str
         _class: str
@@ -119,21 +121,21 @@ class Base(object, metaclass=BaseMetaclass):
         onunload: str
 
     def __init__(self, **kwargs):
-        self.__attributes__ = {}
+        self.__props__ = {}
         self.__children__ = []
 
         for name, value in kwargs.items():
-            self.set_attr(name, value)
+            self.set_prop(name, value)
 
     def __call__(self, *children):
         self.append_children(children)
         return self
 
     def get_id(self):
-        eid = self.attr('id')
+        eid = self.prop('id')
         if not eid:
             eid = 'pyxl%d' % random.randint(0, sys.maxsize)
-            self.set_attr('id', eid)
+            self.set_prop('id', eid)
         return eid
 
     def children(self, selector=None, exclude=False):
@@ -173,47 +175,47 @@ class Base(object, metaclass=BaseMetaclass):
         if len(name) > 4 and name.startswith('__') and name.endswith('__'):
             # For dunder name (e.g. __iter__),raise AttributeError, not PyxlException.
             raise AttributeError(name)
-        return self.attr(name)
+        return self.prop(name)
 
-    def attr(self, name, default=None):  # TODO: default could maybe be `NotProvided` ?
-        name = self.Attrs.to_python(name)
-        if not self.Attrs.allow(name):
-            raise PyxlException('<%s> has no attr named "%s"' % (self.__tag__, name))
+    def prop(self, name, default=None):  # TODO: default could maybe be `NotProvided` ?
+        name = BasePropTypes.to_python(name)
+        if not self.PropTypes.allow(name):
+            raise PyxlException('<%s> has no prop named "%s"' % (self.__tag__, name))
 
-        value = self.__attributes__.get(name)
+        value = self.__props__.get(name)
 
         if value is not None:
             return value
 
-        attr_type = self.Attrs.type(name)
+        prop_type = self.PropTypes.type(name)
 
-        if issubclass(attr_type, Choices):
-            values_enum = getattr(self.Attrs, name)
+        if issubclass(prop_type, Choices):
+            values_enum = getattr(self.PropTypes, name)
 
             if not values_enum:
                 # TODO: this must be checked in the metaclass
-                raise PyxlException('Invalid attribute definition')
+                raise PyxlException('Invalid prop definition')
 
             if None in values_enum[1:]:
                 # TODO: this must be checked in the metaclass
                 raise PyxlException('None must be the first, default value')
 
-            # TODO: return ``default`` if ``attr_type[0] is None``
+            # TODO: return ``default`` if ``values_enum[0] is None``
             return values_enum[0]
 
-        return default  # TODO get value from Attrs if defined if default is None
+        return default  # TODO get value from PropTypes if defined if default is None
 
-    def set_attr(self, name, value):
-        name = self.Attrs.to_python(name)
-        if not self.Attrs.allow(name):
-            raise PyxlException('<%s> has no attr named "%s"' % (self.__tag__, name))
+    def set_prop(self, name, value):
+        name = BasePropTypes.to_python(name)
+        if not self.PropTypes.allow(name):
+            raise PyxlException('<%s> has no prop named "%s"' % (self.__tag__, name))
 
         if value is not None:
-            attr_type = self.Attrs.type(name)
+            prop_type = self.PropTypes.type(name)
 
-            if issubclass(attr_type, Choices):
+            if issubclass(prop_type, Choices):
                 # support for enum values in pyxl attributes
-                values_enum = getattr(self.Attrs, name)
+                values_enum = getattr(self.PropTypes, name)
                 assert values_enum, 'Invalid attribute definition'
 
                 if value not in values_enum:
@@ -221,7 +223,7 @@ class Base(object, metaclass=BaseMetaclass):
                         self.__tag__, self.__class__.__name__, value, name, values_enum)
                     raise PyxlException(msg)
 
-            elif attr_type is bool:
+            elif prop_type is bool:
                 # Special case for bool.
                 # We can have True:
                 #     In html5, bool attributes can set to an empty string or the attribute name.
@@ -253,40 +255,41 @@ class Base(object, metaclass=BaseMetaclass):
                         raise exception.with_traceback(exc_tb)
             else:
                 try:
-                    # Validate type of attr and cast to correct type if possible
-                    value = value if isinstance(value, attr_type) else attr_type(value)
+                    # Validate type of prop and cast to correct type if possible
+                    value = value if isinstance(value, prop_type) else prop_type(value)
                 except Exception:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     msg = '%s: %s: incorrect type for "%s". expected %s, got %s' % (
-                        self.__tag__, self.__class__.__name__, name, attr_type, type(value))
+                        self.__tag__, self.__class__.__name__, name, prop_type, type(value))
                     exception = PyxlException(msg)
                     raise exception.with_traceback(exc_tb)
 
-            self.__attributes__[name] = value
+            self.__props__[name] = value
 
-        elif name in self.__attributes__:
-            del self.__attributes__[name]
+        elif name in self.__props__:
+            del self.__props__[name]
 
     def get_class(self):
-        return self.attr('class', '')
+        return self.prop('class', '')
 
     def add_class(self, xclass):
         if not xclass: return
-        current_class = self.attr('class')
+        current_class = self.prop('class')
         if current_class: current_class += ' ' + xclass
         else: current_class = xclass
-        self.set_attr('class', current_class)
+        self.set_prop('class', current_class)
 
     def append_children(self, children):
         for child in children:
             self.append(child)
 
-    def attributes(self):
-        return self.__attributes__
+    @property
+    def props(self):
+        return self.__props__
 
-    def set_attributes(self, attrs_dict):
-        for name, value in attrs_dict.items():
-            self.set_attr(name, value)
+    def set_props(self, props):
+        for name, value in props.items():
+            self.set_prop(name, value)
 
     def to_string(self):
         l = []

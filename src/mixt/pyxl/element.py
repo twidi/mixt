@@ -22,7 +22,7 @@ class Element(Base):
 
         if classes and isinstance(out, Base):
             classes.update(out.get_class().split(' '))
-            out.set_attr('class', ' '.join([_f for _f in classes if _f]))
+            out.set_prop('class', ' '.join([_f for _f in classes if _f]))
 
         return out
 
