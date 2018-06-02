@@ -9,7 +9,7 @@
 import enforce
 import keyword
 
-from typing import get_type_hints, Sequence
+from typing import get_type_hints, Sequence, Generic, TypeVar
 
 from enforce.exceptions import RuntimeTypeError
 
@@ -23,12 +23,18 @@ class PyxlException(Exception):
 class NotProvided: ...
 
 
+class Mandatory(Generic[TypeVar("T")]): ...
+
+
+
 class Choices(Sequence): ...
 
 
 class BasePropTypes:
 
     __owner_name__ = None
+    __types__ = {}
+    __mandatory_props__ = set()
 
     # Rules for props names
     # a starting `_` will be removed in final html attribute
@@ -52,11 +58,11 @@ class BasePropTypes:
 
     @classmethod
     def __allow__(cls, name):
-        return name in cls._types or name.startswith('data_') or name.startswith('aria_')
+        return name in cls.__types__ or name.startswith('data_') or name.startswith('aria_')
 
     @classmethod
     def __type__(cls, name):
-        return cls._types.get(name, str)
+        return cls.__types__.get(name, str)
 
     @classmethod
     def __value__(cls, name):
@@ -79,9 +85,14 @@ class BasePropTypes:
 
     @classmethod
     def __validate_types__(cls):
-        cls._types = get_type_hints(cls)
+        cls.__types__ = get_type_hints(cls)
 
-        for name, prop_type in cls._types.items():
+        for name, prop_type in cls.__types__.items():
+
+            if issubclass(prop_type, Mandatory):
+                prop_type = prop_type.__args__[0]
+                cls.__types__[name] = prop_type
+                cls.__mandatory_props__.add(name)
 
             if cls.__is_choice__(name):
 
@@ -157,6 +168,12 @@ class BasePropTypes:
                 raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
 
 
+    @classmethod
+    def __validate_mandatory__(cls, props):
+        for name in cls.__mandatory_props__:
+            if props.get(name, NotProvided) is NotProvided:
+                raise PyxlException(f'<{cls.__owner_name__}>.{name}: is mandatory but not set')
+
 class BaseMetaclass(type):
     def __init__(self, name, parents, attrs):
         super().__init__(name, parents, attrs)
@@ -172,6 +189,8 @@ class BaseMetaclass(type):
 
         class PropTypes(*proptypes_classes):
             __owner_name__ = name
+            __types__ = {}
+            __mandatory_props__ = set()
 
         PropTypes.__validate_types__()
 
@@ -189,6 +208,8 @@ class Base(object, metaclass=BaseMetaclass):
 
         for name, value in kwargs.items():
             self.set_prop(name, value)
+
+        self.PropTypes.__validate_mandatory__(self.__props__)
 
     def __call__(self, *children):
         self.append_children(children)
