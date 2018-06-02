@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from .utils import escape
-from .base import Base, BaseMetaclass
+from .base import Base, BaseMetaclass, BasePropTypes
 
 # for backwards compatibility.
 from .browser_hacks import ConditionalComment
@@ -26,14 +26,62 @@ class HtmlElementMetaclass(BaseMetaclass):
 
 
 class HtmlBaseElement(Base, metaclass=HtmlElementMetaclass):
+
+    class PropTypes:
+        # HTML attributes
+        accesskey: str
+        _class: str
+        dir: str
+        id: str
+        lang: str
+        maxlength: str
+        role: str
+        style: str
+        tabindex: int
+        title: str
+        xmllang: str
+
+        # Microdata HTML attributes
+        itemtype: str
+        itemscope: str
+        itemprop: str
+        itemid: str
+        itemref: str
+
+        # JS attributes
+        onabort: str
+        onblur: str
+        onchange: str
+        onclick: str
+        ondblclick: str
+        onerror: str
+        onfocus: str
+        onkeydown: str
+        onkeypress: str
+        onkeyup: str
+        onload: str
+        onmousedown: str
+        onmouseenter: str
+        onmouseleave: str
+        onmousemove: str
+        onmouseout: str
+        onmouseover: str
+        onmouseup: str
+        onreset: str
+        onresize: str
+        onselect: str
+        onsubmit: str
+        onunload: str
+
     def _render_attributes(self):
         result = []
-        for name, value in self.__attributes__.items():
-            if self.__attrs__.get(name, None) is bool:
+        for name, value in self.props.items():
+            html_name = BasePropTypes.__to_html__(name)
+            if self.PropTypes.__is_bool__(name):
                 if value:
-                    result.extend((' ', name))
+                    result.extend((' ', html_name))
             else:
-                result.extend((' ', name, '="', escape(value), '"'))
+                result.extend((' ', html_name, '="', escape(value), '"'))
         return result
 
 class HtmlElement(HtmlBaseElement):
@@ -59,41 +107,36 @@ class HtmlElementNoChild(HtmlBaseElement):
 
 
 class HtmlComment(Base):
-    __attrs__ = {
-        'comment': str,
-        }
+    class PropTypes:
+        comment: str
 
     def _to_list(self, l):
         pass
 
 class HtmlDeclaration(Base):
-    __attrs__ = {
-        'decl': str,
-        }
+    class PropTypes:
+        decl: str
 
     def _to_list(self, l):
-        l.extend(('<!', self.attr('decl'), '>'))
+        l.extend(('<!', self.prop('decl'), '>'))
 
 class HtmlMarkedDeclaration(Base):
-    __attrs__ = {
-        'decl': str,
-        }
+    class PropTypes:
+        decl: str
 
     def _to_list(self, l):
-        l.extend(('<![', self.attr('decl'), ']]>'))
+        l.extend(('<![', self.prop('decl'), ']]>'))
 
 class HtmlMSDeclaration(Base):
-    __attrs__ = {
-        'decl': str,
-        }
+    class PropTypes:
+        decl: str
 
     def _to_list(self, l):
-        l.extend(('<![', self.attr('decl'), ']>'))
+        l.extend(('<![', self.prop('decl'), ']>'))
 
 class RawHtml(HtmlElementNoChild):
-    __attrs__= {
-        'text': str,
-        }
+    class PropTypes:
+        text: str
 
     def _to_list(self, l):
         if not isinstance(self.text, str):
@@ -110,14 +153,13 @@ class Fragment(Base):
             self._render_child_to_list(child, l)
 
 class A(HtmlElement):
-    __attrs__ = {
-        'href': str,
-        'rel': str,
-        'type': str,
-        'name': str,
-        'target': str,
-        'download': str,
-        }
+    class PropTypes:
+        href: str
+        rel: str
+        type: str
+        name: str
+        target: str
+        download: str
 
 class Abbr(HtmlElement):
     pass
@@ -129,13 +171,12 @@ class Address(HtmlElement):
     pass
 
 class Area(HtmlElementNoChild):
-    __attrs__ = {
-        'alt': str,
-        'coords': str,
-        'href': str,
-        'nohref': str,
-        'target': str,
-        }
+    class PropTypes:
+        alt: str
+        coords: str
+        href: str
+        nohref: str
+        target: str
 
 class Article(HtmlElement):
     pass
@@ -144,9 +185,8 @@ class Aside(HtmlElement):
     pass
 
 class Audio(HtmlElement):
-    __attrs__ = {
-        'src': str
-        }
+    class PropTypes:
+        src: str
 
 class B(HtmlElement):
    pass
@@ -155,31 +195,27 @@ class Big(HtmlElement):
    pass
 
 class Blockquote(HtmlElement):
-    __attrs__ = {
-        'cite': str,
-        }
+    class PropTypes:
+        cite: str
 
 class Body(HtmlElement):
-    __attrs__ = {
-        'contenteditable': str,
-        }
+    class PropTypes:
+        contenteditable: str
 
 class Br(HtmlElementNoChild):
    pass
 
 class Button(HtmlElement):
-    __attrs__ = {
-        'disabled': bool,
-        'name': str,
-        'type': str,
-        'value': str,
-        }
+    class PropTypes:
+        disabled: bool
+        name: str
+        type: str
+        value: str
 
 class Canvas(HtmlElement):
-    __attrs__ = {
-        'height': str,
-        'width': str,
-        }
+    class PropTypes:
+        height: str
+        width: str
 
 class Caption(HtmlElement):
    pass
@@ -191,24 +227,22 @@ class Code(HtmlElement):
    pass
 
 class Col(HtmlElementNoChild):
-    __attrs__ = {
-        'align': str,
-        'char': str,
-        'charoff': int,
-        'span': int,
-        'valign': str,
-        'width': str,
-        }
+    class PropTypes:
+        align: str
+        char: str
+        charoff: int
+        span: int
+        valign: str
+        width: str
 
 class Colgroup(HtmlElement):
-    __attrs__ = {
-        'align': str,
-        'char': str,
-        'charoff': int,
-        'span': int,
-        'valign': str,
-        'width': str,
-        }
+    class PropTypes:
+        align: str
+        char: str
+        charoff: int
+        span: int
+        valign: str
+        width: str
 
 class Datalist(HtmlElement):
     pass
@@ -217,15 +251,13 @@ class Dd(HtmlElement):
    pass
 
 class Del(HtmlElement):
-    __attrs__ = {
-        'cite': str,
-        'datetime': str,
-        }
+    class PropTypes:
+        cite: str
+        datetime: str
 
 class Div(HtmlElement):
-   __attrs__ = {
-        'contenteditable': str,
-       }
+   class PropTypes:
+        contenteditable: str
 
 class Dfn(HtmlElement):
    pass
@@ -240,15 +272,14 @@ class Em(HtmlElement):
    pass
 
 class Embed(HtmlElement):
-    __attrs__ = {
-        'src': str,
-        'width': str,
-        'height': str,
-        'allowscriptaccess': str,
-        'allowfullscreen': str,
-        'name': str,
-        'type': str,
-        }
+    class PropTypes:
+        src: str
+        width: str
+        height: str
+        allowscriptaccess: str
+        allowfullscreen: str
+        name: str
+        type: str
 
 class Figure(HtmlElement):
    pass
@@ -263,35 +294,32 @@ class Footer(HtmlElement):
     pass
 
 class Form(HtmlElement):
-    __attrs__ = {
-        'action': str,
-        'accept': str,
-        'accept-charset': str,
-        'autocomplete': str,
-        'enctype': str,
-        'method': str,
-        'name': str,
-        'novalidate': bool,
-        'target': str,
-        }
+    class PropTypes:
+        action: str
+        accept: str
+        accept_charset: str
+        autocomplete: str
+        enctype: str
+        method: str
+        name: str
+        novalidate: bool
+        target: str
 
 class Frame(HtmlElementNoChild):
-    __attrs__ = {
-        'frameborder': str,
-        'longdesc': str,
-        'marginheight': str,
-        'marginwidth': str,
-        'name': str,
-        'noresize': str,
-        'scrolling': str,
-        'src': str,
-        }
+    class PropTypes:
+        frameborder: str
+        longdesc: str
+        marginheight: str
+        marginwidth: str
+        name: str
+        noresize: str
+        scrolling: str
+        src: str
 
 class Frameset(HtmlElement):
-    __attrs__ = {
-        'rows': str,
-        'cols': str,
-        }
+    class PropTypes:
+        rows: str
+        cols: str
 
 class H1(HtmlElement):
    pass
@@ -312,9 +340,8 @@ class H6(HtmlElement):
    pass
 
 class Head(HtmlElement):
-    __attrs__ = {
-        'profile': str,
-        }
+    class PropTypes:
+        profile: str
 
 class Header(HtmlElement):
     pass
@@ -323,101 +350,94 @@ class Hr(HtmlElementNoChild):
     pass
 
 class Html(HtmlElement):
-    __attrs__ = {
-        'content': str,
-        'scheme': str,
-        'http-equiv': str,
-        'xmlns': str,
-        'xmlns:og': str,
-        'xmlns:fb': str,
-        }
+    class PropTypes:
+        content: str
+        scheme: str
+        http_equiv: str
+        xmlns: str
+        xmlns__og: str
+        xmlns__fb: str
 
 class I(HtmlElement):
    pass
 
 class Iframe(HtmlElement):
-    __attrs__ = {
-        'frameborder': str,
-        'height': str,
-        'longdesc': str,
-        'marginheight': str,
-        'marginwidth': str,
-        'name': str,
-        'sandbox': str,
-        'scrolling': str,
-        'src': str,
-        'width': str,
+    class PropTypes:
+        frameborder: str
+        height: str
+        longdesc: str
+        marginheight: str
+        marginwidth: str
+        name: str
+        sandbox: str
+        scrolling: str
+        src: str
+        width: str
         # rk: 'allowTransparency' is not in W3C's HTML spec, but it's supported in most modern browsers.
-        'allowtransparency': str,
-        'allowfullscreen': bool,
-        }
+        allowtransparency: str
+        allowfullscreen: bool
 
 class Video(HtmlElement):
-    __attrs__ = {
-        'autoplay': bool,
-        'controls': str,
-        'height': str,
-        'loop': bool,
-        'muted': bool,
-        'poster': str,
-        'preload': str,
-        'src': str,
-        'width': str,
-        }
+    class PropTypes:
+        autoplay: bool
+        controls: str
+        height: str
+        loop: bool
+        muted: bool
+        poster: str
+        preload: str
+        src: str
+        width: str
 
 class Img(HtmlElementNoChild):
-    __attrs__ = {
-        'alt': str,
-        'src': str,
-        'height': str,
-        'ismap': bool,
-        'longdesc': str,
-        'usemap': str,
-        'vspace': str,
-        'width': str,
-        }
+    class PropTypes:
+        alt: str
+        src: str
+        height: str
+        ismap: bool
+        longdesc: str
+        usemap: str
+        vspace: str
+        width: str
 
 class Input(HtmlElementNoChild):
-    __attrs__ = {
-        'accept': str,
-        'align': str,
-        'alt': str,
-        'autofocus': bool,
-        'checked': bool,
-        'disabled': bool,
-        'list': str,
-        'max': str,
-        'maxlength': str,
-        'min': str,
-        'name': str,
-        'pattern': str,
-        'placeholder': str,
-        'readonly': str,
-        'size': str,
-        'src': str,
-        'step': str,
-        'type': str,
-        'value': str,
-        'autocomplete': str,
-        'autocorrect': str,
-        'required': bool,
-        'spellcheck': str,
-        'multiple': bool,
-        }
+    class PropTypes:
+        accept: str
+        align: str
+        alt: str
+        autofocus: bool
+        checked: bool
+        disabled: bool
+        list: str
+        max: str
+        maxlength: str
+        min: str
+        name: str
+        pattern: str
+        placeholder: str
+        readonly: str
+        size: str
+        src: str
+        step: str
+        type: str
+        value: str
+        autocomplete: str
+        autocorrect: str
+        required: bool
+        spellcheck: str
+        multiple: bool
 
 class Ins(HtmlElement):
-    __attrs__ = {
-        'cite': str,
-        'datetime': str,
-        }
+    class PropTypes:
+        cite: str
+        datetime: str
 
 class Kbd(HtmlElement):
     pass
 
 class Label(HtmlElement):
-    __attrs__ = {
-        'for': str,
-        }
+    class PropTypes:
+        _for: str
 
 class Legend(HtmlElement):
    pass
@@ -426,39 +446,35 @@ class Li(HtmlElement):
    pass
 
 class Link(HtmlElementNoChild):
-    __attrs__ = {
-        'charset': str,
-        'href': str,
-        'hreflang': str,
-        'media': str,
-        'rel': str,
-        'rev': str,
-        'sizes': str,
-        'target': str,
-        'type': str,
-        }
+    class PropTypes:
+        charset: str
+        href: str
+        hreflang: str
+        media: str
+        rel: str
+        rev: str
+        sizes: str
+        target: str
+        type: str
 
 class Main(HtmlElement):
     # we are not enforcing the w3 spec of one and only one main element on the
     # page
-    __attrs__ = {
-        'role': str,
-    }
+    class PropTypes:
+        role: str
 
 class Map(HtmlElement):
-    __attrs__ = {
-        'name': str,
-        }
+    class PropTypes:
+        name: str
 
 class Meta(HtmlElementNoChild):
-    __attrs__ = {
-        'content': str,
-        'http-equiv': str,
-        'name': str,
-        'property': str,
-        'scheme': str,
-        'charset': str,
-        }
+    class PropTypes:
+        content: str
+        http_equiv: str
+        name: str
+        property: str
+        scheme: str
+        charset: str
 
 class Nav(HtmlElement):
     pass
@@ -470,90 +486,82 @@ class Noscript(HtmlElement):
    pass
 
 class Object(HtmlElement):
-    __attrs__ = {
-        'align': str,
-        'archive': str,
-        'border': str,
-        'classid': str,
-        'codebase': str,
-        'codetype': str,
-        'data': str,
-        'declare': bool,
-        'height': str,
-        'hspace': str,
-        'name': str,
-        'standby': str,
-        'type': str,
-        'usemap': str,
-        'vspace': str,
-        'width': str,
-        }
+    class PropTypes:
+        align: str
+        archive: str
+        border: str
+        classid: str
+        codebase: str
+        codetype: str
+        data: str
+        declare: bool
+        height: str
+        hspace: str
+        name: str
+        standby: str
+        type: str
+        usemap: str
+        vspace: str
+        width: str
 
 class Ol(HtmlElement):
    pass
 
 class Optgroup(HtmlElement):
-    __attrs__ = {
-        'disabled': bool,
-        'label': str,
-        }
+    class PropTypes:
+        disabled: bool
+        label: str
 
 class Option(HtmlElement):
-    __attrs__ = {
-        'disabled': bool,
-        'label': str,
-        'selected': bool,
-        'value': str,
-        }
+    class PropTypes:
+        disabled: bool
+        label: str
+        selected: bool
+        value: str
 
 class P(HtmlElement):
    pass
 
 class Param(HtmlElement):
-    __attrs__ = {
-        'name': str,
-        'type': str,
-        'value': str,
-        'valuetype': str,
-        }
+    class PropTypes:
+        name: str
+        type: str
+        value: str
+        valuetype: str
 
 class Pre(HtmlElement):
    pass
 
 class Progress(HtmlElement):
-    __attrs__ = {
-        'max': int,
-        'value': int,
-    }
+    class PropTypes:
+        max: int
+        value: int
 
 class Q(HtmlElement):
-    __attrs__ = {
-        'cite': str,
-        }
+    class PropTypes:
+        cite: str
 
 class Samp(HtmlElement):
    pass
 
 class Script(HtmlElement):
-    __attrs__ = {
-        'async': bool,
-        'charset': str,
-        'defer': bool,
-        'src': str,
-        'type': str,
-        }
+    class PropTypes:
+        async: bool
+        charset: str
+        defer: bool
+        src: str
+        type: str
 
 class Section(HtmlElement):
     pass
 
 class Select(HtmlElement):
-    __attrs__ = {
-        'disabled': bool,
-        'multiple': bool,
-        'name': str,
-        'size': str,
-        'required': bool,
-        }
+    class PropTypes:
+        disabled: bool
+        multiple: bool
+        name: str
+        size: str
+        required: bool
 
 class Small(HtmlElement):
    pass
@@ -565,10 +573,9 @@ class Strong(HtmlElement):
    pass
 
 class Style(HtmlElement):
-    __attrs__ = {
-        'media': str,
-        'type': str,
-        }
+    class PropTypes:
+        media: str
+        type: str
 
 class Sub(HtmlElement):
    pass
@@ -577,98 +584,89 @@ class Sup(HtmlElement):
    pass
 
 class Table(HtmlElement):
-    __attrs__ = {
-        'border': str,
-        'cellpadding': str,
-        'cellspacing': str,
-        'frame': str,
-        'rules': str,
-        'summary': str,
-        'width': str,
-        }
+    class PropTypes:
+        border: str
+        cellpadding: str
+        cellspacing: str
+        frame: str
+        rules: str
+        summary: str
+        width: str
 
 class Tbody(HtmlElement):
-    __attrs__ = {
-        'align': str,
-        'char': str,
-        'charoff': str,
-        'valign': str,
-        }
+    class PropTypes:
+        align: str
+        char: str
+        charoff: str
+        valign: str
 
 class Td(HtmlElement):
-    __attrs__ = {
-        'abbr': str,
-        'align': str,
-        'axis': str,
-        'char': str,
-        'charoff': str,
-        'colspan': str,
-        'headers': str,
-        'rowspan': str,
-        'scope': str,
-        'valign': str,
-        }
+    class PropTypes:
+        abbr: str
+        align: str
+        axis: str
+        char: str
+        charoff: str
+        colspan: str
+        headers: str
+        rowspan: str
+        scope: str
+        valign: str
 
 class Textarea(HtmlElement):
-    __attrs__ = {
-        'cols': str,
-        'rows': str,
-        'disabled': bool,
-        'placeholder': str,
-        'name': str,
-        'readonly': bool,
-        'autocorrect': str,
-        'autocomplete': str,
-        'autocapitalize': str,
-        'spellcheck': str,
-        'autofocus': str,
-        'required': bool,
-        }
+    class PropTypes:
+        cols: str
+        rows: str
+        disabled: bool
+        placeholder: str
+        name: str
+        readonly: bool
+        autocorrect: str
+        autocomplete: str
+        autocapitalize: str
+        spellcheck: str
+        autofocus: str
+        required: bool
 
 class Tfoot(HtmlElement):
-    __attrs__ = {
-        'align': str,
-        'char': str,
-        'charoff': str,
-        'valign': str,
-        }
+    class PropTypes:
+        align: str
+        char: str
+        charoff: str
+        valign: str
 
 class Th(HtmlElement):
-    __attrs__ = {
-        'abbr': str,
-        'align': str,
-        'axis': str,
-        'char': str,
-        'charoff': str,
-        'colspan': str,
-        'rowspan': str,
-        'scope': str,
-        'valign': str,
-        }
+    class PropTypes:
+        abbr: str
+        align: str
+        axis: str
+        char: str
+        charoff: str
+        colspan: str
+        rowspan: str
+        scope: str
+        valign: str
 
 class Thead(HtmlElement):
-    __attrs__ = {
-        'align': str,
-        'char': str,
-        'charoff': str,
-        'valign': str,
-        }
+    class PropTypes:
+        align: str
+        char: str
+        charoff: str
+        valign: str
 
 class Time(HtmlElement):
-    __attrs__ = {
-        'datetime': str,
-        }
+    class PropTypes:
+        datetime: str
 
 class Title(HtmlElement):
    pass
 
 class Tr(HtmlElement):
-    __attrs__ = {
-        'align': str,
-        'char': str,
-        'charoff': str,
-        'valign': str,
-        }
+    class PropTypes:
+        align: str
+        char: str
+        charoff: str
+        valign: str
 
 class Tt(HtmlElement):
     pass

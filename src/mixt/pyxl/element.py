@@ -4,6 +4,10 @@ from .base import Base
 
 class Element(Base):
 
+    class PropTypes:
+        _class: str
+        id: str
+
     _element = None  # render() output cached by _rendered_element()
 
     def _get_base_element(self):
@@ -22,9 +26,51 @@ class Element(Base):
 
         if classes and isinstance(out, Base):
             classes.update(out.get_class().split(' '))
-            out.set_attr('class', ' '.join([_f for _f in classes if _f]))
+            out.set_prop('class', ' '.join([_f for _f in classes if _f]))
 
         return out
+
+    def add_class(self, xclass):
+        if not xclass: return
+        current_class = self.prop('class')
+        if current_class: current_class += ' ' + xclass
+        else: current_class = xclass
+        self.set_prop('class', current_class)
+
+    def get_id(self):
+        eid = self.prop('id')
+        if not eid:
+            eid = 'pyxl%d' % random.randint(0, sys.maxsize)
+            self.set_prop('id', eid)
+        return eid
+
+    def get_class(self):
+        return self.prop('class', '')
+
+    def children(self, selector=None, exclude=False):
+        children = super().children()
+
+        if not selector:
+            return children
+
+        # filter by class
+        if selector[0] == '.':
+            select = lambda x: selector[1:] in x.get_class()
+
+        # filter by id
+        elif selector[0] == '#':
+            select = lambda x: selector[1:] == x.get_id()
+
+        # filter by tag name
+        else:
+            select = lambda x: x.__class__.__name__ == selector
+
+        if exclude:
+            func = lambda x: not select(x)
+        else:
+            func = select
+
+        return list(filter(func, children))
 
     def _to_list(self, l):
         self._render_child_to_list(self._get_base_element(), l)

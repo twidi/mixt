@@ -1,8 +1,15 @@
 # coding: mixt
+
 import pytest
 
 from mixt.pyxl import html
-from mixt.pyxl.base import PyxlException, Base
+from mixt.pyxl.base import PyxlException, Base, Choices, NotProvided
+
+
+class DummyBase(Base):
+    def _to_list(self, l):
+        pass
+
 
 def test_basics():
     assert str(<div />) == '<div></div>'
@@ -37,43 +44,84 @@ def test_decl():
     assert (str(<script><![CDATA[<div><div>]]></script>)
         == '<script><![CDATA[<div><div>]]></script>')
 
-def test_enum_attrs():
-    class Foo(Base):
-        __attrs__ = {
-            'value': ['a', 'b'],
-        }
+def test_enum_prop():
 
-        def _to_list(self, l):
-            pass
+    with pytest.raises(PyxlException):
+        class Foo(DummyBase):
+            class PropTypes:
+                value: Choices
 
-    assert (<Foo />.attr('value')) == 'a'
+    with pytest.raises(PyxlException):
+        class Foo(DummyBase):
+            class PropTypes:
+                value: Choices = []
+
+    with pytest.raises(PyxlException):
+        class Foo(DummyBase):
+            class PropTypes:
+                value: Choices = 'foo'
+
+    with pytest.raises(PyxlException):
+        class Foo(DummyBase):
+            class PropTypes:
+                value: Choices = 123
+
+    class Foo(DummyBase):
+        class PropTypes:
+            value: Choices = ['a', 'b']
+
+    assert (<Foo />.prop('value')) == 'a'
     assert (<Foo />.value) == 'a'
-    assert (<Foo value="b" />.attr('value')) == 'b'
+    assert (<Foo value="b" />.prop('value')) == 'b'
     assert (<Foo value="b" />.value) == 'b'
 
     with pytest.raises(PyxlException):
         <Foo value="c" />
 
-    class Bar(Base):
-        __attrs__ = {
-            'value': ['a', None, 'b'],
-        }
-
-        def _to_list(self, l):
-            pass
-
     with pytest.raises(PyxlException):
-        <Bar />.attr('value')
+        <Foo value={None} />
 
-    with pytest.raises(PyxlException):
-        <Bar />.value
+    assert (<Foo value={NotProvided} />.value) == 'a'
 
-    class Baz(Base):
-        __attrs__ = {
-            'value': [None, 'a', 'b'],
-        }
+    class Bar(DummyBase):
+        class PropTypes:
+            value: Choices = ['a', None, 'b']
 
-        def _to_list(self, l):
-            pass
+    assert (<Bar />.prop('value')) == 'a'
+    assert (<Bar />.value) == 'a'
 
-    assert (<Baz />.value) == None
+    class Baz(DummyBase):
+        class PropTypes:
+            value: Choices = [None, 'a', 'b']
+
+    assert (<Baz />.prop('value')) is None
+    assert (<Baz />.value) is None
+
+    class Qux(DummyBase):
+        class PropTypes:
+            value: Choices = [NotProvided, 'a', 'b']
+
+    with pytest.raises(AttributeError):
+        <Qux />.prop('value')
+
+    with pytest.raises(AttributeError):
+        <Qux />.value
+
+
+def test_special_prop_names():
+    class Foo(html.HtmlElement):
+        class PropTypes:
+            _def: str
+            foo_bar__baz: str
+
+    # using "html" type props names
+    tag = <Foo def='fed' foo-bar:baz='qux' />
+    assert str(tag) == '<foo def="fed" foo-bar:baz="qux"></foo>'
+    assert tag._def == 'fed'
+    assert tag.foo_bar__baz == 'qux'
+
+    # using "python" type props names
+    tag = <Foo _def='fed' foo_bar__baz='qux' />
+    assert str(tag) == '<foo def="fed" foo-bar:baz="qux"></foo>'
+    assert tag._def == 'fed'
+    assert tag.foo_bar__baz == 'qux'

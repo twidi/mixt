@@ -6,27 +6,27 @@ from mixt.pyxl import html
 from mixt.pyxl.element import Element
 
 
-def test_normal_tag_without_attributes():
+def test_normal_tag_without_props():
     assert str(<button />) == '<button></button>'
     assert str(<button/>) == '<button></button>'
 
 
-def test_normal_tag_with_attributes():
+def test_normal_tag_with_props():
     assert str(<button name="foo" />) == '<button name="foo"></button>'
     assert str(<button name="foo"/>) == '<button name="foo"></button>'
 
 
-def test_nochild_tag_without_attributes():
+def test_nochild_tag_without_props():
     assert str(<link />) == '<link />'
     assert str(<link/>) == '<link />'
 
 
-def test_nochild_tag_with_attributes():
+def test_nochild_tag_with_props():
     assert str(<link rel="foo" />) == '<link rel="foo" />'
     assert str(<link rel="foo"/>) == '<link rel="foo" />'
 
 
-def test_new_element_without_attributes():
+def test_new_element_without_props():
     class Foo(Element):
 
         def render(self):
@@ -36,11 +36,10 @@ def test_new_element_without_attributes():
     assert str(<Foo/>) == '<div data-name="foo"></div>'
 
 
-def test_new_element_with_attributes():
+def test_new_element_with_props():
     class Foo(Element):
-        __attrs__ = {
-            'name': str
-        }
+        class PropTypes:
+            name: str
 
         def render(self):
             return <div data-name="{self.name}"/>

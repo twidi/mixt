@@ -128,7 +128,7 @@ class HTMLTokenizer(object):
 
     def got_attribute(self):
         if self.attribute_name in self.tag.attrs:
-            raise ParseError("repeat attribute name %r" % self.attribute_name)
+            raise ParseError("Repeat prop name %r" % self.attribute_name)
         if self.attribute_value is None:
             # special boolean attributes case without values
             self.attribute_value = True

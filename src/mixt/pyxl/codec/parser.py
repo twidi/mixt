@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import tokenize
+from ..base import BasePropTypes
 from .. import html
 from .html_tokenizer import (
         HTMLTokenizer,
@@ -127,14 +128,6 @@ class PyxlParser(HTMLTokenizer):
     def get_token(self):
         return (tokenize.STRING, ''.join(self.output), self.start, self.end, '')
 
-    @staticmethod
-    def safe_attr_name(name):
-        if name == "class":
-            return "xclass"
-        if name == "for":
-            return "xfor"
-        return name.replace('-', '_').replace(':', 'COLON')
-
     def _handle_attr_value(self, attr_value):
         def format_parts():
             prev_was_python = False
@@ -198,9 +191,9 @@ class PyxlParser(HTMLTokenizer):
         self.open_tags.append({'tag':tag, 'row': self.end[0]})
         if tag == 'if':
             if len(attrs) != 1:
-                raise ParseError("if tag only takes one attr called 'cond'", self.end)
+                raise ParseError("if tag only takes one prop called 'cond'", self.end)
             if 'cond' not in attrs:
-                raise ParseError("if tag must contain the 'cond' attr", self.end)
+                raise ParseError("if tag must contain the 'cond' prop", self.end)
 
             self.output.append('html._push_condition(bool(')
             self.output.extend(self._handle_attr_value(attrs['cond']))
@@ -210,7 +203,7 @@ class PyxlParser(HTMLTokenizer):
             return
         elif tag == 'else':
             if len(attrs) != 0:
-                raise ParseError("else tag takes no attrs", self.end)
+                raise ParseError("<else> tag takes no props", self.end)
             if not self.last_thing_was_close_if_tag:
                 raise ParseError("<else> tag must come right after </if>", self.end)
 
@@ -233,7 +226,12 @@ class PyxlParser(HTMLTokenizer):
             if first_attr: first_attr = False
             else: self.output.append(', ')
 
-            self.output.append(self.safe_attr_name(attr_name))
+            try:
+                safe_attr_name = BasePropTypes.__to_python__(attr_name)
+            except NameError:
+                raise ParseError("Invalid prop name %s" % attr_name, self.start)
+
+            self.output.append(safe_attr_name)
             self.output.append('=')
             self.output.extend(self._handle_attr_value(attr_value))
 

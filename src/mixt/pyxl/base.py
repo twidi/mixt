@@ -5,8 +5,13 @@
 # insecure because these aren't being used for anything cryptographic and it's
 # much faster (2x). We're also not using NumPy (which is even faster) because
 # it's a difficult dependency to fulfill purely to generate random numbers.
-import random
-import sys
+
+import enforce
+import keyword
+
+from typing import get_type_hints, Sequence, Generic, TypeVar
+
+from enforce.exceptions import RuntimeTypeError
 
 from .utils import escape
 
@@ -15,112 +20,216 @@ class PyxlException(Exception):
     pass
 
 
+class NotProvided: ...
+
+
+class Mandatory(Generic[TypeVar("T")]): ...
+
+
+
+class Choices(Sequence): ...
+
+
+class BasePropTypes:
+
+    __owner_name__ = None
+    __types__ = {}
+    __mandatory_props__ = set()
+    __default_props__ = {}
+
+
+    # Rules for props names
+    # a starting `_` will be removed in final html attribute
+    # a single `_` will be changed to `-`
+    # a double `__` will be changed to `:`
+
+    @staticmethod
+    def __to_html__(name):
+        if name.startswith('_'):
+            name = name[1:]
+        return name.replace('__', ':').replace('_', '-')
+
+    @staticmethod
+    def __to_python__(name):
+        name = name.replace('-', '_').replace(':', '__')
+        if not name.isidentifier():
+            raise NameError
+        if keyword.iskeyword(name):
+            name = '_' + name
+        return name
+
+    @classmethod
+    def __allow__(cls, name):
+        return name in cls.__types__ or name.startswith('data_') or name.startswith('aria_')
+
+    @classmethod
+    def __type__(cls, name):
+        return cls.__types__.get(name, str)
+
+    @classmethod
+    def __value__(cls, name):
+        return getattr(cls, name)
+
+    @classmethod
+    def __is_choice__(cls, name):
+        return issubclass(cls.__type__(name), Choices)
+
+    @classmethod
+    def __is_bool__(cls, name):
+        return cls.__type__(name) is bool
+
+    @classmethod
+    def __default__(cls, name):
+        return cls.__default_props__.get(name, NotProvided)
+
+    @classmethod
+    def __validate_types__(cls):
+        cls.__types__ = get_type_hints(cls)
+
+        for name, prop_type in cls.__types__.items():
+
+            is_mandatory = False
+            if issubclass(prop_type, Mandatory):
+                is_mandatory = True
+                prop_type = prop_type.__args__[0]
+                cls.__types__[name] = prop_type
+                cls.__mandatory_props__.add(name)
+
+            if cls.__is_choice__(name):
+
+                if not getattr(cls, name, []):
+                    raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
+
+                choices = getattr(cls, name)
+                if not isinstance(choices, Sequence) or isinstance(choices, str):
+                    raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
+
+                if choices[0] is not NotProvided:
+                    if is_mandatory:
+                        raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the mandatory prop `{name}`')
+                    cls.__default_props__[name] = choices[0]
+
+                continue
+
+            default =  getattr(cls, name, NotProvided)
+            if default is NotProvided:
+                continue
+
+            if is_mandatory:
+                raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the mandatory prop `{name}`')
+
+            try:
+                cls.__validate__(name, default)
+            except PyxlException:
+                raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(default)} `{default}` is not a valid default value')
+
+            cls.__default_props__[name] = default
+
+    @classmethod
+    def __validate__(cls, name, value):
+
+        if cls.__is_choice__(name):
+            if value in cls.__value__(name):
+                return value
+
+            raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid choice')
+
+        if cls.__is_bool__(name):
+            # Special case for bool.
+            # We can have True:
+            #     In html5, bool attributes can set to an empty string or the attribute name.
+            #     We also accept python True or a string that is 'true' lowercased.
+            #     We force the value to True.
+            # We can have False:
+            #     In html5, bool attributes can set to an empty string or the attribute name
+            #     We also accept python True or a string that is 'true' lowercased.
+            #     We force the value to True.
+            # All other cases generate an error
+
+            if value in ('', name, True):
+                return True
+            if value is False:
+                return False
+
+            str_value = str(value).capitalize()
+            if str_value == 'True':
+                return True
+            if str_value  == 'False':
+                return False
+
+            raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
+
+        # normal check
+        prop_type = cls.__type__(name)
+        try:
+            if isinstance(value, prop_type):
+                return value
+            raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
+
+        except TypeError:
+            # we use "enforce" to check complex types
+
+            @enforce.runtime_validation
+            def check(prop_value: prop_type): ...
+
+            try:
+                check(value)
+            except RuntimeTypeError:
+                raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
+
+            return value
+
+
+    @classmethod
+    def __validate_mandatory__(cls, props):
+        for name in cls.__mandatory_props__:
+            if props.get(name, NotProvided) is NotProvided:
+                raise PyxlException(f'<{cls.__owner_name__}>.{name}: is mandatory but not set')
+
 class BaseMetaclass(type):
     def __init__(self, name, parents, attrs):
         super().__init__(name, parents, attrs)
-        base_parents = [parent for parent in parents if hasattr(parent, '__attrs__')]
-        parent_attrs = base_parents[0].__attrs__ if len(base_parents) else {}
-        self_attrs = self.__dict__.get('__attrs__', {})
 
-        # Dont allow '_' in attr names
-        for attr_name in self_attrs:
-            assert '_' not in attr_name, (
-                "%s: '_' not allowed in attr names, use '-' instead" % attr_name)
-
-        combined_attrs = dict(parent_attrs)
-        combined_attrs.update(self_attrs)
-        setattr(self, '__attrs__', combined_attrs)
         setattr(self, '__tag__', name)
+
+        proptypes_classes = []
+
+        if 'PropTypes' in attrs:
+            proptypes_classes.append(attrs['PropTypes'])
+
+        proptypes_classes.extend([parent.PropTypes for parent in parents[::-1] if hasattr(parent, 'PropTypes')])
+
+        class PropTypes(*proptypes_classes):
+            __owner_name__ = name
+            __types__ = {}
+            __mandatory_props__ = set()
+            __default_props__ = {}
+
+        PropTypes.__validate_types__()
+
+        setattr(self, 'PropTypes', PropTypes)
+
 
 class Base(object, metaclass=BaseMetaclass):
 
-    __attrs__ = {
-        # HTML attributes
-        'accesskey': str,
-        'class': str,
-        'dir': str,
-        'id': str,
-        'lang': str,
-        'maxlength': str,
-        'role': str,
-        'style': str,
-        'tabindex': int,
-        'title': str,
-        'xml:lang': str,
-
-        # Microdata HTML attributes
-        'itemtype': str,
-        'itemscope': str,
-        'itemprop': str,
-        'itemid': str,
-        'itemref': str,
-
-        # JS attributes
-        'onabort': str,
-        'onblur': str,
-        'onchange': str,
-        'onclick': str,
-        'ondblclick': str,
-        'onerror': str,
-        'onfocus': str,
-        'onkeydown': str,
-        'onkeypress': str,
-        'onkeyup': str,
-        'onload': str,
-        'onmousedown': str,
-        'onmouseenter': str,
-        'onmouseleave': str,
-        'onmousemove': str,
-        'onmouseout': str,
-        'onmouseover': str,
-        'onmouseup': str,
-        'onreset': str,
-        'onresize': str,
-        'onselect': str,
-        'onsubmit': str,
-        'onunload': str,
-        }
+    class PropTypes(BasePropTypes):
+        pass
 
     def __init__(self, **kwargs):
-        self.__attributes__ = {}
+        self.__props__ = {}
         self.__children__ = []
 
         for name, value in kwargs.items():
-            self.set_attr(self._fix_attribute_name(name), value)
+            self.set_prop(name, value)
+
+        self.PropTypes.__validate_mandatory__(self.__props__)
 
     def __call__(self, *children):
         self.append_children(children)
         return self
 
-    def get_id(self):
-        eid = self.attr('id')
-        if not eid:
-            eid = 'pyxl%d' % random.randint(0, sys.maxsize)
-            self.set_attr('id', eid)
-        return eid
-
-    def children(self, selector=None, exclude=False):
-        if not selector:
-            return self.__children__
-
-        # filter by class
-        if selector[0] == '.':
-            select = lambda x: selector[1:] in x.get_class()
-
-        # filter by id
-        elif selector[0] == '#':
-            select = lambda x: selector[1:] == x.get_id()
-
-        # filter by tag name
-        else:
-            select = lambda x: x.__class__.__name__ == selector
-
-        if exclude:
-            func = lambda x: not select(x)
-        else:
-            func = select
-
-        return list(filter(func, self.__children__))
+    def children(self):
+        return self.__children__
 
     def append(self, child):
         if type(child) in (list, tuple) or hasattr(child, '__iter__'):
@@ -132,126 +241,56 @@ class Base(object, metaclass=BaseMetaclass):
         if child is not None and child is not False:
             self.__children__.insert(0, child)
 
-    def __getattr__(self, name):
-        if len(name) > 4 and name.startswith('__') and name.endswith('__'):
-            # For dunder name (e.g. __iter__),raise AttributeError, not PyxlException.
-            raise AttributeError(name)
-        return self.attr(name.replace('_', '-'))
-
-    def attr(self, name, default=None):
-        # this check is fairly expensive (~8% of cost)
-        if not self.allows_attribute(name):
-            raise PyxlException('<%s> has no attr named "%s"' % (self.__tag__, name))
-
-        value = self.__attributes__.get(name)
-
-        if value is not None:
-            return value
-
-        attr_type = self.__attrs__.get(name, str)
-        if type(attr_type) == list:
-            if not attr_type:
-                raise PyxlException('Invalid attribute definition')
-
-            if None in attr_type[1:]:
-                raise PyxlException('None must be the first, default value')
-
-            return attr_type[0]
-
-        return default
-
-    def transfer_attributes(self, element):
-        for name, value in self.__attributes__.items():
-            if element.allows_attribute(name) and element.attr(name) is None:
-                element.set_attr(name, value)
-
-    def set_attr(self, name, value):
-        # this check is fairly expensive (~8% of cost)
-        if not self.allows_attribute(name):
-            raise PyxlException('<%s> has no attr named "%s"' % (self.__tag__, name))
-
-        if value is not None:
-            attr_type = self.__attrs__.get(name, str)
-
-            if type(attr_type) == list:
-                # support for enum values in pyxl attributes
-                values_enum = attr_type
-                assert values_enum, 'Invalid attribute definition'
-
-                if value not in values_enum:
-                    msg = '%s: %s: incorrect value "%s" for "%s". Expecting enum value %s' % (
-                        self.__tag__, self.__class__.__name__, value, name, values_enum)
-                    raise PyxlException(msg)
-
-            elif attr_type is bool:
-                # Special case for bool.
-                # We can have True:
-                #     In html5, bool attributes can set to an empty string or the attribute name.
-                #     We also accept python True or a string that is 'true' lowercased.
-                #     We force the value to True.
-                # We can have False:
-                #     In html5, bool attributes can set to an empty string or the attribute name
-                #     We also accept python True or a string that is 'true' lowercased.
-                #     We force the value to True.
-                # All other cases generate an error
-
-                if value in ('', name, True):
-                    value = True
-                elif value is False:
-                    value = False
-                else:
-                    str_value = str(value).capitalize()
-                    if str_value == 'True':
-                        value = True
-                    elif str_value  == 'False':
-                        value = False
-                    else:
-                        exc_type, exc_obj, exc_tb = sys.exc_info()
-                        msg = '%s: %s: incorrect value for boolean "%s". expected nothing, ' \
-                              'an empty string, "%s", or True or False, as python bool ' \
-                              'or as string, got %s: %s' % (
-                            self.__tag__, self.__class__.__name__, name, name, type(value), value)
-                        exception = PyxlException(msg)
-                        raise exception.with_traceback(exc_tb)
-            else:
-                try:
-                    # Validate type of attr and cast to correct type if possible
-                    value = value if isinstance(value, attr_type) else attr_type(value)
-                except Exception:
-                    exc_type, exc_obj, exc_tb = sys.exc_info()
-                    msg = '%s: %s: incorrect type for "%s". expected %s, got %s' % (
-                        self.__tag__, self.__class__.__name__, name, attr_type, type(value))
-                    exception = PyxlException(msg)
-                    raise exception.with_traceback(exc_tb)
-
-            self.__attributes__[name] = value
-
-        elif name in self.__attributes__:
-            del self.__attributes__[name]
-
-    def get_class(self):
-        return self.attr('class', '')
-
-    def add_class(self, xclass):
-        if not xclass: return
-        current_class = self.attr('class')
-        if current_class: current_class += ' ' + xclass
-        else: current_class = xclass
-        self.set_attr('class', current_class)
-
     def append_children(self, children):
         for child in children:
             self.append(child)
 
-    def attributes(self):
-        return self.__attributes__
+    def __getattr__(self, name):
+        if len(name) > 4 and name.startswith('__') and name.endswith('__'):
+            # For dunder name (e.g. __iter__),raise AttributeError, not PyxlException.
+            raise AttributeError(name)
+        return self.prop(name)
 
-    def set_attributes(self, attrs_dict):
-        for name, value in attrs_dict.items():
-            self.set_attr(name, value)
+    def prop(self, name, default=NotProvided):
+        name = BasePropTypes.__to_python__(name)
+        if not self.PropTypes.__allow__(name):
+            raise PyxlException('<%s> has no prop named "%s"' % (self.__tag__, name))
 
-    def allows_attribute(self, name):
-        return (name in self.__attrs__ or name.startswith('data-') or name.startswith('aria-'))
+        value = self.__props__.get(name, NotProvided)
+
+        if value is not NotProvided:
+            return value
+
+        prop_default = self.PropTypes.__default__(name)
+        if prop_default is not NotProvided:
+            return prop_default
+
+        if default is NotProvided:
+            raise AttributeError('%s is not defined' % name)
+
+        return default
+
+    def set_prop(self, name, value):
+        name = BasePropTypes.__to_python__(name)
+        if not self.PropTypes.__allow__(name):
+            raise PyxlException('<%s> has no prop named "%s"' % (self.__tag__, name))
+
+        if value is NotProvided:
+            self.__props__.pop(name, None)
+            return
+
+        self.__props__[name] = self.PropTypes.__validate__(name, value)
+
+    def unset_prop(self, name):
+        self.set_prop(name, value=NotProvided)
+
+    @property
+    def props(self):
+        return dict(self.PropTypes.__default_props__, **self.__props__)
+
+    def set_props(self, props):
+        for name, value in props.items():
+            self.set_prop(name, value)
 
     def to_string(self):
         l = []
@@ -268,9 +307,3 @@ class Base(object, metaclass=BaseMetaclass):
     def _render_child_to_list(child, l):
         if isinstance(child, Base): child._to_list(l)
         elif child is not None: l.append(escape(child))
-
-    @staticmethod
-    def _fix_attribute_name(name):
-        if name == 'xclass': return 'class'
-        if name == 'xfor': return 'for'
-        return name.replace('_', '-').replace('COLON', ':')
