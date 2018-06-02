@@ -3,7 +3,13 @@
 import pytest
 
 from mixt.pyxl import html
-from mixt.pyxl.base import PyxlException, Base, Choices
+from mixt.pyxl.base import PyxlException, Base, Choices, NotProvided
+
+
+class DummyBase(Base):
+    def _to_list(self, l):
+        pass
+
 
 def test_basics():
     assert str(<div />) == '<div></div>'
@@ -39,12 +45,30 @@ def test_decl():
         == '<script><![CDATA[<div><div>]]></script>')
 
 def test_enum_prop():
-    class Foo(Base):
+
+    with pytest.raises(PyxlException):
+        class Foo(DummyBase):
+            class PropTypes:
+                value: Choices
+
+    with pytest.raises(PyxlException):
+        class Foo(DummyBase):
+            class PropTypes:
+                value: Choices = []
+
+    with pytest.raises(PyxlException):
+        class Foo(DummyBase):
+            class PropTypes:
+                value: Choices = 'foo'
+
+    with pytest.raises(PyxlException):
+        class Foo(DummyBase):
+            class PropTypes:
+                value: Choices = 123
+
+    class Foo(DummyBase):
         class PropTypes:
             value: Choices = ['a', 'b']
-
-        def _to_list(self, l):
-            pass
 
     assert (<Foo />.prop('value')) == 'a'
     assert (<Foo />.value) == 'a'
@@ -54,27 +78,34 @@ def test_enum_prop():
     with pytest.raises(PyxlException):
         <Foo value="c" />
 
-    class Bar(Base):
+    with pytest.raises(PyxlException):
+        <Foo value={None} />
+
+    assert (<Foo value={NotProvided} />.value) == 'a'
+
+    class Bar(DummyBase):
         class PropTypes:
             value: Choices = ['a', None, 'b']
 
-        def _to_list(self, l):
-            pass
+    assert (<Bar />.prop('value')) == 'a'
+    assert (<Bar />.value) == 'a'
 
-    with pytest.raises(PyxlException):
-        <Bar />.prop('value')
-
-    with pytest.raises(PyxlException):
-        <Bar />.value
-
-    class Baz(Base):
+    class Baz(DummyBase):
         class PropTypes:
             value: Choices = [None, 'a', 'b']
 
-        def _to_list(self, l):
-            pass
+    assert (<Baz />.prop('value')) is None
+    assert (<Baz />.value) is None
 
-    assert (<Baz />.value) == None
+    class Qux(DummyBase):
+        class PropTypes:
+            value: Choices = [NotProvided, 'a', 'b']
+
+    with pytest.raises(AttributeError):
+        <Qux />.prop('value')
+
+    with pytest.raises(AttributeError):
+        <Qux />.value
 
 
 def test_special_prop_names():

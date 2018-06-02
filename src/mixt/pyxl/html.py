@@ -76,8 +76,8 @@ class HtmlBaseElement(Base, metaclass=HtmlElementMetaclass):
     def _render_attributes(self):
         result = []
         for name, value in self.props.items():
-            html_name = BasePropTypes.to_html(name)
-            if self.PropTypes.type(name) is bool:
+            html_name = BasePropTypes.__to_html__(name)
+            if self.PropTypes.__is_bool__(name):
                 if value:
                     result.extend((' ', html_name))
             else:

@@ -6,10 +6,12 @@
 # much faster (2x). We're also not using NumPy (which is even faster) because
 # it's a difficult dependency to fulfill purely to generate random numbers.
 
+import enforce
 import keyword
-import sys
 
 from typing import get_type_hints, Sequence
+
+from enforce.exceptions import RuntimeTypeError
 
 from .utils import escape
 
@@ -18,23 +20,29 @@ class PyxlException(Exception):
     pass
 
 
+class NotProvided: ...
+
+
 class Choices(Sequence): ...
 
 
 class BasePropTypes:
+
+    __owner_name__ = None
+
     # Rules for props names
     # a starting `_` will be removed in final html attribute
     # a single `_` will be changed to `-`
     # a double `__` will be changed to `:`
 
     @staticmethod
-    def to_html(name):
+    def __to_html__(name):
         if name.startswith('_'):
             name = name[1:]
         return name.replace('__', ':').replace('_', '-')
 
     @staticmethod
-    def to_python(name):
+    def __to_python__(name):
         name = name.replace('-', '_').replace(':', '__')
         if not name.isidentifier():
             raise NameError
@@ -43,17 +51,103 @@ class BasePropTypes:
         return name
 
     @classmethod
-    def allow(cls, name):
+    def __allow__(cls, name):
         return name in cls._types or name.startswith('data_') or name.startswith('aria_')
 
     @classmethod
-    def type(cls, name):
+    def __type__(cls, name):
         return cls._types.get(name, str)
+
+    @classmethod
+    def __value__(cls, name):
+        return getattr(cls, name)
+
+    @classmethod
+    def __is_choice__(cls, name):
+        return issubclass(cls.__type__(name), Choices)
+
+    @classmethod
+    def __is_bool__(cls, name):
+        return cls.__type__(name) is bool
+
+    @classmethod
+    def __default__(cls, name):
+        if cls.__is_choice__(name):
+            return cls.__value__(name)[0]
+        else:
+            return getattr(cls, name, NotProvided)
+
+    @classmethod
+    def __validate_types__(cls):
+        cls._types = get_type_hints(cls)
+
+        for name, prop_type in cls._types.items():
+            if cls.__is_choice__(name):
+                if not getattr(cls, name, []):
+                    raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
+                choices = getattr(cls, name)
+                if not isinstance(choices, Sequence) or isinstance(choices, str):
+                    raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
+
+    @classmethod
+    def __validate__(cls, name, value):
+
+        if cls.__is_choice__(name):
+            if value in cls.__value__(name):
+                return value
+
+            raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid choice')
+
+        if cls.__is_bool__(name):
+            # Special case for bool.
+            # We can have True:
+            #     In html5, bool attributes can set to an empty string or the attribute name.
+            #     We also accept python True or a string that is 'true' lowercased.
+            #     We force the value to True.
+            # We can have False:
+            #     In html5, bool attributes can set to an empty string or the attribute name
+            #     We also accept python True or a string that is 'true' lowercased.
+            #     We force the value to True.
+            # All other cases generate an error
+
+            if value in ('', name, True):
+                return True
+            if value is False:
+                return False
+
+            str_value = str(value).capitalize()
+            if str_value == 'True':
+                return True
+            if str_value  == 'False':
+                return False
+
+            raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
+
+        # normal check
+        prop_type = cls.__type__(name)
+        try:
+            if isinstance(value, prop_type):
+                return value
+            raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
+
+        except TypeError:
+            # we use "enforce" to check complex types
+
+            @enforce.runtime_validation
+            def check(value: prop_type):
+                return value
+
+            try:
+                return check(value)
+            except RuntimeTypeError:
+                raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
 
 
 class BaseMetaclass(type):
     def __init__(self, name, parents, attrs):
         super().__init__(name, parents, attrs)
+
+        setattr(self, '__tag__', name)
 
         proptypes_classes = []
 
@@ -63,13 +157,12 @@ class BaseMetaclass(type):
         proptypes_classes.extend([parent.PropTypes for parent in parents[::-1] if hasattr(parent, 'PropTypes')])
 
         class PropTypes(*proptypes_classes):
-            pass
+            __owner_name__ = name
 
-        PropTypes._types = get_type_hints(PropTypes)
+        PropTypes.__validate_types__()
 
         setattr(self, 'PropTypes', PropTypes)
 
-        setattr(self, '__tag__', name)
 
 class Base(object, metaclass=BaseMetaclass):
 
@@ -100,107 +193,48 @@ class Base(object, metaclass=BaseMetaclass):
         if child is not None and child is not False:
             self.__children__.insert(0, child)
 
+    def append_children(self, children):
+        for child in children:
+            self.append(child)
+
     def __getattr__(self, name):
         if len(name) > 4 and name.startswith('__') and name.endswith('__'):
             # For dunder name (e.g. __iter__),raise AttributeError, not PyxlException.
             raise AttributeError(name)
         return self.prop(name)
 
-    def prop(self, name, default=None):  # TODO: default could maybe be `NotProvided` ?
-        name = BasePropTypes.to_python(name)
-        if not self.PropTypes.allow(name):
+    def prop(self, name, default=NotProvided):
+        name = BasePropTypes.__to_python__(name)
+        if not self.PropTypes.__allow__(name):
             raise PyxlException('<%s> has no prop named "%s"' % (self.__tag__, name))
 
-        value = self.__props__.get(name)
+        value = self.__props__.get(name, NotProvided)
 
-        if value is not None:
+        if value is not NotProvided:
             return value
 
-        prop_type = self.PropTypes.type(name)
+        prop_default = self.PropTypes.__default__(name)
+        if prop_default is not NotProvided:
+            return prop_default
 
-        if issubclass(prop_type, Choices):
-            values_enum = getattr(self.PropTypes, name)
+        if default is NotProvided:
+            raise AttributeError('%s is not defined' % name)
 
-            if not values_enum:
-                # TODO: this must be checked in the metaclass
-                raise PyxlException('Invalid prop definition')
-
-            if None in values_enum[1:]:
-                # TODO: this must be checked in the metaclass
-                raise PyxlException('None must be the first, default value')
-
-            # TODO: return ``default`` if ``values_enum[0] is None``
-            return values_enum[0]
-
-        return default  # TODO get value from PropTypes if defined if default is None
+        return default
 
     def set_prop(self, name, value):
-        name = BasePropTypes.to_python(name)
-        if not self.PropTypes.allow(name):
+        name = BasePropTypes.__to_python__(name)
+        if not self.PropTypes.__allow__(name):
             raise PyxlException('<%s> has no prop named "%s"' % (self.__tag__, name))
 
-        if value is not None:
-            prop_type = self.PropTypes.type(name)
+        if value is NotProvided:
+            self.__props__.pop(name, None)
+            return
 
-            if issubclass(prop_type, Choices):
-                # support for enum values in pyxl attributes
-                values_enum = getattr(self.PropTypes, name)
-                assert values_enum, 'Invalid attribute definition'
+        self.__props__[name] = self.PropTypes.__validate__(name, value)
 
-                if value not in values_enum:
-                    msg = '%s: %s: incorrect value "%s" for "%s". Expecting enum value %s' % (
-                        self.__tag__, self.__class__.__name__, value, name, values_enum)
-                    raise PyxlException(msg)
-
-            elif prop_type is bool:
-                # Special case for bool.
-                # We can have True:
-                #     In html5, bool attributes can set to an empty string or the attribute name.
-                #     We also accept python True or a string that is 'true' lowercased.
-                #     We force the value to True.
-                # We can have False:
-                #     In html5, bool attributes can set to an empty string or the attribute name
-                #     We also accept python True or a string that is 'true' lowercased.
-                #     We force the value to True.
-                # All other cases generate an error
-
-                if value in ('', name, True):
-                    value = True
-                elif value is False:
-                    value = False
-                else:
-                    str_value = str(value).capitalize()
-                    if str_value == 'True':
-                        value = True
-                    elif str_value  == 'False':
-                        value = False
-                    else:
-                        exc_type, exc_obj, exc_tb = sys.exc_info()
-                        msg = '%s: %s: incorrect value for boolean "%s". expected nothing, ' \
-                              'an empty string, "%s", or True or False, as python bool ' \
-                              'or as string, got %s: %s' % (
-                            self.__tag__, self.__class__.__name__, name, name, type(value), value)
-                        exception = PyxlException(msg)
-                        raise exception.with_traceback(exc_tb)
-            else:
-                try:
-                    # Validate type of prop and cast to correct type if possible
-                    value = value if isinstance(value, prop_type) else prop_type(value)
-                except Exception:
-                    exc_type, exc_obj, exc_tb = sys.exc_info()
-                    msg = '%s: %s: incorrect type for "%s". expected %s, got %s' % (
-                        self.__tag__, self.__class__.__name__, name, prop_type, type(value))
-                    exception = PyxlException(msg)
-                    raise exception.with_traceback(exc_tb)
-
-            self.__props__[name] = value
-
-        elif name in self.__props__:
-            del self.__props__[name]
-
-    def append_children(self, children):
-        for child in children:
-            self.append(child)
+    def unset_prop(self, name):
+        self.set_prop(name, value=NotProvided)
 
     @property
     def props(self):

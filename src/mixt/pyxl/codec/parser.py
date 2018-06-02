@@ -227,7 +227,7 @@ class PyxlParser(HTMLTokenizer):
             else: self.output.append(', ')
 
             try:
-                safe_attr_name = BasePropTypes.to_python(attr_name)
+                safe_attr_name = BasePropTypes.__to_python__(attr_name)
             except NameError:
                 raise ParseError("Invalid prop name %s" % attr_name, self.start)
 
