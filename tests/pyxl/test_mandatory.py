@@ -4,7 +4,7 @@
 
 import pytest
 from mixt.pyxl import html
-from mixt.pyxl.base import Base, PyxlException, Mandatory
+from mixt.pyxl.base import Base, PyxlException, Mandatory, NotProvided
 
 from typing import *
 
@@ -48,3 +48,13 @@ def test_complex_prop_mandatory():
         <Foo value="foo" />
 
     (<Foo value={1} />)
+
+def test_mandatory_prop_cannot_have_default():
+    with pytest.raises(PyxlException):
+        class Foo(DummyBase):
+            class PropTypes:
+                value: Mandatory[str] = "foo"
+
+    class Foo(DummyBase):
+        class PropTypes:
+            value: Mandatory[str] = NotProvided

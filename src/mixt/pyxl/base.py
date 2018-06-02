@@ -88,7 +88,9 @@ class BasePropTypes:
 
         for name, prop_type in cls.__types__.items():
 
+            is_mandatory = False
             if issubclass(prop_type, Mandatory):
+                is_mandatory = True
                 prop_type = prop_type.__args__[0]
                 cls.__types__[name] = prop_type
                 cls.__mandatory_props__.add(name)
@@ -103,6 +105,8 @@ class BasePropTypes:
                     raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
 
                 if choices[0] is not NotProvided:
+                    if is_mandatory:
+                        raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the mandatory prop `{name}`')
                     cls.__default_props__[name] = choices[0]
 
                 continue
@@ -110,6 +114,9 @@ class BasePropTypes:
             default =  getattr(cls, name, NotProvided)
             if default is NotProvided:
                 continue
+
+            if is_mandatory:
+                raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the mandatory prop `{name}`')
 
             try:
                 cls.__validate__(name, default)
