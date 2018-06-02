@@ -26,6 +26,53 @@ class HtmlElementMetaclass(BaseMetaclass):
 
 
 class HtmlBaseElement(Base, metaclass=HtmlElementMetaclass):
+
+    class PropTypes:
+        # HTML attributes
+        accesskey: str
+        _class: str
+        dir: str
+        id: str
+        lang: str
+        maxlength: str
+        role: str
+        style: str
+        tabindex: int
+        title: str
+        xmllang: str
+
+        # Microdata HTML attributes
+        itemtype: str
+        itemscope: str
+        itemprop: str
+        itemid: str
+        itemref: str
+
+        # JS attributes
+        onabort: str
+        onblur: str
+        onchange: str
+        onclick: str
+        ondblclick: str
+        onerror: str
+        onfocus: str
+        onkeydown: str
+        onkeypress: str
+        onkeyup: str
+        onload: str
+        onmousedown: str
+        onmouseenter: str
+        onmouseleave: str
+        onmousemove: str
+        onmouseout: str
+        onmouseover: str
+        onmouseup: str
+        onreset: str
+        onresize: str
+        onselect: str
+        onsubmit: str
+        onunload: str
+
     def _render_attributes(self):
         result = []
         for name, value in self.props.items():

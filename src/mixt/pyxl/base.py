@@ -7,7 +7,6 @@
 # it's a difficult dependency to fulfill purely to generate random numbers.
 
 import keyword
-import random
 import sys
 
 from typing import get_type_hints, Sequence
@@ -75,50 +74,7 @@ class BaseMetaclass(type):
 class Base(object, metaclass=BaseMetaclass):
 
     class PropTypes(BasePropTypes):
-        # HTML attributes
-        accesskey: str
-        _class: str
-        dir: str
-        id: str
-        lang: str
-        maxlength: str
-        role: str
-        style: str
-        tabindex: int
-        title: str
-        xmllang: str
-
-        # Microdata HTML attributes
-        itemtype: str
-        itemscope: str
-        itemprop: str
-        itemid: str
-        itemref: str
-
-        # JS attributes
-        onabort: str
-        onblur: str
-        onchange: str
-        onclick: str
-        ondblclick: str
-        onerror: str
-        onfocus: str
-        onkeydown: str
-        onkeypress: str
-        onkeyup: str
-        onload: str
-        onmousedown: str
-        onmouseenter: str
-        onmouseleave: str
-        onmousemove: str
-        onmouseout: str
-        onmouseover: str
-        onmouseup: str
-        onreset: str
-        onresize: str
-        onselect: str
-        onsubmit: str
-        onunload: str
+        pass
 
     def __init__(self, **kwargs):
         self.__props__ = {}
@@ -131,35 +87,8 @@ class Base(object, metaclass=BaseMetaclass):
         self.append_children(children)
         return self
 
-    def get_id(self):
-        eid = self.prop('id')
-        if not eid:
-            eid = 'pyxl%d' % random.randint(0, sys.maxsize)
-            self.set_prop('id', eid)
-        return eid
-
-    def children(self, selector=None, exclude=False):
-        if not selector:
-            return self.__children__
-
-        # filter by class
-        if selector[0] == '.':
-            select = lambda x: selector[1:] in x.get_class()
-
-        # filter by id
-        elif selector[0] == '#':
-            select = lambda x: selector[1:] == x.get_id()
-
-        # filter by tag name
-        else:
-            select = lambda x: x.__class__.__name__ == selector
-
-        if exclude:
-            func = lambda x: not select(x)
-        else:
-            func = select
-
-        return list(filter(func, self.__children__))
+    def children(self):
+        return self.__children__
 
     def append(self, child):
         if type(child) in (list, tuple) or hasattr(child, '__iter__'):
@@ -268,16 +197,6 @@ class Base(object, metaclass=BaseMetaclass):
 
         elif name in self.__props__:
             del self.__props__[name]
-
-    def get_class(self):
-        return self.prop('class', '')
-
-    def add_class(self, xclass):
-        if not xclass: return
-        current_class = self.prop('class')
-        if current_class: current_class += ' ' + xclass
-        else: current_class = xclass
-        self.set_prop('class', current_class)
 
     def append_children(self, children):
         for child in children:
