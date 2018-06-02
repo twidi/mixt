@@ -35,6 +35,8 @@ class BasePropTypes:
     __owner_name__ = None
     __types__ = {}
     __mandatory_props__ = set()
+    __default_props__ = {}
+
 
     # Rules for props names
     # a starting `_` will be removed in final html attribute
@@ -78,10 +80,7 @@ class BasePropTypes:
 
     @classmethod
     def __default__(cls, name):
-        if cls.__is_choice__(name):
-            return cls.__value__(name)[0]
-        else:
-            return getattr(cls, name, NotProvided)
+        return cls.__default_props__.get(name, NotProvided)
 
     @classmethod
     def __validate_types__(cls):
@@ -103,9 +102,12 @@ class BasePropTypes:
                 if not isinstance(choices, Sequence) or isinstance(choices, str):
                     raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
 
+                if choices[0] is not NotProvided:
+                    cls.__default_props__[name] = choices[0]
+
                 continue
 
-            default = cls.__default__(name)
+            default =  getattr(cls, name, NotProvided)
             if default is NotProvided:
                 continue
 
@@ -113,6 +115,8 @@ class BasePropTypes:
                 cls.__validate__(name, default)
             except PyxlException:
                 raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(default)} `{default}` is not a valid default value')
+
+            cls.__default_props__[name] = default
 
     @classmethod
     def __validate__(cls, name, value):
@@ -159,13 +163,14 @@ class BasePropTypes:
             # we use "enforce" to check complex types
 
             @enforce.runtime_validation
-            def check(value: prop_type):
-                return value
+            def check(prop_value: prop_type): ...
 
             try:
-                return check(value)
+                check(value)
             except RuntimeTypeError:
                 raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
+
+            return value
 
 
     @classmethod
@@ -191,6 +196,7 @@ class BaseMetaclass(type):
             __owner_name__ = name
             __types__ = {}
             __mandatory_props__ = set()
+            __default_props__ = {}
 
         PropTypes.__validate_types__()
 
@@ -273,7 +279,7 @@ class Base(object, metaclass=BaseMetaclass):
 
     @property
     def props(self):
-        return self.__props__
+        return dict(self.PropTypes.__default_props__, **self.__props__)
 
     def set_props(self, props):
         for name, value in props.items():

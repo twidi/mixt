@@ -4,7 +4,7 @@
 
 import pytest
 from mixt.pyxl import html
-from mixt.pyxl.base import Base, PyxlException
+from mixt.pyxl.base import Base, PyxlException, Choices, NotProvided
 
 from typing import *
 
@@ -47,3 +47,17 @@ def test_invalid_default_value_complex_type():
         class Foo(DummyBase):
             class PropTypes:
                 value: Union[int, float] = "foo"
+
+def test_default_are_returned():
+    class Foo(DummyBase):
+        class PropTypes:
+            value1: int
+            value2: str = "foo"
+            value3: Choices = [1, 2, 3]
+            value4: str = NotProvided
+
+    assert (<Foo />.props) == {'value2': 'foo', 'value3': 1}
+    assert (<Foo value1={123} />.props) == {'value1': 123, 'value2': 'foo', 'value3': 1}
+    assert (<Foo value1={123} value2="bar" />.props) == {'value1': 123, 'value2': 'bar', 'value3': 1}
+    assert (<Foo value1={123} value2="bar" value3={2} />.props) == {'value1': 123, 'value2': 'bar', 'value3': 2}
+    assert (<Foo value1={123} value2="bar" value3={2} value4="baz" />.props) == {'value1': 123, 'value2': 'bar', 'value3': 2, 'value4': 'baz'}
