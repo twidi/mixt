@@ -82,12 +82,26 @@ class BasePropTypes:
         cls._types = get_type_hints(cls)
 
         for name, prop_type in cls._types.items():
+
             if cls.__is_choice__(name):
+
                 if not getattr(cls, name, []):
                     raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
+
                 choices = getattr(cls, name)
                 if not isinstance(choices, Sequence) or isinstance(choices, str):
                     raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
+
+                continue
+
+            default = cls.__default__(name)
+            if default is NotProvided:
+                continue
+
+            try:
+                cls.__validate__(name, default)
+            except PyxlException:
+                raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(default)} `{default}` is not a valid default value')
 
     @classmethod
     def __validate__(cls, name, value):
