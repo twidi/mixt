@@ -136,3 +136,19 @@ def test_classes_can_be_changed():
 
     assert str(<Node class="node" />) == '<div class="div divappended prepended node appended"></div>'
 
+
+def test_element_can_be_simple_function():
+
+    def Bolding():
+        # use lambda to manage children
+        return lambda children: <b>{children}</b>
+
+    def Hello():
+        # no html at all
+        return 'Hello'
+
+    def Greeting(name, title):
+        # accept props (but no proptypes checks)
+        return <div title={title}><Hello /> <Bolding>{name}</Bolding></div>
+
+    assert str(<Greeting title="Greetings" name="John" />) == '<div title="Greetings">Hello <b>John</b></div>'
