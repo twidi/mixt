@@ -108,3 +108,14 @@ def test_cached_rendering():
 
     el.set_prop('number', 1)
     assert str(el) == '<div data-number="0"></div>'
+
+
+def test_auto_fragment():
+    class Node(Element):
+        def render(self):
+            return (
+                <div id=1/>,
+                <div id=2/>,
+            )
+
+    assert str(<Node class="ignored" />) == '<div id="1"></div><div id="2"></div>'

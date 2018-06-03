@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from .base import Base
+from .html import Fragment
 
 
 class Element(Base):
@@ -73,6 +74,8 @@ class Element(Base):
         if self._element is None:
             self.prerender()
             self._element = self.render()
+            if isinstance(self._element, (list, tuple)):
+                self._element = Fragment()(self._element)
             self.postrender(self._element)
         return self._element
 
