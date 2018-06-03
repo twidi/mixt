@@ -119,10 +119,11 @@ def test_auto_fragment():
 
     assert str(<Node class="ignored" />) == '<div id="1"></div><div id="2"></div>'
 
-def test_class_can_be_prepended():
+
+def test_classes_can_be_changed():
     class Node(Element):
         def render(self):
-            return <div />
+            return <div class="div divremoved" />
 
         def prerender(self):
             self.prepend_class('prepended removed')
@@ -130,6 +131,8 @@ def test_class_can_be_prepended():
         def postrender(self, element):
             self.append_class('appended')
             self.remove_class('removed')
+            element.append_class('divappended')
+            element.remove_class('divremoved')
 
-    assert str(<Node class="node" />) == '<div class="prepended node appended"></div>'
+    assert str(<Node class="node" />) == '<div class="div divappended prepended node appended"></div>'
 

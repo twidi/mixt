@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-from .base import Base
+from .base import Base, WithClass
 from .html import Fragment
 
 
-class Element(Base):
+class Element(WithClass):
 
     class PropTypes:
         _class: str
@@ -13,47 +13,22 @@ class Element(Base):
     _element = None  # render() output cached by _rendered_element()
 
     def _get_base_element(self):
-        # Adding classes costs ~10%
         out = self._rendered_element()
-        # Note: get_class() may return multiple space-separated classes.
-        classes = self.get_class().split()
+        classes = self.classes
 
         while isinstance(out, Element):
             new_out = out._rendered_element()
-            classes = out.get_class().split() + classes
+            classes = out.classes + classes
             out = new_out
 
         if classes and isinstance(out, Base):
-            classes = out.get_class().split() + classes
+            classes = out.classes + classes
             out.set_prop('class', ' '.join(dict.fromkeys(classes)))  # keep ordering in py3.6
 
         return out
 
-    def add_class(self, xclass, prepend=False):
-        if not xclass: return
-        current_class = self.get_class()
-        if current_class:
-            if prepend:
-                current_class = xclass + ' ' + current_class
-            else:
-                current_class += ' ' + xclass
-        else: current_class = xclass
-        self.set_prop('class', current_class)
-
-    def prepend_class(self, xclass):
-        self.add_class(xclass, prepend=True)
-
-    def append_class(self, xclass):
-        self.add_class(xclass, prepend=False)
-
-    def remove_class(self, xclass):
-        self.set_prop('class', ' '.join([c for c in self.get_class().split() if c != xclass]))
-
     def get_id(self):
         return self.prop('id')
-
-    def get_class(self):
-        return self.prop('class', '')
 
     def children(self, selector=None, exclude=False):
         children = super().children()
@@ -63,7 +38,7 @@ class Element(Base):
 
         # filter by class
         if selector[0] == '.':
-            select = lambda x: selector[1:] in x.get_class().split()
+            select = lambda x: selector[1:] in x.classes
 
         # filter by id
         elif selector[0] == '#':

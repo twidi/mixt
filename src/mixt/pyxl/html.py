@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from .utils import escape
-from .base import Base, BaseMetaclass, BasePropTypes
+from .base import Base, BaseMetaclass, BasePropTypes, Base, WithClass
 
 # for backwards compatibility.
 from .browser_hacks import ConditionalComment
@@ -25,7 +25,7 @@ class HtmlElementMetaclass(BaseMetaclass):
         super().__init__(name, parents, attrs)
 
 
-class HtmlBaseElement(Base, metaclass=HtmlElementMetaclass):
+class HtmlBaseElement(WithClass, metaclass=HtmlElementMetaclass):
 
     class PropTypes:
         # HTML attributes
@@ -86,9 +86,6 @@ class HtmlBaseElement(Base, metaclass=HtmlElementMetaclass):
 
     def get_id(self):
         return self.prop('id')
-
-    def get_class(self):
-        return self.prop('class', '')
 
 
 class HtmlElement(HtmlBaseElement):
@@ -154,9 +151,8 @@ class RawHtml(HtmlElementNoChild):
 def Raw(text):
     return RawHtml(text=text)
 
-class Fragment(Base):
+class Fragment(WithClass):
     class PropTypes:
-        _class: str
         id: str
 
     def _to_list(self, l):
@@ -165,9 +161,6 @@ class Fragment(Base):
 
     def get_id(self):
         return self.prop('id')
-
-    def get_class(self):
-        return self.prop('class', '')
 
 
 class A(HtmlElement):

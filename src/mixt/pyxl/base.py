@@ -350,3 +350,35 @@ class Base(object, metaclass=BaseMetaclass):
     def _render_child_to_list(child, l):
         if isinstance(child, Base): child._to_list(l)
         elif child is not None: l.append(escape(child))
+
+
+class WithClass(Base):
+    class PropTypes:
+        _class: str
+
+    def get_class(self):
+        return self.prop('class', '')
+
+    @property
+    def classes(self):
+        return self.get_class().split()
+
+    def add_class(self, xclass, prepend=False):
+        if not xclass: return
+        current_class = self.get_class()
+        if current_class:
+            if prepend:
+                current_class = xclass + ' ' + current_class
+            else:
+                current_class += ' ' + xclass
+        else: current_class = xclass
+        self.set_prop('class', current_class)
+
+    def prepend_class(self, xclass):
+        self.add_class(xclass, prepend=True)
+
+    def append_class(self, xclass):
+        self.add_class(xclass, prepend=False)
+
+    def remove_class(self, xclass):
+        self.set_prop('class', ' '.join([c for c in self.classes if c != xclass]))
