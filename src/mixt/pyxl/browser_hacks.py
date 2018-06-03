@@ -25,10 +25,7 @@ class ConditionalComment(Base):
         cond = '&'.join(map(escape, cond.split('&')))
 
         l.extend(('<!--[if ', cond, ']>'))
-
-        for child in self.__children__:
-            self._render_child_to_list(child, l)
-
+        self._render_children_to_list(l)
         l.append('<![endif]-->')
 
 class ConditionalNonComment(Base):
@@ -43,9 +40,6 @@ class ConditionalNonComment(Base):
         cond = '&'.join(map(escape, cond.split('&')))
 
         l.extend(('<!--[if ', cond, ']><!-->'))
-
-        for child in self.__children__:
-            self._render_child_to_list(child, l)
-
+        self._render_children_to_list(l)
         l.append('<!--<![endif]-->')
 

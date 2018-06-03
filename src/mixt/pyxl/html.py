@@ -93,10 +93,7 @@ class HtmlElement(HtmlBaseElement):
         l.extend(('<', self.__tag__))
         l.extend(self._render_attributes())
         l.append('>')
-
-        for child in self.__children__:
-            self._render_child_to_list(child, l)
-
+        self._render_children_to_list(l)
         l.extend(('</', self.__tag__, '>'))
 
 
@@ -156,8 +153,7 @@ class Fragment(WithClass):
         id: str
 
     def _to_list(self, l):
-        for child in self.__children__:
-            self._render_child_to_list(child, l)
+        self._render_children_to_list(l)
 
     def get_id(self):
         return self.prop('id')

@@ -3,7 +3,8 @@
 import keyword
 
 from contextlib import contextmanager
-from typing import get_type_hints, Sequence, Generic, TypeVar
+from itertools import chain
+from typing import get_type_hints, Sequence, Generic, TypeVar, Any
 
 from enforce.exceptions import RuntimeTypeError
 
@@ -261,6 +262,7 @@ class Base(object, metaclass=BaseMetaclass):
     def __init__(self, **kwargs):
         self.__props__ = {}
         self.__children__ = []
+        self.context = None
 
         for name, value in kwargs.items():
             self.set_prop(name, value)
@@ -268,25 +270,51 @@ class Base(object, metaclass=BaseMetaclass):
         self.PropTypes.__validate_required__(self.__props__)
 
     def __call__(self, *children):
-        self.append_children(children)
+        self.append(children)
         return self
 
     def children(self):
         return self.__children__
 
+    def _set_context(self, context):
+        if context is None:
+            return
+
+        if self.context is not None and not issubclass(context.__class__, self.context.__class__):
+            # merge if not already done
+            context_class = type('%s__%s' % (context.__tag__, self.context.__tag__), (context.__class__, self.context.__class__), {})
+            context = context_class(**dict(context.props, **self.context.props))
+
+        self.context = context
+        for child in self.__children__:
+            if isinstance(child, Base):
+                child._set_context(context)
+
+    def _propagate_context(self, children):
+        if self.context is None:
+            return
+        context = self.context
+        for child in children:
+            child._set_context(context)
+
+    def _child_to_children(self, child):
+        if type(child) in (list, tuple):
+            children = list(chain.from_iterable(self._child_to_children(c) for c in child if c not in (None, False)))
+        elif child not in (None, False):
+            children = [child]
+        else:
+            return []
+        return children
+
     def append(self, child):
-        if type(child) in (list, tuple) or hasattr(child, '__iter__'):
-            self.__children__.extend(c for c in child if c is not None and c is not False)
-        elif child is not None and child is not False:
-            self.__children__.append(child)
+        children = self._child_to_children(child)
+        self._propagate_context(children)
+        self.__children__.extend(children)
 
     def prepend(self, child):
-        if child is not None and child is not False:
-            self.__children__.insert(0, child)
-
-    def append_children(self, children):
-        for child in children:
-            self.append(child)
+        children = self._child_to_children(child)
+        self._propagate_context(children)
+        self.__children__[0:0] = children
 
     def __getattr__(self, name):
         if len(name) > 4 and name.startswith('__') and name.endswith('__'):
@@ -351,6 +379,10 @@ class Base(object, metaclass=BaseMetaclass):
         if isinstance(child, Base): child._to_list(l)
         elif child is not None: l.append(escape(child))
 
+    def _render_children_to_list(self, l, children=None):
+        for child in (children or self.__children__):
+            self._render_child_to_list(child, l)
+
 
 class WithClass(Base):
     class PropTypes:
@@ -382,3 +414,19 @@ class WithClass(Base):
 
     def remove_class(self, xclass):
         self.set_prop('class', ' '.join([c for c in self.classes if c != xclass]))
+
+
+class BaseContext(Base):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.context = self
+
+    def _to_list(self, l):
+        self._render_children_to_list(l)
+
+
+class EmptyContext(BaseContext):
+    pass
+
+EmptyContext = EmptyContext()

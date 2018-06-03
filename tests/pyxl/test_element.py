@@ -8,11 +8,11 @@ from mixt.pyxl.element import Element
 
 def test_class_names_are_inherited_for_single_child():
     class Child(Element):
-        def render(self):
+        def render(self, context):
             return <div class="div" />
 
     class Parent(Element):
-        def render(self):
+        def render(self, context):
             return <Child class="child" />
 
     assert str(<Parent class="parent" />) == '<div class="div child parent"></div>'
@@ -20,7 +20,7 @@ def test_class_names_are_inherited_for_single_child():
 
 def test_class_names_are_not_inherited_to_html_grand_children():
     class Parent(Element):
-        def render(self):
+        def render(self, context):
             return <div class="level0"><div class="level1">{self.children()}</div></div>
 
     assert str(<Parent class="parent"><div class="level2"/></Parent>) == (
@@ -30,11 +30,11 @@ def test_class_names_are_not_inherited_to_html_grand_children():
 def test_class_names_are_not_inherited_for_many_children():
 
     class Child(Element):
-        def render(self):
+        def render(self, context):
             return <Fragment><div class="div1" /><div class="div2" /></Fragment>
 
     class Parent(Element):
-        def render(self):
+        def render(self, context):
             return <Child class="child" />
 
     assert str(<Parent class="parent" />) == '<div class="div1"></div><div class="div2"></div>'
@@ -82,13 +82,13 @@ def test_children_filtering():
 def test_pre_post_render():
 
     class Node(Element):
-        def render(self):
+        def render(self, context):
             return <div class="node"/>
 
-        def prerender(self):
+        def prerender(self, context):
             self.add_class('keep remove')
 
-        def postrender(self, element):
+        def postrender(self, element, context):
             self.remove_class('remove')
 
     assert str(<Node class="render"/>) == '<div class="node render keep"></div>'
@@ -99,7 +99,7 @@ def test_cached_rendering():
         class PropTypes:
             number: int = 0
 
-        def render(self):
+        def render(self, context):
             return <div data-number={self.number}/>
 
     el = <Node />
@@ -111,7 +111,7 @@ def test_cached_rendering():
 
 def test_auto_fragment():
     class Node(Element):
-        def render(self):
+        def render(self, context):
             return (
                 <div id=1/>,
                 <div id=2/>,
@@ -122,13 +122,13 @@ def test_auto_fragment():
 
 def test_classes_can_be_changed():
     class Node(Element):
-        def render(self):
+        def render(self, context):
             return <div class="div divremoved" />
 
-        def prerender(self):
+        def prerender(self, context):
             self.prepend_class('prepended removed')
 
-        def postrender(self, element):
+        def postrender(self, element, context):
             self.append_class('appended')
             self.remove_class('removed')
             element.append_class('divappended')
