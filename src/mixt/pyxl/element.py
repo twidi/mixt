@@ -29,12 +29,25 @@ class Element(Base):
 
         return out
 
-    def add_class(self, xclass):
+    def add_class(self, xclass, prepend=False):
         if not xclass: return
-        current_class = self.prop('class')
-        if current_class: current_class += ' ' + xclass
+        current_class = self.get_class()
+        if current_class:
+            if prepend:
+                current_class = xclass + ' ' + current_class
+            else:
+                current_class += ' ' + xclass
         else: current_class = xclass
         self.set_prop('class', current_class)
+
+    def prepend_class(self, xclass):
+        self.add_class(xclass, prepend=True)
+
+    def append_class(self, xclass):
+        self.add_class(xclass, prepend=False)
+
+    def remove_class(self, xclass):
+        self.set_prop('class', ' '.join([c for c in self.get_class().split() if c != xclass]))
 
     def get_id(self):
         return self.prop('id')

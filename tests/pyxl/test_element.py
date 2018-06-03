@@ -2,7 +2,6 @@
 
 """Ensure that elements work correctly."""
 
-import pytest
 from mixt.pyxl import html
 from mixt.pyxl.element import Element
 
@@ -90,7 +89,7 @@ def test_pre_post_render():
             self.add_class('keep remove')
 
         def postrender(self, element):
-            self.set_prop('class', ' '.join([c for c in self.get_class().split() if c != 'remove']))
+            self.remove_class('remove')
 
     assert str(<Node class="render"/>) == '<div class="node render keep"></div>'
 
@@ -119,3 +118,18 @@ def test_auto_fragment():
             )
 
     assert str(<Node class="ignored" />) == '<div id="1"></div><div id="2"></div>'
+
+def test_class_can_be_prepended():
+    class Node(Element):
+        def render(self):
+            return <div />
+
+        def prerender(self):
+            self.prepend_class('prepended removed')
+
+        def postrender(self, element):
+            self.append_class('appended')
+            self.remove_class('removed')
+
+    assert str(<Node class="node" />) == '<div class="prepended node appended"></div>'
+
