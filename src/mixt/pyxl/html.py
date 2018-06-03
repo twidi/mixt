@@ -84,6 +84,13 @@ class HtmlBaseElement(Base, metaclass=HtmlElementMetaclass):
                 result.extend((' ', html_name, '="', escape(value), '"'))
         return result
 
+    def get_id(self):
+        return self.prop('id')
+
+    def get_class(self):
+        return self.prop('class', '')
+
+
 class HtmlElement(HtmlBaseElement):
     def _to_list(self, l):
         l.extend(('<', self.__tag__))
@@ -148,9 +155,20 @@ def Raw(text):
     return RawHtml(text=text)
 
 class Fragment(Base):
+    class PropTypes:
+        _class: str
+        id: str
+
     def _to_list(self, l):
         for child in self.__children__:
             self._render_child_to_list(child, l)
+
+    def get_id(self):
+        return self.prop('id')
+
+    def get_class(self):
+        return self.prop('class', '')
+
 
 class A(HtmlElement):
     class PropTypes:
