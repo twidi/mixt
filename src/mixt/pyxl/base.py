@@ -277,8 +277,14 @@ class Base(object, metaclass=BaseMetaclass):
         return self.__children__
 
     def _set_context(self, context):
-        if context is None or self.context is not None:
+        if context is None:
             return
+
+        if self.context is not None and not issubclass(context.__class__, self.context.__class__):
+            # merge if not already done
+            context_class = type('%s__%s' % (context.__tag__, self.context.__tag__), (context.__class__, self.context.__class__), {})
+            context = context_class(**dict(context.props, **self.context.props))
+
         self.context = context
         for child in self.__children__:
             if isinstance(child, Base):
