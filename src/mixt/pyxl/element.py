@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from .base import Base, WithClass
+from .base import Base, WithClass, EmptyContext
 from .html import Fragment
 
 
@@ -60,24 +60,27 @@ class Element(WithClass):
 
     def _rendered_element(self):
         if self._element is None:
-            self.prerender()
-            self._element = self.render()
+            context = self.context if self.context is not None else EmptyContext
+            self.prerender(context)
+            self._element = self.render(self.context or EmptyContext)
             if isinstance(self._element, (list, tuple)):
                 self._element = Fragment()(self._element)
-            self.postrender(self._element)
+            if isinstance(self._element, Base):
+                self._element._set_context(self.context)  # pass None if context not defined, not EmptyContext
+            self.postrender(self._element, context)
         return self._element
 
-    def render(self):
+    def render(self, context):
         raise NotImplementedError()
 
-    def prerender(self):
+    def prerender(self, context):
         """
         Hook to do things before the element is rendered.  Default behavior is
         to do nothing.
         """
         pass
 
-    def postrender(self, element):
+    def postrender(self, element, context):
         """
         Hook to do things after the element is rendered.  Default behavior
         is to do nothing

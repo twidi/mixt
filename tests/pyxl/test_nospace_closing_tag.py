@@ -29,7 +29,7 @@ def test_nochild_tag_with_props():
 def test_new_element_without_props():
     class Foo(Element):
 
-        def render(self):
+        def render(self, context):
             return <div data-name="foo"/>
 
     assert str(<Foo />) == '<div data-name="foo"></div>'
@@ -41,7 +41,7 @@ def test_new_element_with_props():
         class PropTypes:
             name: str
 
-        def render(self):
+        def render(self, context):
             return <div data-name="{self.name}"/>
 
     assert str(<Foo name="foo" />) == '<div data-name="foo"></div>'

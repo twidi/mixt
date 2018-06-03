@@ -19,6 +19,7 @@ What we changed:
 - Adding dev-mode, default to True. If False, props types are not validated (to gain time, but useful in tests to validate code)
 - Elements doesn't have auto-generated ids anymore
 - Elements classes inheritance respect order (as class order is important in css)
+- Add the concept of Context to pass "global" props (config, web request, authenticated user) to the whole tree
 
 
 You'll find the original README of this library below:
