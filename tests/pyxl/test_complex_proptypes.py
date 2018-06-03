@@ -107,3 +107,12 @@ def test_complex_union():
 
     with pytest.raises(PyxlException):
         <Foo user={123} />
+
+
+def test_data_and_aria_are_not_validated():
+    el = <div data-string="foo" aria-number={123} data-complex={{'foo': 123}} />
+    assert el.data_string == 'foo'
+    assert el.aria_number == 123
+    assert el.data_complex == {'foo': 123}
+
+    assert str(el) == '<div data-string="foo" aria-number="123" data-complex="{\'foo\': 123}"></div>'

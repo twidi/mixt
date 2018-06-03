@@ -59,7 +59,7 @@ class BasePropTypes:
 
     @classmethod
     def __type__(cls, name):
-        return cls.__types__.get(name, str)
+        return cls.__types__.get(name, NotProvided)
 
     @classmethod
     def __value__(cls, name):
@@ -122,6 +122,9 @@ class BasePropTypes:
 
     @classmethod
     def __validate__(cls, name, value):
+
+        if name.startswith('data_') or name.startswith('aria_'):
+            return value
 
         if cls.__is_choice__(name):
             if not PropTypes.__dev_mode__:
