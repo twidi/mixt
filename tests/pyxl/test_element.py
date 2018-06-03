@@ -94,3 +94,17 @@ def test_pre_post_render():
 
     assert str(<Node class="render"/>) == '<div class="node render keep"></div>'
 
+
+def test_cached_rendering():
+    class Node(Element):
+        class PropTypes:
+            number: int = 0
+
+        def render(self):
+            return <div data-number={self.number}/>
+
+    el = <Node />
+    assert str(el) == '<div data-number="0"></div>'
+
+    el.set_prop('number', 1)
+    assert str(el) == '<div data-number="0"></div>'
