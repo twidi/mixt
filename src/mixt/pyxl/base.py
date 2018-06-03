@@ -351,6 +351,10 @@ class Base(object, metaclass=BaseMetaclass):
         if isinstance(child, Base): child._to_list(l)
         elif child is not None: l.append(escape(child))
 
+    def _render_children_to_list(self, l, children=None):
+        for child in (children or self.__children__):
+            self._render_child_to_list(child, l)
+
 
 class WithClass(Base):
     class PropTypes:
