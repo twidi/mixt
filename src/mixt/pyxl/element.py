@@ -15,19 +15,16 @@ class Element(Base):
         # Adding classes costs ~10%
         out = self._rendered_element()
         # Note: get_class() may return multiple space-separated classes.
-        cls = self.get_class()
-        classes = set(cls.split(' ')) if cls else set()
+        classes = self.get_class().split()
 
         while isinstance(out, Element):
             new_out = out._rendered_element()
-            cls = out.get_class()
-            if cls:
-                classes.update(cls.split(' '))
+            classes = out.get_class().split() + classes
             out = new_out
 
         if classes and isinstance(out, Base):
-            classes.update(out.get_class().split(' '))
-            out.set_prop('class', ' '.join([_f for _f in classes if _f]))
+            classes = out.get_class().split() + classes
+            out.set_prop('class', ' '.join(dict.fromkeys(classes)))  # keep ordering in py3.6
 
         return out
 
