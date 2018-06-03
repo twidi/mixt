@@ -1,3 +1,10 @@
+# Created by IntelliJ .ignore support plugin (hsz.mobi)
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen### Python template
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -65,6 +72,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+# Doc from code
+docs/source/
 
 # PyBuilder
 target/
@@ -102,3 +111,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
