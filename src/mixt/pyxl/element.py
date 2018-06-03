@@ -2,6 +2,7 @@
 
 from .base import Base
 
+
 class Element(Base):
 
     class PropTypes:
@@ -38,11 +39,7 @@ class Element(Base):
         self.set_prop('class', current_class)
 
     def get_id(self):
-        eid = self.prop('id')
-        if not eid:
-            eid = 'pyxl%d' % random.randint(0, sys.maxsize)
-            self.set_prop('id', eid)
-        return eid
+        return self.prop('id')
 
     def get_class(self):
         return self.prop('class', '')

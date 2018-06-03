@@ -17,6 +17,7 @@ What we changed:
 - Props can now have default value, that are validated and returned when calling ``props``
 - Props can be required
 - Adding dev-mode, default to True. If False, props types are not validated (to gain time, but useful in tests to validate code)
+- Elements doesn't have auto-generated ids anymore
 
 
 You'll find the original README of this library below:

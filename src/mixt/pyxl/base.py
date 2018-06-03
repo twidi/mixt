@@ -1,11 +1,5 @@
 #!/usr/bin/env python
 
-# We want a way to generate non-colliding 'pyxl<num>' ids for elements, so we're
-# using a non-cryptographically secure random number generator. We want it to be
-# insecure because these aren't being used for anything cryptographic and it's
-# much faster (2x). We're also not using NumPy (which is even faster) because
-# it's a difficult dependency to fulfill purely to generate random numbers.
-
 import keyword
 
 from contextlib import contextmanager
