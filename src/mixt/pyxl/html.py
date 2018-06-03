@@ -21,8 +21,8 @@ def _leave_if():
 
 class HtmlElementMetaclass(BaseMetaclass):
     def __init__(self, name, parents, attrs):
+        attrs['__tag__'] =  name.lower()
         super().__init__(name, parents, attrs)
-        setattr(self, '__tag__', name.lower())
 
 
 class HtmlBaseElement(Base, metaclass=HtmlElementMetaclass):

@@ -49,7 +49,7 @@ class Element(Base):
 
         # filter by class
         if selector[0] == '.':
-            select = lambda x: selector[1:] in x.get_class()
+            select = lambda x: selector[1:] in x.get_class().split()
 
         # filter by id
         elif selector[0] == '#':
@@ -57,7 +57,7 @@ class Element(Base):
 
         # filter by tag name
         else:
-            select = lambda x: x.__class__.__name__ == selector
+            select = lambda x: selector == x.__tag__
 
         if exclude:
             func = lambda x: not select(x)

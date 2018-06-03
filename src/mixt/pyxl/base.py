@@ -230,7 +230,7 @@ class BaseMetaclass(type):
     def __init__(self, name, parents, attrs):
         super().__init__(name, parents, attrs)
 
-        setattr(self, '__tag__', name)
+        setattr(self, '__tag__', attrs.get('__tag__') or name)
 
         proptypes_classes = []
 

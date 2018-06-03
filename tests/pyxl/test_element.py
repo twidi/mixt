@@ -39,3 +39,42 @@ def test_class_names_are_not_inherited_for_many_children():
             return <Child class="child" />
 
     assert str(<Parent class="parent" />) == '<div class="div1"></div><div class="div2"></div>'
+
+
+def test_children_filtering():
+    class Parent(Element): ...
+    class Child(Element): ...
+
+    el = <Parent>
+        <div id=0></div>
+        <div class="foo" id=1/>
+        <span class="foo" id=2/>
+        <div class="bar" id=3><div class="foo" id=3.1/></div>
+        <Child class="bar" id=4 />
+    </Parent>
+
+    assert [child.__tag__ for child in el.children()] == ['div', 'div', 'span', 'div', 'Child']
+
+    def get_ids(children):
+        return [child.get_id() for child in children]
+
+    assert get_ids(el.children('.foo')) == ['1', '2']
+    assert get_ids(el.children('.bar')) == ['3', '4']
+    assert get_ids(el.children('.baz')) == []
+
+    assert get_ids(el.children('.foo', exclude=True)) == ['0', '3', '4']
+    assert get_ids(el.children('.bar', exclude=True)) == ['0', '1', '2']
+    assert get_ids(el.children('.baz', exclude=True)) == ['0', '1', '2', '3', '4']
+
+    assert get_ids(el.children('#1')) == ['1']
+    assert get_ids(el.children('#4')) == ['4']
+    assert get_ids(el.children('#1000')) == []
+
+    assert get_ids(el.children('#1', exclude=True)) == ['0', '2', '3', '4']
+    assert get_ids(el.children('#1000', exclude=True)) == ['0', '1', '2', '3', '4']
+
+    assert get_ids(el.children('span')) == ['2']
+    assert get_ids(el.children('Child')) == ['4']
+
+    assert get_ids(el.children('span', exclude=True)) == ['0', '1', '3', '4']
+    assert get_ids(el.children('Child', exclude=True)) == ['0', '1', '2', '3']
