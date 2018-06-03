@@ -6,9 +6,9 @@
 # much faster (2x). We're also not using NumPy (which is even faster) because
 # it's a difficult dependency to fulfill purely to generate random numbers.
 
-import enforce
 import keyword
 
+from contextlib import contextmanager
 from typing import get_type_hints, Sequence, Generic, TypeVar
 
 from enforce.exceptions import RuntimeTypeError
@@ -37,6 +37,7 @@ class BasePropTypes:
     __mandatory_props__ = set()
     __default_props__ = {}
 
+    __dev_mode__ = True
 
     # Rules for props names
     # a starting `_` will be removed in final html attribute
@@ -129,6 +130,9 @@ class BasePropTypes:
     def __validate__(cls, name, value):
 
         if cls.__is_choice__(name):
+            if not PropTypes.__dev_mode__:
+                return value
+
             if value in cls.__value__(name):
                 return value
 
@@ -145,6 +149,8 @@ class BasePropTypes:
             #     We also accept python True or a string that is 'true' lowercased.
             #     We force the value to True.
             # All other cases generate an error
+            # We do this even in non-dev mode because we want a boolean. Just, in case of error
+            # we return the given value casted to a boolean.
 
             if value in ('', name, True):
                 return True
@@ -157,9 +163,16 @@ class BasePropTypes:
             if str_value  == 'False':
                 return False
 
+            if not PropTypes.__dev_mode__:
+                return bool(value)
+
             raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
 
         # normal check
+
+        if not PropTypes.__dev_mode__:
+            return value
+
         prop_type = cls.__type__(name)
         try:
             if isinstance(value, prop_type):
@@ -168,6 +181,7 @@ class BasePropTypes:
 
         except TypeError:
             # we use "enforce" to check complex types
+            import enforce
 
             @enforce.runtime_validation
             def check(prop_value: prop_type): ...
@@ -182,9 +196,41 @@ class BasePropTypes:
 
     @classmethod
     def __validate_mandatory__(cls, props):
+        if not PropTypes.__dev_mode__:
+            return
         for name in cls.__mandatory_props__:
             if props.get(name, NotProvided) is NotProvided:
                 raise PyxlException(f'<{cls.__owner_name__}>.{name}: is mandatory but not set')
+
+    @classmethod
+    def __set_dev_mode__(cls, dev_mode=True):
+        cls.__dev_mode__ = dev_mode
+
+    @classmethod
+    def __unset_dev_mode__(cls):
+        cls.__set_dev_mode__(dev_mode=False)
+
+    @classmethod
+    @contextmanager
+    def __override_dev_mode__(cls, dev_mode):
+        old_dev_mode = cls.__dev_mode__
+        try:
+            cls.__set_dev_mode__(dev_mode=dev_mode)
+            yield
+        finally:
+            cls.__set_dev_mode__(dev_mode=old_dev_mode)
+
+    @classmethod
+    def __in_dev_mode__(cls):
+        return cls.__dev_mode__
+
+
+PropTypes = BasePropTypes
+set_dev_mode = PropTypes.__set_dev_mode__
+unset_dev_mode = PropTypes.__unset_dev_mode__
+override_dev_mode = PropTypes.__override_dev_mode__
+in_dev_mode = PropTypes.__in_dev_mode__
+
 
 class BaseMetaclass(type):
     def __init__(self, name, parents, attrs):

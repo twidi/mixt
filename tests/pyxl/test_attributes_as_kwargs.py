@@ -1,6 +1,7 @@
 # coding: mixt
 
 """Ensure we can pass attributes to tags as kwargs."""
+
 import pytest
 from mixt.pyxl import html
 from mixt.pyxl.codec.parser import ParseError

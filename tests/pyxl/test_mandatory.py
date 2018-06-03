@@ -1,6 +1,6 @@
 # coding: mixt
 
-"""Ensure that complex proptypes are correctly validated."""
+"""Ensure that mandatory proptypes are correctly checked."""
 
 import pytest
 from mixt.pyxl import html
