@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
-from .base import Base
+from .base import Base, WithClass
+from .html import Fragment
 
-class Element(Base):
+
+class Element(WithClass):
 
     class PropTypes:
         _class: str
@@ -11,41 +13,22 @@ class Element(Base):
     _element = None  # render() output cached by _rendered_element()
 
     def _get_base_element(self):
-        # Adding classes costs ~10%
         out = self._rendered_element()
-        # Note: get_class() may return multiple space-separated classes.
-        cls = self.get_class()
-        classes = set(cls.split(' ')) if cls else set()
+        classes = self.classes
 
         while isinstance(out, Element):
             new_out = out._rendered_element()
-            cls = out.get_class()
-            if cls:
-                classes.update(cls.split(' '))
+            classes = out.classes + classes
             out = new_out
 
         if classes and isinstance(out, Base):
-            classes.update(out.get_class().split(' '))
-            out.set_prop('class', ' '.join([_f for _f in classes if _f]))
+            classes = out.classes + classes
+            out.set_prop('class', ' '.join(dict.fromkeys(classes)))  # keep ordering in py3.6
 
         return out
 
-    def add_class(self, xclass):
-        if not xclass: return
-        current_class = self.prop('class')
-        if current_class: current_class += ' ' + xclass
-        else: current_class = xclass
-        self.set_prop('class', current_class)
-
     def get_id(self):
-        eid = self.prop('id')
-        if not eid:
-            eid = 'pyxl%d' % random.randint(0, sys.maxsize)
-            self.set_prop('id', eid)
-        return eid
-
-    def get_class(self):
-        return self.prop('class', '')
+        return self.prop('id')
 
     def children(self, selector=None, exclude=False):
         children = super().children()
@@ -55,7 +38,7 @@ class Element(Base):
 
         # filter by class
         if selector[0] == '.':
-            select = lambda x: selector[1:] in x.get_class()
+            select = lambda x: selector[1:] in x.classes
 
         # filter by id
         elif selector[0] == '#':
@@ -63,7 +46,7 @@ class Element(Base):
 
         # filter by tag name
         else:
-            select = lambda x: x.__class__.__name__ == selector
+            select = lambda x: selector == x.__tag__
 
         if exclude:
             func = lambda x: not select(x)
@@ -79,6 +62,8 @@ class Element(Base):
         if self._element is None:
             self.prerender()
             self._element = self.render()
+            if isinstance(self._element, (list, tuple)):
+                self._element = Fragment()(self._element)
             self.postrender(self._element)
         return self._element
 

@@ -1,11 +1,5 @@
 #!/usr/bin/env python
 
-# We want a way to generate non-colliding 'pyxl<num>' ids for elements, so we're
-# using a non-cryptographically secure random number generator. We want it to be
-# insecure because these aren't being used for anything cryptographic and it's
-# much faster (2x). We're also not using NumPy (which is even faster) because
-# it's a difficult dependency to fulfill purely to generate random numbers.
-
 import keyword
 
 from contextlib import contextmanager
@@ -65,7 +59,7 @@ class BasePropTypes:
 
     @classmethod
     def __type__(cls, name):
-        return cls.__types__.get(name, str)
+        return cls.__types__.get(name, NotProvided)
 
     @classmethod
     def __value__(cls, name):
@@ -128,6 +122,9 @@ class BasePropTypes:
 
     @classmethod
     def __validate__(cls, name, value):
+
+        if name.startswith('data_') or name.startswith('aria_'):
+            return value
 
         if cls.__is_choice__(name):
             if not PropTypes.__dev_mode__:
@@ -236,7 +233,7 @@ class BaseMetaclass(type):
     def __init__(self, name, parents, attrs):
         super().__init__(name, parents, attrs)
 
-        setattr(self, '__tag__', name)
+        setattr(self, '__tag__', attrs.get('__tag__') or name)
 
         proptypes_classes = []
 
@@ -353,3 +350,35 @@ class Base(object, metaclass=BaseMetaclass):
     def _render_child_to_list(child, l):
         if isinstance(child, Base): child._to_list(l)
         elif child is not None: l.append(escape(child))
+
+
+class WithClass(Base):
+    class PropTypes:
+        _class: str
+
+    def get_class(self):
+        return self.prop('class', '')
+
+    @property
+    def classes(self):
+        return self.get_class().split()
+
+    def add_class(self, xclass, prepend=False):
+        if not xclass: return
+        current_class = self.get_class()
+        if current_class:
+            if prepend:
+                current_class = xclass + ' ' + current_class
+            else:
+                current_class += ' ' + xclass
+        else: current_class = xclass
+        self.set_prop('class', current_class)
+
+    def prepend_class(self, xclass):
+        self.add_class(xclass, prepend=True)
+
+    def append_class(self, xclass):
+        self.add_class(xclass, prepend=False)
+
+    def remove_class(self, xclass):
+        self.set_prop('class', ' '.join([c for c in self.classes if c != xclass]))
