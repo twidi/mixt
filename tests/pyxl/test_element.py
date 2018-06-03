@@ -78,3 +78,19 @@ def test_children_filtering():
 
     assert get_ids(el.children('span', exclude=True)) == ['0', '1', '3', '4']
     assert get_ids(el.children('Child', exclude=True)) == ['0', '1', '2', '3']
+
+
+def test_pre_post_render():
+
+    class Node(Element):
+        def render(self):
+            return <div class="node"/>
+
+        def prerender(self):
+            self.add_class('keep remove')
+
+        def postrender(self, element):
+            self.set_prop('class', ' '.join([c for c in self.get_class().split() if c != 'remove']))
+
+    assert str(<Node class="render"/>) == '<div class="node render keep"></div>'
+
