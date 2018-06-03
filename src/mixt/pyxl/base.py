@@ -23,7 +23,7 @@ class PyxlException(Exception):
 class NotProvided: ...
 
 
-class Mandatory(Generic[TypeVar("T")]): ...
+class Required(Generic[TypeVar("T")]): ...
 
 
 
@@ -34,7 +34,7 @@ class BasePropTypes:
 
     __owner_name__ = None
     __types__ = {}
-    __mandatory_props__ = set()
+    __required_props__ = set()
     __default_props__ = {}
 
     __dev_mode__ = True
@@ -89,12 +89,12 @@ class BasePropTypes:
 
         for name, prop_type in cls.__types__.items():
 
-            is_mandatory = False
-            if issubclass(prop_type, Mandatory):
-                is_mandatory = True
+            is_required = False
+            if issubclass(prop_type, Required):
+                is_required = True
                 prop_type = prop_type.__args__[0]
                 cls.__types__[name] = prop_type
-                cls.__mandatory_props__.add(name)
+                cls.__required_props__.add(name)
 
             if cls.__is_choice__(name):
 
@@ -106,8 +106,8 @@ class BasePropTypes:
                     raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
 
                 if choices[0] is not NotProvided:
-                    if is_mandatory:
-                        raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the mandatory prop `{name}`')
+                    if is_required:
+                        raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the required prop `{name}`')
                     cls.__default_props__[name] = choices[0]
 
                 continue
@@ -116,8 +116,8 @@ class BasePropTypes:
             if default is NotProvided:
                 continue
 
-            if is_mandatory:
-                raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the mandatory prop `{name}`')
+            if is_required:
+                raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the required prop `{name}`')
 
             try:
                 cls.__validate__(name, default)
@@ -195,12 +195,12 @@ class BasePropTypes:
 
 
     @classmethod
-    def __validate_mandatory__(cls, props):
+    def __validate_required__(cls, props):
         if not PropTypes.__dev_mode__:
             return
-        for name in cls.__mandatory_props__:
+        for name in cls.__required_props__:
             if props.get(name, NotProvided) is NotProvided:
-                raise PyxlException(f'<{cls.__owner_name__}>.{name}: is mandatory but not set')
+                raise PyxlException(f'<{cls.__owner_name__}>.{name}: is required but not set')
 
     @classmethod
     def __set_dev_mode__(cls, dev_mode=True):
@@ -248,7 +248,7 @@ class BaseMetaclass(type):
         class PropTypes(*proptypes_classes):
             __owner_name__ = name
             __types__ = {}
-            __mandatory_props__ = set()
+            __required_props__ = set()
             __default_props__ = {}
 
         PropTypes.__validate_types__()
@@ -268,7 +268,7 @@ class Base(object, metaclass=BaseMetaclass):
         for name, value in kwargs.items():
             self.set_prop(name, value)
 
-        self.PropTypes.__validate_mandatory__(self.__props__)
+        self.PropTypes.__validate_required__(self.__props__)
 
     def __call__(self, *children):
         self.append_children(children)

@@ -1,10 +1,10 @@
 # coding: mixt
 
-"""Ensure that mandatory proptypes are correctly checked."""
+"""Ensure that required proptypes are correctly checked."""
 
 import pytest
 from mixt.pyxl import html
-from mixt.pyxl.base import Base, PyxlException, Mandatory, NotProvided
+from mixt.pyxl.base import Base, PyxlException, Required, NotProvided
 
 from typing import *
 
@@ -21,25 +21,25 @@ def test_prop_optional_by_default():
 
     (<Foo />)
 
-def test_prop_mandatory_ok_if_passed():
+def test_prop_required_ok_if_passed():
     class Foo(DummyBase):
         class PropTypes:
-            value: Mandatory[str]
+            value: Required[str]
 
     (<Foo value="foo" />)
 
-def test_prop_mandatory_fail_if_not_passed():
+def test_prop_required_fail_if_not_passed():
     class Foo(DummyBase):
         class PropTypes:
-            value: Mandatory[str]
+            value: Required[str]
 
     with pytest.raises(PyxlException):
         <Foo />
 
-def test_complex_prop_mandatory():
+def test_complex_prop_required():
     class Foo(DummyBase):
         class PropTypes:
-            value: Mandatory[Union[int, float]]
+            value: Required[Union[int, float]]
 
     with pytest.raises(PyxlException):
         <Foo />
@@ -49,12 +49,12 @@ def test_complex_prop_mandatory():
 
     (<Foo value={1} />)
 
-def test_mandatory_prop_cannot_have_default():
+def test_required_prop_cannot_have_default():
     with pytest.raises(PyxlException):
         class Foo(DummyBase):
             class PropTypes:
-                value: Mandatory[str] = "foo"
+                value: Required[str] = "foo"
 
     class Foo(DummyBase):
         class PropTypes:
-            value: Mandatory[str] = NotProvided
+            value: Required[str] = NotProvided
