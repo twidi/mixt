@@ -77,6 +77,7 @@ disable=
     duplicate-code,
     locally-disabled,
     bad-continuation,
+    missing-final-newline,
 
 
 [REPORTS]

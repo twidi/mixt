@@ -41,12 +41,12 @@ mypy:  ## Run the mypy tool
 .PHONY: check-black
 check-black:  ## Run the black tool in check mode only (won't modify files)
 	@echo "$(BOLD)Checking black$(RESET)"
-	@black --check `find src/ -name '*.py' | grep -v '/pyxl/'` 2>&1
+	@black --check `find src/ -name '*.py' | grep -v '/pyxl/' | xargs grep -L '# coding: mixt'` 2>&1
 
 .PHONY: black
 black:  ## Run the black tool and update files that need to
 	@echo "$(BOLD)Running black$(RESET)"
-	@black `find src/ -name '*.py' | grep -v '/pyxl/'`
+	@black `find src/ -name '*.py' | grep -v '/pyxl/' | xargs grep -L '# coding: mixt'`
 
 .PHONY: flake8
 flake8:  ## Run the flake8 tool

@@ -68,7 +68,7 @@ class PyxlParser(HTMLTokenizer):
         if self.state in [State.DATA, State.CDATA_SECTION]:
             self.next_thing_is_python = True
             self.emit_data()
-            self.output.append("%s, " % Untokenizer().untokenize(tokens))
+            self.output.append("%s, " % Untokenizer().untokenize(tokens).rstrip())
             self.next_thing_is_python = False
             self.last_thing_was_python = True
         elif self.state in [State.BEFORE_ATTRIBUTE_VALUE,
