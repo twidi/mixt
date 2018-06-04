@@ -94,19 +94,19 @@ class HtmlBaseElement(WithClass, metaclass=HtmlElementMetaclass):
 
 class HtmlElement(HtmlBaseElement):
     def _to_list(self, l):
-        l.extend(('<', self.__tag__))
+        l.append(f'<{self.__tag__}')
         l.extend(self._render_attributes())
         l.append('>')
         self._render_children_to_list(l)
-        l.extend(('</', self.__tag__, '>'))
+        l.append(f'</{self.__tag__}>')
 
 
 class HtmlElementNoChild(HtmlBaseElement):
     def append(self, child):
-        raise Exception('<%s> does not allow children.', self.__tag__)
+        raise Exception(f'<{self.__str_tag__}> does not allow children.')
 
     def _to_list(self, l):
-        l.extend(('<', self.__tag__))
+        l.append(f'<{self.__tag__}')
         l.extend(self._render_attributes())
         l.append(' />')
 
