@@ -4,7 +4,7 @@ import tokenize
 
 from ... import html
 from ...internal.html import __tags__
-from ..base import BasePropTypes
+from ...internal.proptypes import BasePropTypes
 from .html_tokenizer import (
         HTMLTokenizer,
         ParseError as TokenizerParseError,

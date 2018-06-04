@@ -1,28 +1,14 @@
 #!/usr/bin/env python
 
-import keyword
-
-from contextlib import contextmanager
 from itertools import chain
-from typing import get_type_hints, Sequence, Generic, TypeVar, Any, Union, List
+from typing import Sequence, Any, Union, List, Dict
 
-from enforce.exceptions import RuntimeTypeError
-
+from ..exceptions import PyxlException
+from ..internal.proptypes import BasePropTypes
+from ..proptypes import NotProvided
 from .utils import escape
 
-
-class PyxlException(Exception):
-    pass
-
-
-class NotProvided: ...
-
-
-class Required(Generic[TypeVar("T")]): ...
-
-
 # pylint: disable=invalid-name
-Number = Union[int, float]
 OptionalContext = Union['BaseContext', None]
 AnElement = Union['Base', str]
 ManyElements = Sequence[AnElement]
@@ -30,223 +16,15 @@ OneOrManyElements = Union[AnElement, Sequence[AnElement]]
 # pylint: enable=invalid-name
 
 
-class Choices(Sequence): ...
-class DefaultChoices(Choices): ...
-
-
-class BasePropTypes:
-
-    __owner_name__ = None
-    __types__ = {}
-    __required_props__ = set()
-    __default_props__ = {}
-
-    __dev_mode__ = True
-
-    # Rules for props names
-    # a starting `_` will be removed in final html attribute
-    # a single `_` will be changed to `-`
-    # a double `__` will be changed to `:`
-
-    @staticmethod
-    def __to_html__(name):
-        if name.startswith('_'):
-            name = name[1:]
-        return name.replace('__', ':').replace('_', '-')
-
-    @staticmethod
-    def __to_python__(name):
-        name = name.replace('-', '_').replace(':', '__')
-        if not name.isidentifier():
-            raise NameError
-        if keyword.iskeyword(name) or name in {'async'}:  # list of future keywords
-            name = '_' + name
-        return name
-
-    @classmethod
-    def __allow__(cls, name):
-        return name in cls.__types__ or name.startswith('data_') or name.startswith('aria_')
-
-    @classmethod
-    def __type__(cls, name):
-        return cls.__types__.get(name, NotProvided)
-
-    @classmethod
-    def __value__(cls, name):
-        return getattr(cls, name)
-
-    @classmethod
-    def __is_choice__(cls, name):
-        return issubclass(cls.__type__(name), Choices)
-
-    @classmethod
-    def __is_bool__(cls, name):
-        return cls.__type__(name) is bool
-
-    @classmethod
-    def __default__(cls, name):
-        return cls.__default_props__.get(name, NotProvided)
-
-    @classmethod
-    def __validate_types__(cls):
-        cls.__types__ = get_type_hints(cls)
-
-        for name, prop_type in cls.__types__.items():
-
-            is_required = False
-            if issubclass(prop_type, Required):
-                is_required = True
-                prop_type = prop_type.__args__[0]
-                cls.__types__[name] = prop_type
-                cls.__required_props__.add(name)
-
-            if cls.__is_choice__(name):
-
-                if not getattr(cls, name, []):
-                    raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
-
-                choices = getattr(cls, name)
-                if not isinstance(choices, Sequence) or isinstance(choices, str):
-                    raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
-
-                if issubclass(cls.__type__(name), DefaultChoices):
-                    if choices[0] is not NotProvided:
-                        if is_required:
-                            raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the required prop `{name}`')
-                        cls.__default_props__[name] = choices[0]
-
-                continue
-
-            default =  getattr(cls, name, NotProvided)
-            if default is NotProvided:
-                continue
-
-            if is_required:
-                raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the required prop `{name}`')
-
-            try:
-                cls.__validate__(name, default)
-            except PyxlException:
-                raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(default)} `{default}` is not a valid default value')
-
-            cls.__default_props__[name] = default
-
-    @classmethod
-    def __validate__(cls, name, value):
-
-        if name.startswith('data_') or name.startswith('aria_'):
-            return value
-
-        if cls.__is_choice__(name):
-            if not PropTypes.__dev_mode__:
-                return value
-
-            if value in cls.__value__(name):
-                return value
-
-            raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid choice')
-
-        if cls.__is_bool__(name):
-            # Special case for bool.
-            # We can have True:
-            #     In html5, bool attributes can set to an empty string or the attribute name.
-            #     We also accept python True or a string that is 'true' lowercased.
-            #     We force the value to True.
-            # We can have False:
-            #     In html5, bool attributes can set to an empty string or the attribute name
-            #     We also accept python True or a string that is 'true' lowercased.
-            #     We force the value to True.
-            # All other cases generate an error
-            # We do this even in non-dev mode because we want a boolean. Just, in case of error
-            # we return the given value casted to a boolean.
-
-            if value in ('', name, True):
-                return True
-            if value is False:
-                return False
-
-            str_value = str(value).capitalize()
-            if str_value == 'True':
-                return True
-            if str_value  == 'False':
-                return False
-
-            if not PropTypes.__dev_mode__:
-                return bool(value)
-
-            raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
-
-        # normal check
-
-        if not PropTypes.__dev_mode__:
-            return value
-
-        prop_type = cls.__type__(name)
-        try:
-            if isinstance(value, prop_type):
-                return value
-            raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
-
-        except TypeError:
-            # we use "enforce" to check complex types
-            import enforce
-
-            @enforce.runtime_validation
-            def check(prop_value: prop_type): ...
-
-            try:
-                check(value)
-            except RuntimeTypeError:
-                raise PyxlException(f'<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value')
-
-            return value
-
-
-    @classmethod
-    def __validate_required__(cls, props):
-        if not PropTypes.__dev_mode__:
-            return
-        for name in cls.__required_props__:
-            if props.get(name, NotProvided) is NotProvided:
-                raise PyxlException(f'<{cls.__owner_name__}>.{name}: is required but not set')
-
-    @classmethod
-    def __set_dev_mode__(cls, dev_mode=True):
-        cls.__dev_mode__ = dev_mode
-
-    @classmethod
-    def __unset_dev_mode__(cls):
-        cls.__set_dev_mode__(dev_mode=False)
-
-    @classmethod
-    @contextmanager
-    def __override_dev_mode__(cls, dev_mode):
-        old_dev_mode = cls.__dev_mode__
-        try:
-            cls.__set_dev_mode__(dev_mode=dev_mode)
-            yield
-        finally:
-            cls.__set_dev_mode__(dev_mode=old_dev_mode)
-
-    @classmethod
-    def __in_dev_mode__(cls):
-        return cls.__dev_mode__
-
-
-PropTypes = BasePropTypes
-set_dev_mode = PropTypes.__set_dev_mode__
-unset_dev_mode = PropTypes.__unset_dev_mode__
-override_dev_mode = PropTypes.__override_dev_mode__
-in_dev_mode = PropTypes.__in_dev_mode__
-
-
 class BaseMetaclass(type):
-    def __init__(self, name, parents, attrs):
+    def __init__(
+        cls, name: str, parents: Sequence[type], attrs: Dict[str, Any]  # noqa: B902
+    ) -> None:
         super().__init__(name, parents, attrs)
 
         tag = attrs.get('__tag__') or name
-        setattr(self, '__tag__', tag)
-        setattr(self, '__str_tag__', attrs.get('__str_tag__') or tag)
+        setattr(cls, '__tag__', tag)
+        setattr(cls, '__str_tag__', attrs.get('__str_tag__') or tag)
 
         proptypes_classes = []
 
@@ -263,10 +41,13 @@ class BaseMetaclass(type):
 
         PropTypes.__validate_types__()
 
-        setattr(self, 'PropTypes', PropTypes)
+        setattr(cls, 'PropTypes', PropTypes)
 
 
 class Base(object, metaclass=BaseMetaclass):
+
+    __tag__ = ''
+    __str_tag__ = ''
 
     class PropTypes(BasePropTypes):
         pass

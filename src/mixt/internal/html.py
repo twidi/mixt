@@ -2,17 +2,11 @@
 
 from typing import Any, Dict, List, Optional, Sequence, cast
 
-from mixt.pyxl.base import (
-    Base,
-    BaseMetaclass,
-    BasePropTypes,
-    Choices,
-    NotProvided,
-    OneOrManyElements,
-    PyxlException,
-    WithClass,
-)
-from mixt.pyxl.utils import escape
+from ..exceptions import PyxlException  # noqa: T484
+from ..proptypes import Choices, NotProvided  # noqa: T484
+from ..pyxl.base import Base, BaseMetaclass, OneOrManyElements, WithClass  # noqa: T484
+from ..pyxl.utils import escape  # noqa: T484
+from .proptypes import BasePropTypes
 
 
 REFERRERPOLICIES = cast(
@@ -68,10 +62,10 @@ class HtmlBaseElement(WithClass, metaclass=HtmlElementMetaclass):
         accesskey: str
         autocapitalize: Choices = AUTOCAPITALIZES
         _class: str
-        contenteditable: Choices = ["false", "true"]
+        contenteditable: Choices = cast(Choices, ["false", "true"])
         contextmenu: str
-        dir: Choices = ["auto", "ltr", "rtl"]
-        draggable: Choices = ["false", "true"]
+        dir: Choices = cast(Choices, ["auto", "ltr", "rtl"])
+        draggable: Choices = cast(Choices, ["false", "true"])
         dropzone: str
         hidden: bool
         id: str
@@ -85,7 +79,7 @@ class HtmlBaseElement(WithClass, metaclass=HtmlElementMetaclass):
         style: str
         tabindex: int
         title: str
-        translate: Choices = ["", "yes", "no"]
+        translate: Choices = cast(Choices, ["", "yes", "no"])
         onabort: str
         onautocomplete: str
         onautocompleteerror: str
@@ -263,7 +257,7 @@ def Raw(text: str) -> RawHtml:  # pylint: disable=invalid-name
         The newly constructed element.
 
     """
-    return RawHtml(text=text)
+    return RawHtml(text=text)  # type: ignore
 
 
 class Fragment(WithClass):

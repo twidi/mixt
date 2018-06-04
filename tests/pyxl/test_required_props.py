@@ -4,7 +4,9 @@
 
 import pytest
 from mixt import html
-from mixt.pyxl.base import Base, PyxlException, Required, NotProvided
+from mixt.pyxl.base import Base
+from mixt.exceptions import PyxlException
+from mixt.proptypes import NotProvided, Required
 
 from typing import *
 

@@ -2,6 +2,7 @@
 
 from typing import Any, Dict, List, Type, Union, cast
 
+from .exceptions import PyxlException
 from .internal.html import (  # noqa: F401  # pylint: disable=unused-import
     AUTOCAPITALIZES,
     CROSSORIGINS,
@@ -19,7 +20,7 @@ from .internal.html import (  # noqa: F401  # pylint: disable=unused-import
     IFStack,
     Raw,
 )
-from .pyxl.base import Choices, Number, PyxlException
+from .proptypes import Choices, Number
 
 
 class _Hyperlink(HtmlElement):
@@ -513,6 +514,7 @@ class Input(HtmlElementNoChild):
     """
 
     __types__: Dict[str, Type["Input"]] = {}
+    __type__: str = ""
 
     class PropTypes:
         type: Choices = cast(
@@ -655,7 +657,7 @@ class Input(HtmlElementNoChild):
 
                 """
                 for subclass in klass.__subclasses__():
-                    if hasattr(subclass, "__type__"):
+                    if getattr(subclass, "__type__", None):
                         Input.__types__[subclass.__type__] = subclass
                         subclass.__str_tag__ = (
                             f"{subclass.__tag__} (input type={subclass.__type__})"

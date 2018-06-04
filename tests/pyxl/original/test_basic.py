@@ -4,7 +4,9 @@ import pytest
 
 from mixt import html
 from mixt.internal.html import HtmlElement
-from mixt.pyxl.base import PyxlException, Base, Choices, DefaultChoices, NotProvided
+from mixt.pyxl.base import Base
+from mixt.exceptions import PyxlException
+from mixt.proptypes import NotProvided, DefaultChoices, Choices
 
 
 class DummyBase(Base):

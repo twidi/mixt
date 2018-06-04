@@ -4,7 +4,7 @@
 
 import pytest
 from mixt import html
-from mixt.pyxl.base import PyxlException
+from mixt.exceptions import PyxlException
 
 
 def test_without_value():
