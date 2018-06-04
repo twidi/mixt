@@ -4,7 +4,7 @@ import keyword
 
 from contextlib import contextmanager
 from itertools import chain
-from typing import get_type_hints, Sequence, Generic, TypeVar, Any
+from typing import get_type_hints, Sequence, Generic, TypeVar, Any, Union
 
 from enforce.exceptions import RuntimeTypeError
 
@@ -20,6 +20,8 @@ class NotProvided: ...
 
 class Required(Generic[TypeVar("T")]): ...
 
+
+Number = Union[int, float]
 
 
 class Choices(Sequence): ...
