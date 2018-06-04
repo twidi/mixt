@@ -4,7 +4,7 @@ import keyword
 
 from contextlib import contextmanager
 from itertools import chain
-from typing import get_type_hints, Sequence, Generic, TypeVar, Any
+from typing import get_type_hints, Sequence, Generic, TypeVar, Any, Union
 
 from enforce.exceptions import RuntimeTypeError
 
@@ -21,8 +21,11 @@ class NotProvided: ...
 class Required(Generic[TypeVar("T")]): ...
 
 
+Number = Union[int, float]
+
 
 class Choices(Sequence): ...
+class DefaultChoices(Choices): ...
 
 
 class BasePropTypes:
@@ -100,10 +103,11 @@ class BasePropTypes:
                 if not isinstance(choices, Sequence) or isinstance(choices, str):
                     raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
 
-                if choices[0] is not NotProvided:
-                    if is_required:
-                        raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the required prop `{name}`')
-                    cls.__default_props__[name] = choices[0]
+                if issubclass(cls.__type__(name), DefaultChoices):
+                    if choices[0] is not NotProvided:
+                        if is_required:
+                            raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the required prop `{name}`')
+                        cls.__default_props__[name] = choices[0]
 
                 continue
 
@@ -234,7 +238,9 @@ class BaseMetaclass(type):
     def __init__(self, name, parents, attrs):
         super().__init__(name, parents, attrs)
 
-        setattr(self, '__tag__', attrs.get('__tag__') or name)
+        tag = attrs.get('__tag__') or name
+        setattr(self, '__tag__', tag)
+        setattr(self, '__str_tag__', attrs.get('__str_tag__') or tag)
 
         proptypes_classes = []
 
@@ -282,7 +288,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         if self.context is not None and not issubclass(context.__class__, self.context.__class__):
             # merge if not already done
-            context_class = type('%s__%s' % (context.__tag__, self.context.__tag__), (context.__class__, self.context.__class__), {})
+            context_class = type(f'{context.__tag__}__{self.context.__tag__}', (context.__class__, self.context.__class__), {})
             context = context_class(**dict(context.props, **self.context.props))
 
         self.context = context
@@ -325,7 +331,7 @@ class Base(object, metaclass=BaseMetaclass):
     def prop(self, name, default=NotProvided):
         name = BasePropTypes.__to_python__(name)
         if not self.PropTypes.__allow__(name):
-            raise PyxlException('<%s> has no prop named "%s"' % (self.__tag__, name))
+            raise PyxlException(f'<{self.__str_tag__}> has no prop named "{name}"')
 
         value = self.__props__.get(name, NotProvided)
 
@@ -344,7 +350,7 @@ class Base(object, metaclass=BaseMetaclass):
     def set_prop(self, name, value):
         name = BasePropTypes.__to_python__(name)
         if not self.PropTypes.__allow__(name):
-            raise PyxlException('<%s> has no prop named "%s"' % (self.__tag__, name))
+            raise PyxlException(f'<{self.__str_tag__}> has no prop named "{name}"')
 
         if value is NotProvided:
             self.__props__.pop(name, None)

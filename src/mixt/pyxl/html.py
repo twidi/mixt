@@ -1,10 +1,19 @@
 #!/usr/bin/env python
 
+from typing import Any, Union
+
 from .utils import escape
-from .base import Base, BaseMetaclass, BasePropTypes, Base, WithClass
+from .base import Base, BaseMetaclass, BasePropTypes, Base, WithClass, Choices, Number, PyxlException
 
 # for backwards compatibility.
 from .browser_hacks import ConditionalComment
+
+REFERRERPOLICIES = ['no-referrer', 'no-referrer-when-downgrade', 'origin', 'origin-when-cross-origin', 'strict-origin-when-cross-origin', 'unsafe-url']
+CROSSORIGINS = ['', 'anonymous', 'use-credentials']
+FORMENCTYPES = ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain']
+INPUTMODES = ['none, text, decimal, numeric, tel, search, email, url']
+AUTOCAPITALIZES = ['sentences', 'none','words', 'characters']
+
 
 _if_condition_stack = []
 _last_if_condition = None
@@ -18,48 +27,76 @@ def _leave_if():
     _last_if_condition = _if_condition_stack.pop()
     return []
 
+__tags__ = {}
+
 
 class HtmlElementMetaclass(BaseMetaclass):
     def __init__(self, name, parents, attrs):
-        attrs['__tag__'] =  name.lower()
+        if not attrs.get('__tag__'):
+            attrs['__tag__'] =  name.lower()
+        __tags__[attrs['__tag__']] = name
         super().__init__(name, parents, attrs)
 
 
 class HtmlBaseElement(WithClass, metaclass=HtmlElementMetaclass):
 
     class PropTypes:
-        # HTML attributes
         accesskey: str
+        autocapitalize: Choices = AUTOCAPITALIZES
         _class: str
-        dir: str
+        contenteditable: Choices = ['false', 'true']
+        contextmenu: str
+        dir:  Choices = ['auto', 'ltr', 'rtl']
+        draggable: Choices = ['false', 'true']
+        dropzone: str
+        hidden: bool
         id: str
+        itemid: str
+        itemprop: str
+        itemscope: bool
+        itemstype: str
         lang: str
-        maxlength: str
-        role: str
+        slot: str
+        spellcheck: bool
         style: str
         tabindex: int
         title: str
-        xmllang: str
-
-        # Microdata HTML attributes
-        itemtype: str
-        itemscope: str
-        itemprop: str
-        itemid: str
-        itemref: str
-
-        # JS attributes
+        translate: Choices = ['', 'yes', 'no']
         onabort: str
+        onautocomplete: str
+        onautocompleteerror: str
         onblur: str
+        oncancel: str
+        oncanplay: str
+        oncanplaythrough: str
         onchange: str
         onclick: str
+        onclose: str
+        oncontextmenu: str
+        oncuechange: str
         ondblclick: str
+        ondrag: str
+        ondragend: str
+        ondragenter: str
+        ondragexit: str
+        ondragleave: str
+        ondragover: str
+        ondragstart: str
+        ondrop: str
+        ondurationchange: str
+        onemptied: str
+        onended: str
         onerror: str
         onfocus: str
+        oninput: str
+        oninvalid: str
         onkeydown: str
         onkeypress: str
         onkeyup: str
         onload: str
+        onloadeddata: str
+        onloadedmetadata: str
+        onloadstart: str
         onmousedown: str
         onmouseenter: str
         onmouseleave: str
@@ -67,11 +104,27 @@ class HtmlBaseElement(WithClass, metaclass=HtmlElementMetaclass):
         onmouseout: str
         onmouseover: str
         onmouseup: str
+        onmousewheel: str
+        onpause: str
+        onplay: str
+        onplaying: str
+        onprogress: str
+        onratechange: str
         onreset: str
         onresize: str
+        onscroll: str
+        onseeked: str
+        onseeking: str
         onselect: str
+        onshow: str
+        onsort: str
+        onstalled: str
         onsubmit: str
-        onunload: str
+        onsuspend: str
+        ontimeupdate: str
+        ontoggle: str
+        onvolumechange: str
+        onwaiting: str
 
     def _render_attributes(self):
         result = []
@@ -90,19 +143,19 @@ class HtmlBaseElement(WithClass, metaclass=HtmlElementMetaclass):
 
 class HtmlElement(HtmlBaseElement):
     def _to_list(self, l):
-        l.extend(('<', self.__tag__))
+        l.append(f'<{self.__tag__}')
         l.extend(self._render_attributes())
         l.append('>')
         self._render_children_to_list(l)
-        l.extend(('</', self.__tag__, '>'))
+        l.append(f'</{self.__tag__}>')
 
 
 class HtmlElementNoChild(HtmlBaseElement):
     def append(self, child):
-        raise Exception('<%s> does not allow children.', self.__tag__)
+        raise Exception(f'<{self.__str_tag__}> does not allow children.')
 
     def _to_list(self, l):
-        l.extend(('<', self.__tag__))
+        l.append(f'<{self.__tag__}')
         l.extend(self._render_attributes())
         l.append(' />')
 
@@ -159,360 +212,565 @@ class Fragment(WithClass):
         return self.prop('id')
 
 
-class A(HtmlElement):
+class _Hyperlink(HtmlElement):
     class PropTypes:
+        download: Union[bool, str]
         href: str
+        hreflang: str
+        referrerpolicy: Choices = REFERRERPOLICIES
         rel: str
-        type: str
-        name: str
         target: str
-        download: str
+
+
+class A(_Hyperlink):
+    class PropTypes:
+        role: Choices = ['button', 'checkbox', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'option', 'radio', 'switch', 'tab', 'treeitem']
+        ping: str
+        type: str
 
 class Abbr(HtmlElement):
-    pass
-
-class Acronym(HtmlElement):
     pass
 
 class Address(HtmlElement):
     pass
 
-class Area(HtmlElementNoChild):
+class Area(_Hyperlink):
     class PropTypes:
         alt: str
         coords: str
-        href: str
-        nohref: str
-        target: str
+        media: str
+        shape: Choices = ['rect', 'poly', 'default']
 
 class Article(HtmlElement):
-    pass
+    class PropTypes:
+        role: Choices = ['application', 'document', 'feed', 'main', 'presentation', 'region']
 
 class Aside(HtmlElement):
-    pass
-
-class Audio(HtmlElement):
     class PropTypes:
+        role: Choices = ['feed', 'note', 'presentation', 'region', 'search']
+
+class _Media(HtmlElement):
+    class PropTypes:
+        role: Choices = ['application']
+        autoplay: bool
+        controls: bool
+        crossorigin: Choices = CROSSORIGINS
+        loop: bool
+        muted: bool
+        preload: Choices = ['', 'auto', 'none', 'metadata']
         src: str
 
-class B(HtmlElement):
-   pass
+class Audio(_Media):
+    pass
 
-class Big(HtmlElement):
-   pass
+class B(HtmlElement):
+    class PropTypes:
+        role: str
+
+class Base(HtmlElementNoChild):
+    class PropTypes:
+        href: str
+        target: str
+
+class Bdi(HtmlElement):
+    class PropTypes:
+        role: str
+
+class Bdo(HtmlElement):
+    class PropTypes:
+        role: str
+        dir: Choices = ['ltr', 'rtl']
 
 class Blockquote(HtmlElement):
     class PropTypes:
+        role: str
         cite: str
 
 class Body(HtmlElement):
     class PropTypes:
-        contenteditable: str
+        onafterprint: str
+        onbeforeprint: str
+        onbeforeunload: str
+        onhashchange: str
+        onlanguagechange: str
+        onmessage: str
+        onoffline: str
+        ononline: str
+        onpopstate: str
+        onredo: str
+        onstorage: str
+        onundo: str
+        onunload: str
 
 class Br(HtmlElementNoChild):
-   pass
+    class PropTypes:
+        role: str
 
 class Button(HtmlElement):
     class PropTypes:
+        role: Choices = ['checkbox', 'link', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'radio', 'switch', 'tab']
+        autofocus: bool
+        autocomplete: Choices = ['off']
         disabled: bool
+        form: str
+        formaction: str
+        formenctype: Choices = FORMENCTYPES
+        formmethod: Choices = ['get', 'post']
+        formnovalidate: bool
+        formtarget: str
         name: str
-        type: str
-        value: str
+        type: Choices = ['submit', 'reset', 'button']
+        value: Any
 
 class Canvas(HtmlElement):
     class PropTypes:
-        height: str
-        width: str
+        role: str
+        height: Number
+        width: Number
 
 class Caption(HtmlElement):
    pass
 
 class Cite(HtmlElement):
-   pass
+    class PropTypes:
+       role: str
 
 class Code(HtmlElement):
-   pass
+    class PropTypes:
+       role: str
 
 class Col(HtmlElementNoChild):
     class PropTypes:
-        align: str
-        char: str
-        charoff: int
         span: int
-        valign: str
-        width: str
 
 class Colgroup(HtmlElement):
     class PropTypes:
-        align: str
-        char: str
-        charoff: int
         span: int
-        valign: str
-        width: str
+
+class Data(HtmlElement):
+    class PropTypes:
+        value: str
 
 class Datalist(HtmlElement):
     pass
 
 class Dd(HtmlElement):
-   pass
+    pass
 
 class Del(HtmlElement):
     class PropTypes:
+        role: str
         cite: str
         datetime: str
 
-class Div(HtmlElement):
-   class PropTypes:
-        contenteditable: str
+class Details(HtmlElement):
+    class PropTypes:
+        open: bool
 
 class Dfn(HtmlElement):
-   pass
+    class PropTypes:
+        role: str
+
+class Div(HtmlElement):
+    class PropTypes:
+        role: str
 
 class Dl(HtmlElement):
-   pass
+    class PropTypes:
+        role: Choices = ['group', 'presentation']
 
 class Dt(HtmlElement):
-   pass
+    pass
 
 class Em(HtmlElement):
-   pass
+    class PropTypes:
+        role: str
 
 class Embed(HtmlElement):
     class PropTypes:
+        role: Choices = ['application', 'document', 'img', 'presentation']
+        height: Number
         src: str
-        width: str
-        height: str
-        allowscriptaccess: str
-        allowfullscreen: str
-        name: str
         type: str
-
-class Figure(HtmlElement):
-   pass
-
-class Figcaption(HtmlElement):
-   pass
+        widht: str
 
 class Fieldset(HtmlElement):
-   pass
+    class PropTypes:
+        role: Choices = ['group', 'presentation']
+        disabled: bool
+        form: str
+        name: str
+
+class Figcaption(HtmlElement):
+    class PropTypes:
+        role: Choices = ['group', 'presentation']
+
+class Figure(HtmlElement):
+    class PropTypes:
+        role: Choices = ['group', 'presentation']
 
 class Footer(HtmlElement):
-    pass
+    class PropTypes:
+        role: Choices = ['group', 'presentation']
 
 class Form(HtmlElement):
     class PropTypes:
-        action: str
-        accept: str
+        role: Choices = ['group', 'presentation']
         accept_charset: str
-        autocomplete: str
-        enctype: str
-        method: str
+        action: str
+        autocapitalize: Choices = AUTOCAPITALIZES
+        autocomplete: Choices = ['on', 'off']
+        enctype: Choices = FORMENCTYPES
+        method: Choices = ['get', 'post']
         name: str
-        novalidate: bool
         target: str
 
-class Frame(HtmlElementNoChild):
-    class PropTypes:
-        frameborder: str
-        longdesc: str
-        marginheight: str
-        marginwidth: str
-        name: str
-        noresize: str
-        scrolling: str
-        src: str
+class _H(HtmlElement):
+    role: Choices = ['tab', 'presentation']
 
-class Frameset(HtmlElement):
-    class PropTypes:
-        rows: str
-        cols: str
-
-class H1(HtmlElement):
-   pass
-
-class H2(HtmlElement):
-   pass
-
-class H3(HtmlElement):
-   pass
-
-class H4(HtmlElement):
-   pass
-
-class H5(HtmlElement):
-   pass
-
-class H6(HtmlElement):
-   pass
+class H1(_H): ...
+class H2(_H): ...
+class H3(_H): ...
+class H4(_H): ...
+class H5(_H): ...
+class H6(_H): ...
 
 class Head(HtmlElement):
-    class PropTypes:
-        profile: str
+    pass
 
 class Header(HtmlElement):
-    pass
+    class PropTypes:
+        role: Choices = ['group', 'presentation']
 
 class Hr(HtmlElementNoChild):
-    pass
+    class PropTypes:
+        role: Choices = ['presentation']
 
 class Html(HtmlElement):
     class PropTypes:
-        content: str
-        scheme: str
-        http_equiv: str
         xmlns: str
         xmlns__og: str
         xmlns__fb: str
 
 class I(HtmlElement):
-   pass
+    class PropTypes:
+        role: str
 
 class Iframe(HtmlElement):
     class PropTypes:
-        frameborder: str
-        height: str
-        longdesc: str
-        marginheight: str
-        marginwidth: str
-        name: str
-        sandbox: str
-        scrolling: str
-        src: str
-        width: str
-        # rk: 'allowTransparency' is not in W3C's HTML spec, but it's supported in most modern browsers.
-        allowtransparency: str
+        role: Choices = ['application', 'document', 'img']
         allowfullscreen: bool
-
-class Video(HtmlElement):
-    class PropTypes:
-        autoplay: bool
-        controls: str
-        height: str
-        loop: bool
-        muted: bool
-        poster: str
-        preload: str
+        allowpaymentrequest: bool
+        height: Number
+        name: str
+        referrerpolicy: Choices = REFERRERPOLICIES
+        sandbox: str
         src: str
-        width: str
+        srcdoc: str
+        width: Number
 
 class Img(HtmlElementNoChild):
     class PropTypes:
+        role: str
         alt: str
-        src: str
-        height: str
+        crossorigin: Choices = CROSSORIGINS
+        decoding: Choices = ['sync', 'async', 'auto']
+        height: Number
         ismap: bool
-        longdesc: str
+        referrerpolicy: Choices = REFERRERPOLICIES
+        sizes: str
+        src: str
+        srcset: str
+        width: Number
         usemap: str
-        vspace: str
-        width: str
 
 class Input(HtmlElementNoChild):
     class PropTypes:
-        accept: str
-        align: str
-        alt: str
+        type: Choices = ['button', 'checkbox', 'color', 'date', 'datetime-local', 'email', 'file', 'hidden', 'image', 'month', 'number', 'password', 'radio', 'range', 'reset', 'search', 'submit', 'tel', 'text', 'time', 'url', 'week']
+        autocomplete: Choices = ['off', 'on', 'name', 'honorific-prefix', 'given-name', 'additional-name', 'family-name', 'honorific-suffix', 'nickname', 'email', 'username', 'new-password', 'current-password', 'organization-title', 'organization', 'street-address', 'address-line1', 'address-line2', 'address-line3', 'address-level4', 'address-level3', 'address-level2', 'address-level1', 'country', 'country-name', 'postal-code', 'cc-name', 'cc-given-name', 'cc-additional-name', 'cc-family-name', 'cc-number', 'cc-exp', 'cc-exp-month', 'cc-exp-year', 'cc-csc', 'cc-type', 'transaction-currency', 'transaction-amount', 'language', 'bday', 'bday-day', 'bday-month', 'bday-year', 'sex', 'tel', 'tel-country-code', 'tel-national', 'tel-area-code', 'tel-local', 'tel-local-prefix', 'tel-local-suffix', 'tel-extension', 'url', 'photo']
         autofocus: bool
-        checked: bool
         disabled: bool
-        list: str
-        max: str
-        maxlength: str
-        min: str
+        form: str
+        formaction: str
+        formenctype: Choices = FORMENCTYPES
+        formmethod: Choices = ['get', 'post']
+        formnovalidate: bool
+        formtarget: str
+        _list: str
         name: str
+
+    __types__ = {}
+
+    def __new__(cls, **kwargs):
+        if not Input.__types__:
+            def add(klass):
+                for subclass in klass.__subclasses__():
+                    if hasattr(subclass, '__type__'):
+                        Input.__types__[subclass.__type__] = subclass
+                        subclass.__str_tag__ = f'{subclass.__tag__} (input type={subclass.__type__})'
+                    add(subclass)
+            add(Input)
+
+        if cls is not Input:
+            if 'type' in kwargs:
+                raise PyxlException(f'<{cls.__str_tag__}>.type: must not be set')
+            return super().__new__(cls)
+
+        try:
+            type = kwargs.pop('type')
+        except KeyError:
+            raise PyxlException(f'<input>.type: is required but not set')
+
+        obj = super().__new__(Input.__types__[type])
+        obj.__init__(**kwargs)
+        return obj
+
+    def _to_list(self, l):
+        if self.__class__ is Input:
+            super()._to_list(l)
+        else:
+            l.append(f'<input type="{self.__type__}"')
+            l.extend(self._render_attributes())
+            l.append(' />')
+
+class _KeyboardInput(Input):
+    class PropTypes:
+        inputmode: Choices = INPUTMODES
+        minlength: int
+        maxlength: int
         pattern: str
         placeholder: str
-        readonly: str
-        size: str
-        src: str
-        step: str
-        type: str
-        value: str
-        autocomplete: str
-        autocorrect: str
+        readonly: bool
         required: bool
-        spellcheck: str
+        size: int
+        spellcheck: Choices = ['true', 'false']
+        value: str
+
+class InputButton(Input):
+    __tag__ = 'ibutton'
+    __type__ = 'button'
+    class PropTypes:
+        role: Choices = ['link', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'radio', 'switch', 'tab']
+
+class InputCheckbox(Input):
+    __tag__ = 'icheckbox'
+    __type__ = 'checkbox'
+    class PropTypes:
+        role: Choices = ['button', 'menuitemcheckbox', 'option', 'switch']
+        checked: bool
+        required: bool
+
+class InputImage(Input):
+    __tag__ = 'iimage'
+    __type__ = 'image'
+    class PropTypes:
+        role: Choices = ['link', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'radio', 'switch']
+        height: Number
+        src: str
+        width: Number
+
+class InputRadio(Input):
+    __tag__ = 'iradio'
+    __type__ = 'radio'
+    class PropTypes:
+        role: Choices = ['menuitemradio']
+        checked: bool
+        required: bool
+
+class InputColor(Input):
+    __tag__ = 'icolor'
+    __type__ = 'color'
+    class PropTypes:
+        required: bool
+
+class InputDate(Input):
+    __tag__ = 'idate'
+    __type__ = 'date'
+    class PropTypes:
+        min: str
+        max: str
+        readonly: bool
+        required: bool
+        step: Union[str, Number]
+
+class InputDateTimeLocal(Input):
+    __tag__ = 'idatetimelocal'
+    __type__ = 'datetime-local'
+    class PropTypes:
+        min: str
+        max: str
+        readonly: bool
+        required: bool
+        step: Union[str, Number]
+
+class InputEmail(_KeyboardInput):
+    __tag__ = 'iemail'
+    __type__ = 'email'
+    class PropTypes:
         multiple: bool
+
+class InputFile(Input):
+    __tag__ = 'ifile'
+    __type__ = 'file'
+    class PropTypes:
+        accept: str
+        capture: bool
+        multiple: bool
+        required: bool
+
+class InputHidden(Input):
+    __tag__ = 'ihidden'
+    __type__ = 'hidden'
+
+class InputMonth(Input):
+    __tag__ = 'imonth'
+    __type__ = 'month'
+    class PropTypes:
+        readonly: bool
+        required: bool
+
+class InputNumber(_KeyboardInput):
+    __tag__ = 'inumber'
+    __type__ = 'number'
+    class PropTypes:
+        min: Number
+        max: Number
+        step: Union[str, Number]
+
+class InputPassword(_KeyboardInput):
+    __tag__ = 'ipassword'
+    __type__ = 'password'
+    class PropTypes:
+        required: bool
+
+class InputRange(Input):
+    __tag__ = 'irange'
+    __type__ = 'range'
+    class PropTypes:
+        required: bool
+
+class InputReset(Input):
+    __tag__ = 'ireset'
+    __type__ = 'reset'
+
+class InputSearch(_KeyboardInput):
+    __tag__ = 'isearch'
+    __type__ = 'search'
+
+class InputSubmit(Input):
+    __tag__ = 'isubmit'
+    __type__ = 'submit'
+
+class InputTel(_KeyboardInput):
+    __tag__ = 'itel'
+    __type__ = 'tel'
+
+class InputText(_KeyboardInput):
+    __tag__ = 'itext'
+    __type__ = 'text'
+
+class InputUrl(_KeyboardInput):
+    __tag__ = 'iurl'
+    __type__ = 'url'
+
+class InputWeek(Input):
+    __tag__ = 'iweek'
+    __type__ = 'week'
+    class PropTypes:
+        readonly: bool
+        required: bool
 
 class Ins(HtmlElement):
     class PropTypes:
+        role: str
         cite: str
         datetime: str
 
 class Kbd(HtmlElement):
-    pass
+    class PropTypes:
+        role: str
 
 class Label(HtmlElement):
     class PropTypes:
         _for: str
+        form: str
 
 class Legend(HtmlElement):
    pass
 
 class Li(HtmlElement):
-   pass
+    class PropTypes:
+        role: Choices = ['menuitem', 'menuitemcheckbox', 'menuitemradio', 'option', 'presentation', 'radio', 'separator', 'tab', 'treeitem']
+        value: int
 
 class Link(HtmlElementNoChild):
     class PropTypes:
-        charset: str
+        _as: str
+        crossorigin: Choices = CROSSORIGINS
         href: str
         hreflang: str
+        integrity: str
         media: str
+        prefetch: str
+        referrerpolicy: Choices = REFERRERPOLICIES
         rel: str
-        rev: str
         sizes: str
-        target: str
+        title: str
         type: str
 
 class Main(HtmlElement):
-    # we are not enforcing the w3 spec of one and only one main element on the
-    # page
     class PropTypes:
-        role: str
+        role: Choices = ['main', 'presentation']
 
 class Map(HtmlElement):
     class PropTypes:
         name: str
 
+class Mark(HtmlElement):
+    class PropTypes:
+        role: str
+
 class Meta(HtmlElementNoChild):
     class PropTypes:
-        content: str
-        http_equiv: str
-        name: str
-        property: str
-        scheme: str
         charset: str
+        content: str
+        http_equiv: Choices = ['content-security-policy', 'refresh']
+        name: Choices = ['application-name', 'author', 'description', 'generator', 'keywords', 'referrer', 'creator', 'googlebot', 'publisher', 'robots', 'slurp', 'viewport']
+
+class Meter(HtmlElement):
+    class PropTypes:
+        value: Number
+        min: Number
+        max: Number
+        low: Number
+        high: Number
+        optimum: Number
+        form: str
 
 class Nav(HtmlElement):
     pass
-
-class Noframes(HtmlElement):
-   pass
 
 class Noscript(HtmlElement):
    pass
 
 class Object(HtmlElement):
     class PropTypes:
-        align: str
-        archive: str
-        border: str
-        classid: str
-        codebase: str
-        codetype: str
+        role: Choices = ['application', 'document', 'image']
         data: str
-        declare: bool
-        height: str
-        hspace: str
+        form: str
+        height: Number
         name: str
-        standby: str
         type: str
+        typemustmatch: bool
         usemap: str
-        vspace: str
-        width: str
+        width: Number
 
 class Ol(HtmlElement):
-   pass
+    class PropTypes:
+        role: Choices = ['directory', 'group', 'listbox', 'menu', 'menubar', 'radiogroup', 'tablist', 'toolbar', 'tree', 'presentation']
+        reversed: bool
+        start: int
+        type: Choices = ['1', 'a', 'A', 'i', 'I']
 
 class Optgroup(HtmlElement):
     class PropTypes:
@@ -526,143 +784,183 @@ class Option(HtmlElement):
         selected: bool
         value: str
 
+class Output(HtmlElement):
+    class PropTypes:
+        role: str
+        _for: str
+        form: str
+        name: str
+
+
 class P(HtmlElement):
-   pass
+    class PropTypes:
+        role: str
 
 class Param(HtmlElement):
     class PropTypes:
         name: str
-        type: str
         value: str
-        valuetype: str
+
+class Picture(HtmlElement):
+    pass
 
 class Pre(HtmlElement):
-   pass
+    class PropTypes:
+        role: str
 
 class Progress(HtmlElement):
     class PropTypes:
-        max: int
-        value: int
+        max: Number
+        value: Number
 
 class Q(HtmlElement):
     class PropTypes:
+        role: str
         cite: str
 
+class Rp(HtmlElement):
+    class PropTypes:
+        role: str
+
+class Rt(HtmlElement):
+    class PropTypes:
+        role: str
+
+class Rtc(HtmlElement):
+    class PropTypes:
+        role: str
+
+class Ruby(HtmlElement):
+    class PropTypes:
+        role: str
+
+class S(HtmlElement):
+    class PropTypes:
+        role: str
+
 class Samp(HtmlElement):
-   pass
+    class PropTypes:
+        role: str
 
 class Script(HtmlElement):
     class PropTypes:
         async: bool
-        charset: str
+        crossorigin: Choices = CROSSORIGINS
         defer: bool
+        integrity: str
+        nomodule: bool
+        nonce: str
         src: str
         type: str
 
 class Section(HtmlElement):
-    pass
+    class PropTypes:
+        role: Choices = ['alert', 'alertdialog', 'application', 'banner', 'complementary', 'contentinfo', 'dialog', 'document', 'feed', 'log', 'main', 'marquee', 'navigation', 'search', 'status', 'tabpanel']
 
 class Select(HtmlElement):
     class PropTypes:
+        role: Choices = ['menu']
+        autofocus: bool
         disabled: bool
+        form: str
         multiple: bool
         name: str
-        size: str
         required: bool
+        size: int
 
-class Small(HtmlElement):
-   pass
+class Slot(HtmlElement):
+    class PropTypes:
+        name: str
+
+class Source(HtmlElementNoChild):
+    class PropTypes:
+        sizes: str
+        src: str
+        srccet: str
+        type: str
+        media: str
 
 class Span(HtmlElement):
-   pass
+    class PropTypes:
+        role: str
 
 class Strong(HtmlElement):
-   pass
+    class PropTypes:
+        role: str
 
 class Style(HtmlElement):
     class PropTypes:
         media: str
+        nonce: str
+        title: str
         type: str
 
 class Sub(HtmlElement):
-   pass
+    class PropTypes:
+        role: str
+
+class Summary(HtmlElement):
+    class PropTypes:
+        role: Choices = ['button']
 
 class Sup(HtmlElement):
-   pass
+    class PropTypes:
+        role: str
 
 class Table(HtmlElement):
     class PropTypes:
-        border: str
-        cellpadding: str
-        cellspacing: str
-        frame: str
-        rules: str
-        summary: str
-        width: str
+        role: str
 
 class Tbody(HtmlElement):
     class PropTypes:
-        align: str
-        char: str
-        charoff: str
-        valign: str
+        role: str
 
 class Td(HtmlElement):
     class PropTypes:
-        abbr: str
-        align: str
-        axis: str
-        char: str
-        charoff: str
-        colspan: str
+        role: str
+        colspan: int
         headers: str
-        rowspan: str
-        scope: str
-        valign: str
+        rowspan: int
+
+class Template(HtmlElement):
+    pass
 
 class Textarea(HtmlElement):
     class PropTypes:
-        cols: str
-        rows: str
+        autocapitalize: Choices = AUTOCAPITALIZES
+        autocomplete: Choices = ['on', 'off']
+        autofocus: bool
+        cols: int
         disabled: bool
-        placeholder: str
+        form: str
+        maxlength: int
+        minlength: int
         name: str
+        placeholder: str
         readonly: bool
-        autocorrect: str
-        autocomplete: str
-        autocapitalize: str
-        spellcheck: str
-        autofocus: str
         required: bool
+        wrap: Choices = ['soft', 'hard', 'off']
 
 class Tfoot(HtmlElement):
     class PropTypes:
-        align: str
-        char: str
-        charoff: str
-        valign: str
+        role: str
 
 class Th(HtmlElement):
     class PropTypes:
+        role: str
         abbr: str
-        align: str
-        axis: str
-        char: str
-        charoff: str
-        colspan: str
-        rowspan: str
-        scope: str
-        valign: str
+        colspan: int
+        headers: str
+        rowspan: int
+        scope: Choices = ['row', 'col', 'rowgroup', 'colgroup', 'auto']
 
 class Thead(HtmlElement):
     class PropTypes:
-        align: str
-        char: str
-        charoff: str
-        valign: str
+        role: str
 
 class Time(HtmlElement):
     class PropTypes:
+        role: str
         datetime: str
 
 class Title(HtmlElement):
@@ -670,19 +968,35 @@ class Title(HtmlElement):
 
 class Tr(HtmlElement):
     class PropTypes:
-        align: str
-        char: str
-        charoff: str
-        valign: str
+        role: str
 
-class Tt(HtmlElement):
-    pass
+class Track(HtmlElementNoChild):
+    class PropTypes:
+        default: bool
+        kind: Choices = ['subtitles', 'captions', 'descriptions', 'chapters', 'metadata']
+        label: str
+        src: str
+        srclang: str
 
 class U(HtmlElement):
-    pass
+    class PropTypes:
+        role: str
 
 class Ul(HtmlElement):
-    pass
+    class PropTypes:
+        role: Choices = ['directory', 'group', 'listbox', 'menu', 'menubar', 'radiogroup', 'tablist', 'toolbar', 'tree', 'presentation']
 
 class Var(HtmlElement):
-    pass
+    class PropTypes:
+        role: str
+
+class Video(_Media):
+    class PropTypes:
+        height: Number
+        poster: str
+        width: Number
+        playsinline: bool
+
+class Wbr:
+    class PropTypes:
+        role: str

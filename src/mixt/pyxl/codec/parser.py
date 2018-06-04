@@ -213,9 +213,8 @@ class PyxlParser(HTMLTokenizer):
             return
 
         capitalized_tag = tag.capitalize()
-        if tag.lower() == tag and hasattr(html, capitalized_tag) and \
-                issubclass(getattr(html, capitalized_tag), html.HtmlBaseElement):
-            self.output.append('html.%s(' % capitalized_tag)
+        if tag.lower() in html.__tags__:
+            self.output.append('html.%s(' % html.__tags__[tag.lower()])
         elif hasattr(html, tag):
             self.output.append('html.%s(' % tag)
         else:
