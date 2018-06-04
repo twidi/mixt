@@ -2,7 +2,7 @@
 
 """Ensure that elements work correctly."""
 
-from mixt.pyxl import html
+from mixt import html
 from mixt.element import Element
 
 

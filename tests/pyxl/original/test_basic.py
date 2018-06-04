@@ -2,7 +2,8 @@
 
 import pytest
 
-from mixt.pyxl import html
+from mixt import html
+from mixt.internal.html import HtmlElement
 from mixt.pyxl.base import PyxlException, Base, Choices, DefaultChoices, NotProvided
 
 
@@ -39,6 +40,13 @@ def test_conditional_comment():
         == '<!--[if lt IE 8]><div class="&gt;">blahblah</div><![endif]-->')
     assert (str(<ConditionalComment cond="(lt IE 8) & (gt IE 5)"><div>{s}</div></ConditionalComment>)
         == '<!--[if (lt IE 8) & (gt IE 5)]><div>blahblah</div><![endif]-->')
+
+def test_conditional_non_comment():
+    s = 'blahblah'
+    assert (str(<ConditionalNonComment cond="lt IE 8"><div class=">">{s}</div></ConditionalNonComment>)
+        == '<!--[if lt IE 8]><!--><div class="&gt;">blahblah</div><!--<![endif]-->')
+    assert (str(<ConditionalNonComment cond="(lt IE 8) & (gt IE 5)"><div>{s}</div></ConditionalNonComment>)
+        == '<!--[if (lt IE 8) & (gt IE 5)]><!--><div>blahblah</div><!--<![endif]-->')
 
 def test_decl():
     assert (str(<script><![CDATA[<div><div>]]></script>)
@@ -124,7 +132,7 @@ def test_enum_prop():
 
 
 def test_special_prop_names():
-    class Foo(html.HtmlElement):
+    class Foo(HtmlElement):
         class PropTypes:
             _def: str
             foo_bar__baz: str
@@ -140,3 +148,12 @@ def test_special_prop_names():
     assert str(tag) == '<foo def="fed" foo-bar:baz="qux"></foo>'
     assert tag._def == 'fed'
     assert tag.foo_bar__baz == 'qux'
+
+
+def test_doctype():
+    assert str(<!DOCTYPE html>) == '<!DOCTYPE html>'
+    assert str(<Doctype doctype=html/>) == '<!DOCTYPE html>'
+
+def test_cdata():
+    assert str(<div><![CDATA[Testing Data here]]></div>) == '<div><![CDATA[Testing Data here]]></div>'
+    assert str(<div><CData cdata="Testing Data here"/></div>) == '<div><![CDATA[Testing Data here]]></div>'

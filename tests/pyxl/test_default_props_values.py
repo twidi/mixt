@@ -3,7 +3,7 @@
 """Ensure that proptypes default values are correctly used."""
 
 import pytest
-from mixt.pyxl import html
+from mixt import html
 from mixt.pyxl.base import Base, PyxlException, Choices, DefaultChoices, NotProvided, Required
 
 from typing import *

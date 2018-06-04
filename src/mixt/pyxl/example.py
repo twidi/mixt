@@ -1,5 +1,5 @@
 # coding: mixt
 
-from mixt.pyxl import html
+from mixt import html
 
 print(<html><body>Hello World!</body></html>)

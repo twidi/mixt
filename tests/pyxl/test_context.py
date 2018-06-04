@@ -2,7 +2,7 @@
 
 """Ensure that context props are passed to all elements."""
 
-from mixt.pyxl import html
+from mixt import html
 from mixt.pyxl.base import BaseContext
 from mixt.element import Element
 

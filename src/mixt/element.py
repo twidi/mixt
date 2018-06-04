@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 
+from .html import Fragment
 from .pyxl.base import (
     AnElement,
     Base,
@@ -11,7 +12,6 @@ from .pyxl.base import (
     OptionalContext,
     WithClass,
 )
-from .pyxl.html import Fragment
 
 
 class Element(WithClass):

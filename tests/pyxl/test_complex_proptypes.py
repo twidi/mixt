@@ -3,7 +3,7 @@
 """Ensure that complex proptypes are correctly validated."""
 
 import pytest
-from mixt.pyxl import html
+from mixt import html
 from mixt.pyxl.base import Base, PyxlException, NotProvided
 
 from typing import *

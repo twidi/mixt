@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import tokenize
+
+from ... import html
+from ...internal.html import __tags__
 from ..base import BasePropTypes
-from .. import html
 from .html_tokenizer import (
         HTMLTokenizer,
         ParseError as TokenizerParseError,
@@ -195,7 +197,7 @@ class PyxlParser(HTMLTokenizer):
             if 'cond' not in attrs:
                 raise ParseError("if tag must contain the 'cond' prop", self.end)
 
-            self.output.append('html._push_condition(bool(')
+            self.output.append('html.IFStack.push_condition(bool(')
             self.output.extend(self._handle_attr_value(attrs['cond']))
             self.output.append(')) and html.Fragment()(')
             self.last_thing_was_python = False
@@ -207,14 +209,13 @@ class PyxlParser(HTMLTokenizer):
             if not self.last_thing_was_close_if_tag:
                 raise ParseError("<else> tag must come right after </if>", self.end)
 
-            self.output.append('(not html._last_if_condition) and html.Fragment()(')
+            self.output.append('(not html.IFStack.last) and html.Fragment()(')
             self.last_thing_was_python = False
             self.last_thing_was_close_if_tag = False
             return
 
-        capitalized_tag = tag.capitalize()
-        if tag.lower() in html.__tags__:
-            self.output.append('html.%s(' % html.__tags__[tag.lower()])
+        if tag.lower() in __tags__:
+            self.output.append('html.%s(' % __tags__[tag.lower()])
         elif hasattr(html, tag):
             self.output.append('html.%s(' % tag)
         else:
@@ -271,7 +272,7 @@ class PyxlParser(HTMLTokenizer):
                              (open_tag['tag'], open_tag['row'], tag_name, self.end[0]))
 
         if open_tag['tag'] == 'if':
-            self.output.append(',html._leave_if()')
+            self.output.append(',html.IFStack.leave_if()')
             self.last_thing_was_close_if_tag = True
         else:
             self.last_thing_was_close_if_tag = False
@@ -299,16 +300,16 @@ class PyxlParser(HTMLTokenizer):
         self.last_thing_was_close_if_tag = False
 
     def handle_comment(self, data):
-        self.handle_startendtag("HtmlComment", {"comment": [data.strip()]})
+        self.handle_startendtag("Comment", {"comment": [data.strip()]})
         self.last_thing_was_python = False
         self.last_thing_was_close_if_tag = False
 
     def handle_doctype(self, data):
-        self.handle_startendtag("HtmlDeclaration", {"decl": ['DOCTYPE ' + data]})
+        self.handle_startendtag("Doctype", {"doctype": [data]})
         self.last_thing_was_python = False
         self.last_thing_was_close_if_tag = False
 
     def handle_cdata(self, data):
-        self.handle_startendtag("HtmlMarkedDeclaration", {"decl": ['CDATA[' + data]})
+        self.handle_startendtag("CData", {"cdata": [data]})
         self.last_thing_was_python = False
         self.last_thing_was_close_if_tag = False

@@ -59,7 +59,7 @@ class BasePropTypes:
         name = name.replace('-', '_').replace(':', '__')
         if not name.isidentifier():
             raise NameError
-        if keyword.iskeyword(name):
+        if keyword.iskeyword(name) or name in {'async'}:  # list of future keywords
             name = '_' + name
         return name
 
@@ -318,12 +318,12 @@ class Base(object, metaclass=BaseMetaclass):
             return []
         return children
 
-    def append(self, child: 'Base') -> None:
+    def append(self, child: OneOrManyElements) -> None:
         children = self._child_to_children(child)
         self._propagate_context(children)
         self.__children__.extend(children)
 
-    def prepend(self, child: 'Base') -> None:
+    def prepend(self, child: OneOrManyElements) -> None:
         children = self._child_to_children(child)
         self._propagate_context(children)
         self.__children__[0:0] = children
@@ -391,8 +391,8 @@ class Base(object, metaclass=BaseMetaclass):
         if isinstance(child, Base): child._to_list(l)
         elif child is not None: l.append(escape(child))
 
-    def _render_children_to_list(self, l, children=None):
-        for child in (children or self.__children__):
+    def _render_children_to_list(self, l: List) -> None:
+        for child in self.__children__:
             self._render_child_to_list(child, l)
 
 

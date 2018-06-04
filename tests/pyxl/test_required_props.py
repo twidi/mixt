@@ -3,7 +3,7 @@
 """Ensure that required proptypes are correctly checked."""
 
 import pytest
-from mixt.pyxl import html
+from mixt import html
 from mixt.pyxl.base import Base, PyxlException, Required, NotProvided
 
 from typing import *

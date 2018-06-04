@@ -1,5 +1,5 @@
 # coding: mixt
-from mixt.pyxl import html
+from mixt import html
 
 def test():
     # Presence of paretheses around html should not affect contents of tags. (In old pyxl,

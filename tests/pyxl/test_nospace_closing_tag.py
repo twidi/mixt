@@ -2,7 +2,7 @@
 
 """Ensure that the space before the ``/`` character is not mandatory"""
 
-from mixt.pyxl import html
+from mixt import html
 from mixt.element import Element
 
 
