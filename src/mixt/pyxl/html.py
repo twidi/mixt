@@ -18,10 +18,14 @@ def _leave_if():
     _last_if_condition = _if_condition_stack.pop()
     return []
 
+__tags__ = {}
+
 
 class HtmlElementMetaclass(BaseMetaclass):
     def __init__(self, name, parents, attrs):
-        attrs['__tag__'] =  name.lower()
+        if not attrs.get('__tag__'):
+            attrs['__tag__'] =  name.lower()
+        __tags__[attrs['__tag__']] = name
         super().__init__(name, parents, attrs)
 
 
