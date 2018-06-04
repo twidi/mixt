@@ -17,7 +17,7 @@ PTH_CONTENT = (
 )
 
 
-def main():
+def main() -> None:
     """Copy the codec register code in a ``mixt.pth`` file in the lib python directory."""
     python_lib = get_python_lib()
     with open(os.path.join(python_lib, PTH_FILENAME), "w") as pth_file:
