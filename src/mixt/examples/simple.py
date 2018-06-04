@@ -1,7 +1,8 @@
+# coding: mixt
 # pylint: disable=missing-docstring
 # flake8: noqa: D
 
-from mixt import html, Element, Required
+from mixt import Element, Required, html
 
 
 class Hello(Element):
@@ -9,7 +10,7 @@ class Hello(Element):
         name: Required[str]
 
     def render(self, context):
-        return html.Div(title="Greeting")("Hello, ", self.name)
+        return <div title="Greeting">Hello, {self.name}</div>
 
 
-print(Hello(name="World"))
+print(<Hello name="World"/>)
