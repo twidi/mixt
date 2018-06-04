@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Optional, Sequence, cast
 
 from ..exceptions import PyxlException  # noqa: T484
 from ..proptypes import Choices, NotProvided  # noqa: T484
-from ..pyxl.base import Base, BaseMetaclass, OneOrManyElements, WithClass  # noqa: T484
 from ..pyxl.utils import escape  # noqa: T484
+from .base import Base, BaseMetaclass, OneOrManyElements, WithClass
 from .proptypes import BasePropTypes
 
 
@@ -36,7 +36,7 @@ class HtmlElementMetaclass(BaseMetaclass):
     def __init__(
         cls, name: str, parents: Sequence[type], attrs: Dict[str, Any]  # noqa: B902
     ) -> None:
-        """Construct the class and save its tag (create it from `name` if not defined.
+        """Construct the class and save its tag (create it from `name` if not defined).
 
         Parameters
         ----------
@@ -192,12 +192,12 @@ class HtmlElement(HtmlBaseElement):
 class HtmlElementNoChild(HtmlBaseElement):
     """Base for all HTML tags that does not accept children."""
 
-    def append(self, child: OneOrManyElements) -> None:
+    def append(self, child_or_children: OneOrManyElements) -> None:
         """Raise if we try to add children.
 
         Parameters
         ----------
-        child: OneOrManyElements
+        child_or_children: OneOrManyElements
             The child(ren) we cannot add.
 
         Raises
@@ -207,7 +207,7 @@ class HtmlElementNoChild(HtmlBaseElement):
 
 
         """
-        raise PyxlException(f"<{self.__str_tag__}> does not allow children.")
+        raise PyxlException(f"<{self.__tag_human__}> does not allow children.")
 
     prepend = append
 

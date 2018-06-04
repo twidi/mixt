@@ -3,7 +3,7 @@
 from typing import List, Optional
 
 from .html import Fragment
-from .pyxl.base import (
+from .internal.base import (
     AnElement,
     Base,
     EmptyContext,
@@ -112,7 +112,7 @@ class Element(WithClass):
             The list where to append the parts.
 
         """
-        self._render_child_to_list(self._get_base_element(), l)
+        self._render_element_to_list(self._get_base_element(), l)
 
     def _rendered_element(self) -> AnElement:
         """Call prerender, render then postrender and return the rendered element.

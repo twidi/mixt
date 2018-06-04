@@ -4,7 +4,7 @@
 from typing import Union
 
 import pytest
-from mixt.pyxl.base import Base
+from mixt.internal.base import Base
 from mixt.exceptions import PyxlException
 from mixt.internal.proptypes import BasePropTypes as PropTypes
 from mixt.internal.dev_mode import set_dev_mode, unset_dev_mode, override_dev_mode, in_dev_mode

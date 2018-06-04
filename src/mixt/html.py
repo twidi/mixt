@@ -659,7 +659,7 @@ class Input(HtmlElementNoChild):
                 for subclass in klass.__subclasses__():
                     if getattr(subclass, "__type__", None):
                         Input.__types__[subclass.__type__] = subclass
-                        subclass.__str_tag__ = (
+                        subclass.__tag_human__ = (
                             f"{subclass.__tag__} (input type={subclass.__type__})"
                         )
                     add(subclass)
@@ -669,7 +669,7 @@ class Input(HtmlElementNoChild):
         if cls is not Input:
             # For a subclass, we don't accept the ``type`` prop.
             if "type" in kwargs:
-                raise PyxlException(f"<{cls.__str_tag__}>.type: must not be set")
+                raise PyxlException(f"<{cls.__tag_human__}>.type: must not be set")
             return super().__new__(cls)
 
         try:
