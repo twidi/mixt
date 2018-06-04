@@ -4,7 +4,7 @@
 
 import pytest
 from mixt.pyxl import html
-from mixt.pyxl.base import Base, PyxlException, Choices, NotProvided, Required
+from mixt.pyxl.base import Base, PyxlException, Choices, DefaultChoices, NotProvided, Required
 
 from typing import *
 
@@ -53,7 +53,7 @@ def test_default_are_returned():
         class PropTypes:
             value1: int
             value2: str = "foo"
-            value3: Choices = [1, 2, 3]
+            value3: DefaultChoices = [1, 2, 3]
             value4: str = NotProvided
 
     assert (<Foo />.props) == {'value2': 'foo', 'value3': 1}
@@ -61,6 +61,15 @@ def test_default_are_returned():
     assert (<Foo value1={123} value2="bar" />.props) == {'value1': 123, 'value2': 'bar', 'value3': 1}
     assert (<Foo value1={123} value2="bar" value3={2} />.props) == {'value1': 123, 'value2': 'bar', 'value3': 2}
     assert (<Foo value1={123} value2="bar" value3={2} value4="baz" />.props) == {'value1': 123, 'value2': 'bar', 'value3': 2, 'value4': 'baz'}
+
+def test_choices_have_no_default():
+    class Foo(DummyBase):
+        class PropTypes:
+            value: Choices = [1, 2, 3]
+
+    assert (<Foo />.props) == {}
+    with pytest.raises(AttributeError):
+        <Foo />.value
 
 def test_default_cannot_be_required():
     with pytest.raises(PyxlException):

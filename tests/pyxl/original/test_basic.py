@@ -3,7 +3,7 @@
 import pytest
 
 from mixt.pyxl import html
-from mixt.pyxl.base import PyxlException, Base, Choices, NotProvided
+from mixt.pyxl.base import PyxlException, Base, Choices, DefaultChoices, NotProvided
 
 
 class DummyBase(Base):
@@ -70,8 +70,12 @@ def test_enum_prop():
         class PropTypes:
             value: Choices = ['a', 'b']
 
-    assert (<Foo />.prop('value')) == 'a'
-    assert (<Foo />.value) == 'a'
+    with pytest.raises(AttributeError):
+        <Foo />.prop('value')
+
+    with pytest.raises(AttributeError):
+        <Foo />.value
+
     assert (<Foo value="b" />.prop('value')) == 'b'
     assert (<Foo value="b" />.value) == 'b'
 
@@ -81,25 +85,36 @@ def test_enum_prop():
     with pytest.raises(PyxlException):
         <Foo value={None} />
 
-    assert (<Foo value={NotProvided} />.value) == 'a'
+    with pytest.raises(AttributeError):
+        <Foo value={NotProvided} />.value
 
     class Bar(DummyBase):
         class PropTypes:
-            value: Choices = ['a', None, 'b']
+            value: DefaultChoices = ['a', 'b']
 
     assert (<Bar />.prop('value')) == 'a'
     assert (<Bar />.value) == 'a'
+    assert (<Bar value="b" />.prop('value')) == 'b'
+    assert (<Bar value="b" />.value) == 'b'
+
+    with pytest.raises(PyxlException):
+        <Bar value="c" />
+
+    with pytest.raises(PyxlException):
+        <Bar value={None} />
+
+    assert (<Bar value={NotProvided} />.value) == 'a'
 
     class Baz(DummyBase):
         class PropTypes:
-            value: Choices = [None, 'a', 'b']
+            value: DefaultChoices = [None, 'a', 'b']
 
     assert (<Baz />.prop('value')) is None
     assert (<Baz />.value) is None
 
     class Qux(DummyBase):
         class PropTypes:
-            value: Choices = [NotProvided, 'a', 'b']
+            value: DefaultChoices = [NotProvided, 'a', 'b']
 
     with pytest.raises(AttributeError):
         <Qux />.prop('value')

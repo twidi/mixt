@@ -23,6 +23,7 @@ class Required(Generic[TypeVar("T")]): ...
 
 
 class Choices(Sequence): ...
+class DefaultChoices(Choices): ...
 
 
 class BasePropTypes:
@@ -100,10 +101,11 @@ class BasePropTypes:
                 if not isinstance(choices, Sequence) or isinstance(choices, str):
                     raise PyxlException(f'<{cls.__owner_name__}> must have a list of values for prop `{name}`')
 
-                if choices[0] is not NotProvided:
-                    if is_required:
-                        raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the required prop `{name}`')
-                    cls.__default_props__[name] = choices[0]
+                if issubclass(cls.__type__(name), DefaultChoices):
+                    if choices[0] is not NotProvided:
+                        if is_required:
+                            raise PyxlException(f'<{cls.__owner_name__}> cannot have a default value for the required prop `{name}`')
+                        cls.__default_props__[name] = choices[0]
 
                 continue
 
