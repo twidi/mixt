@@ -3,7 +3,7 @@
 """Ensure that elements work correctly."""
 
 from mixt.pyxl import html
-from mixt.pyxl.element import Element
+from mixt.element import Element
 
 
 def test_class_names_are_inherited_for_single_child():

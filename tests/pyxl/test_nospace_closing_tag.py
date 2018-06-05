@@ -3,7 +3,7 @@
 """Ensure that the space before the ``/`` character is not mandatory"""
 
 from mixt.pyxl import html
-from mixt.pyxl.element import Element
+from mixt.element import Element
 
 
 def test_normal_tag_without_props():

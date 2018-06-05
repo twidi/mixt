@@ -4,7 +4,7 @@
 
 from mixt.pyxl import html
 from mixt.pyxl.base import BaseContext
-from mixt.pyxl.element import Element
+from mixt.element import Element
 
 
 def test_context_propagation():

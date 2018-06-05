@@ -4,7 +4,7 @@ import keyword
 
 from contextlib import contextmanager
 from itertools import chain
-from typing import get_type_hints, Sequence, Generic, TypeVar, Any, Union
+from typing import get_type_hints, Sequence, Generic, TypeVar, Any, Union, List
 
 from enforce.exceptions import RuntimeTypeError
 
@@ -21,7 +21,13 @@ class NotProvided: ...
 class Required(Generic[TypeVar("T")]): ...
 
 
+# pylint: disable=invalid-name
 Number = Union[int, float]
+OptionalContext = Union['BaseContext', None]
+AnElement = Union['Base', str]
+ManyElements = Sequence[AnElement]
+OneOrManyElements = Union[AnElement, Sequence[AnElement]]
+# pylint: enable=invalid-name
 
 
 class Choices(Sequence): ...
@@ -275,14 +281,14 @@ class Base(object, metaclass=BaseMetaclass):
 
         self.PropTypes.__validate_required__(self.__props__)
 
-    def __call__(self, *children):
+    def __call__(self, *children: OneOrManyElements) -> 'Base':
         self.append(children)
         return self
 
-    def children(self):
+    def children(self) -> ManyElements:
         return self.__children__
 
-    def _set_context(self, context):
+    def _set_context(self, context: OptionalContext) -> None:
         if context is None:
             return
 
@@ -312,12 +318,12 @@ class Base(object, metaclass=BaseMetaclass):
             return []
         return children
 
-    def append(self, child):
+    def append(self, child: 'Base') -> None:
         children = self._child_to_children(child)
         self._propagate_context(children)
         self.__children__.extend(children)
 
-    def prepend(self, child):
+    def prepend(self, child: 'Base') -> None:
         children = self._child_to_children(child)
         self._propagate_context(children)
         self.__children__[0:0] = children
@@ -328,7 +334,7 @@ class Base(object, metaclass=BaseMetaclass):
             raise AttributeError(name)
         return self.prop(name)
 
-    def prop(self, name, default=NotProvided):
+    def prop(self, name: str, default: Any = NotProvided) -> Any:
         name = BasePropTypes.__to_python__(name)
         if not self.PropTypes.__allow__(name):
             raise PyxlException(f'<{self.__str_tag__}> has no prop named "{name}"')
@@ -347,7 +353,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         return default
 
-    def set_prop(self, name, value):
+    def set_prop(self, name: str, value: Any) -> None:
         name = BasePropTypes.__to_python__(name)
         if not self.PropTypes.__allow__(name):
             raise PyxlException(f'<{self.__str_tag__}> has no prop named "{name}"')
@@ -381,7 +387,7 @@ class Base(object, metaclass=BaseMetaclass):
         return self.to_string()
 
     @staticmethod
-    def _render_child_to_list(child, l):
+    def _render_child_to_list(child: AnElement, l: List) -> None:
         if isinstance(child, Base): child._to_list(l)
         elif child is not None: l.append(escape(child))
 
@@ -432,7 +438,7 @@ class BaseContext(Base):
         self._render_children_to_list(l)
 
 
-class EmptyContext(BaseContext):
+class _EmptyContext(BaseContext):
     pass
 
-EmptyContext = EmptyContext()
+EmptyContext = _EmptyContext()
