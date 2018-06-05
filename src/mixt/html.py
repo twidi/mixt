@@ -686,21 +686,21 @@ class Input(HtmlElementNoChild):
         obj.__init__(**kwargs)
         return obj
 
-    def _to_list(self, l: List) -> None:
-        """Add the element parts to the list `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add the element parts to the list `acc`.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
         if self.__class__ is Input:
-            super()._to_list(l)
+            super()._to_list(acc)
         else:
-            l.append(f'<input type="{self.__type__}"')
-            l.extend(self._render_attributes())
-            l.append(" />")
+            acc.append(f'<input type="{self.__type__}"')
+            acc.extend(self._render_attributes())
+            acc.append(" />")
 
 
 class _KeyboardInput(Input):

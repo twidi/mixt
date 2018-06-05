@@ -440,15 +440,15 @@ class Base(object, metaclass=BaseMetaclass):
         self._to_list(str_list)
         return "".join(str_list)
 
-    def _to_list(self, l: List) -> None:
-        """Fill the list `l` with strings that will be concatenated to produce the html string.
+    def _to_list(self, acc: List) -> None:
+        """Fill the list `acc` with strings that will be concatenated to produce the html string.
 
         To be implemented in subclasses.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
         raise NotImplementedError()
@@ -465,33 +465,33 @@ class Base(object, metaclass=BaseMetaclass):
         return self.to_string()
 
     @staticmethod
-    def _render_element_to_list(element: AnElement, l: List) -> None:
-        """Fill the list `l` with html string part of the given element.
+    def _render_element_to_list(element: AnElement, acc: List) -> None:
+        """Fill the list `acc` with html string part of the given element.
 
         Parameters
         ----------
         element: AnElement
             The element to be converted to string parts.
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
         if isinstance(element, Base):
-            element._to_list(l)
+            element._to_list(acc)
         elif element not in IGNORED_CHILDREN:
-            l.append(escape(element))
+            acc.append(escape(element))
 
-    def _render_children_to_list(self, l: List) -> None:
-        """Fill the list `l` with html string part of all the children.
+    def _render_children_to_list(self, acc: List) -> None:
+        """Fill the list `acc` with html string part of all the children.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
         for child in self.__children__:
-            self._render_element_to_list(child, l)
+            self._render_element_to_list(child, acc)
 
 
 class WithClass(Base):
@@ -668,16 +668,16 @@ class BaseContext(Base):
         super().__init__(**kwargs)
         self.context: "BaseContext" = self
 
-    def _to_list(self, l: List) -> None:
-        """Add the the children to the list `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add the the children to the list `acc`.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
-        self._render_children_to_list(l)
+        self._render_children_to_list(acc)
 
 
 EmptyContext = BaseContext()  # pylint: disable=invalid-name

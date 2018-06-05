@@ -103,16 +103,16 @@ class Element(WithClass):
 
         return list(filter(func, children))
 
-    def _to_list(self, l: List) -> None:
-        """Add the element parts (with its children) to the list `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add the element parts (with its children) to the list `acc`.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
-        self._render_element_to_list(self._get_base_element(), l)
+        self._render_element_to_list(self._get_base_element(), acc)
 
     def _rendered_element(self) -> AnElement:
         """Call prerender, render then postrender and return the rendered element.

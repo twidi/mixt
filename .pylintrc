@@ -232,7 +232,7 @@ function-rgx=[a-z_][a-z0-9_]{2,30}$
 function-name-hint=[a-z_][a-z0-9_]{2,30}$
 
 # Regular expression matching correct argument names
-argument-rgx=([a-z_][a-z0-9_]{2,30}|pk|l)$
+argument-rgx=([a-z_][a-z0-9_]{2,30}|pk)$
 
 # Naming hint for argument names
 argument-name-hint=[a-z_][a-z0-9_]{2,30}$

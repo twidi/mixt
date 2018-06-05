@@ -10,7 +10,7 @@ from mixt.proptypes import NotProvided, DefaultChoices, Choices
 
 
 class DummyBase(Base):
-    def _to_list(self, l):
+    def _to_list(self, acc):
         pass
 
 

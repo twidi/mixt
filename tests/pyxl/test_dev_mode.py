@@ -12,7 +12,7 @@ from mixt.proptypes import Choices
 
 
 class DummyBase(Base):
-    def _to_list(self, l):
+    def _to_list(self, acc):
         pass
 
 

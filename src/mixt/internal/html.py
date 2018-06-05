@@ -173,20 +173,20 @@ class HtmlBaseElement(WithClass, metaclass=HtmlElementMetaclass):
 class HtmlElement(HtmlBaseElement):
     """Base for all HTML tags accepting children."""
 
-    def _to_list(self, l: List) -> None:
-        """Add the tag, its attributes and its children to the list `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add the tag, its attributes and its children to the list `acc`.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
-        l.append(f"<{self.__tag__}")
-        l.extend(self._render_attributes())
-        l.append(">")
-        self._render_children_to_list(l)
-        l.append(f"</{self.__tag__}>")
+        acc.append(f"<{self.__tag__}")
+        acc.extend(self._render_attributes())
+        acc.append(">")
+        self._render_children_to_list(acc)
+        acc.append(f"</{self.__tag__}>")
 
 
 class HtmlElementNoChild(HtmlBaseElement):
@@ -211,18 +211,18 @@ class HtmlElementNoChild(HtmlBaseElement):
 
     prepend = append
 
-    def _to_list(self, l: List) -> None:
-        """Add the tag and its attributes to the list `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add the tag and its attributes to the list `acc`.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
-        l.append(f"<{self.__tag__}")
-        l.extend(self._render_attributes())
-        l.append(" />")
+        acc.append(f"<{self.__tag__}")
+        acc.extend(self._render_attributes())
+        acc.append(" />")
 
 
 class RawHtml(HtmlElementNoChild):
@@ -231,16 +231,16 @@ class RawHtml(HtmlElementNoChild):
     class PropTypes:
         text: str
 
-    def _to_list(self, l: List) -> None:
-        """Add the text prop to the list `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add the text prop to the list `acc`.
 
         Parameters
         ----------
-        l: List
+        acc: List
             The list where to append the text.
 
         """
-        l.append(self.text)
+        acc.append(self.text)
 
 
 def Raw(text: str) -> RawHtml:  # pylint: disable=invalid-name
@@ -266,16 +266,16 @@ class Fragment(WithClass):
     class PropTypes:
         id: str
 
-    def _to_list(self, l: List) -> None:
-        """Add the children parts to the list `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add the children parts to the list `acc`.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
-        self._render_children_to_list(l)
+        self._render_children_to_list(acc)
 
     def get_id(self) -> str:
         """Return the ``id`` prop of the element."""
@@ -288,14 +288,14 @@ class Comment(Base):
     class PropTypes:
         comment: str
 
-    def _to_list(self, l: List) -> None:
-        """Add nothing to `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add nothing to `acc`.
 
         It was a decision from ``pyxl`` to ignore HTML comments.
 
         Parameters
         ----------
-        l: List
+        acc: List
             The list where to append nothing.
 
         """
@@ -308,16 +308,16 @@ class Doctype(Base):
     class PropTypes:
         doctype: str
 
-    def _to_list(self, l: List) -> None:
-        """Add the doctype html declaration to the list `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add the doctype html declaration to the list `acc`.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
-        l.append(f"<!DOCTYPE {self.prop('doctype')}>")
+        acc.append(f"<!DOCTYPE {self.prop('doctype')}>")
 
 
 class CData(Base):
@@ -326,16 +326,16 @@ class CData(Base):
     class PropTypes:
         cdata: str
 
-    def _to_list(self, l: List) -> None:
-        """Add the cdata html declaration to the list `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add the cdata html declaration to the list `acc`.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
-        l.append(f"<![CDATA[{self.prop('cdata')}]]>")
+        acc.append(f"<![CDATA[{self.prop('cdata')}]]>")
 
 
 class ConditionalComment(Base):
@@ -359,35 +359,35 @@ class ConditionalComment(Base):
         # allow '&', escape everything else from cond
         return "&".join(map(escape, cond.split("&")))
 
-    def _to_list(self, l: List) -> None:
-        """Add the if/end tags and the condition `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add the if/end tags and the condition `acc`.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
-        l.extend(("<!--[if ", self._render_cond(), "]>"))
-        self._render_children_to_list(l)
-        l.append("<![endif]-->")
+        acc.extend(("<!--[if ", self._render_cond(), "]>"))
+        self._render_children_to_list(acc)
+        acc.append("<![endif]-->")
 
 
 class ConditionalNonComment(ConditionalComment):
     """Conditional comment where browsers which don't support them will parse children."""
 
-    def _to_list(self, l: List) -> None:
-        """Add the if/end tags and the condition `l`.
+    def _to_list(self, acc: List) -> None:
+        """Add the if/end tags and the condition `acc`.
 
         Parameters
         ----------
-        l: List
-            The list where to append the parts.
+        acc: List
+            The accumulator list where to append the parts.
 
         """
-        l.extend(("<!--[if ", self._render_cond(), "]><!-->"))
-        self._render_children_to_list(l)
-        l.append("<!--<![endif]-->")
+        acc.extend(("<!--[if ", self._render_cond(), "]><!-->"))
+        self._render_children_to_list(acc)
+        acc.append("<!--<![endif]-->")
 
 
 class IFStack:
