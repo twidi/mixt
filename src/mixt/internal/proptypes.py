@@ -6,7 +6,14 @@ from typing import Any, Dict, Sequence, Set, Type, get_type_hints
 
 from enforce.exceptions import RuntimeTypeError
 
-from ..exceptions import PyxlException  # noqa: T484
+from ..exceptions import (  # noqa: T484
+    InvalidPropBoolError,
+    InvalidPropChoiceError,
+    InvalidPropValueError,
+    PropTypeChoicesError,
+    PropTypeRequiredError,
+    RequiredPropError,
+)
 from ..proptypes import Choices, DefaultChoices, NotProvided, Required  # noqa: T484
 
 
@@ -82,7 +89,7 @@ class BasePropTypes:
         """
         name = name.replace("-", "_").replace(":", "__")
         if not name.isidentifier():
-            raise NameError
+            raise NameError(name)
         if keyword.iskeyword(name) or name in FUTURE_KEYWORDS:
             name = "_" + name
         return name
@@ -188,10 +195,13 @@ class BasePropTypes:
 
         Raises
         ------
-        PyxlException
-            - If a prop is a ``Choices`` with no or empty list.
+        PropTypeChoicesError
+            - If a prop is a ``Choices`` with no value or empty list.
+            - If a prop is a ``Choices`` with something else than a list.
+        PropTypeRequiredError
             - If a prop is a ``DefaultChoices`` and is marked as ``Required``.
             - For all other props marked as ``Required`` if there is a value.
+        InvalidPropValueError
             - If the default value is not valid for the prop type.
 
         """
@@ -213,22 +223,27 @@ class BasePropTypes:
             if cls.__is_choice__(name):
 
                 if not getattr(cls, name, []):
-                    raise PyxlException(
-                        f"<{cls.__owner_name__}> must have a list of values for prop `{name}`"
+                    raise PropTypeChoicesError(
+                        cls.__owner_name__,
+                        name,
+                        "a 'choices' prop must have a list of values",
                     )
 
                 choices = getattr(cls, name)
                 if not isinstance(choices, Sequence) or isinstance(choices, str):
-                    raise PyxlException(
-                        f"<{cls.__owner_name__}> must have a list of values for prop `{name}`"
+                    raise PropTypeChoicesError(
+                        cls.__owner_name__,
+                        name,
+                        "the value for a 'choices' prop must be a list",
                     )
 
                 if issubclass(cls.__type__(name), DefaultChoices):
                     if choices[0] is not NotProvided:
                         if is_required:
-                            raise PyxlException(
-                                f"<{cls.__owner_name__}> cannot have a default "
-                                f"value for the required prop `{name}`"
+                            raise PropTypeRequiredError(
+                                cls.__owner_name__,
+                                name,
+                                "a 'choices' prop with a default value cannot be required",
                             )
                         cls.__default_props__[name] = choices[0]
 
@@ -239,20 +254,13 @@ class BasePropTypes:
                 continue
 
             if is_required:
-                raise PyxlException(
-                    f"<{cls.__owner_name__}> cannot have a default value "
-                    f"for the required prop `{name}`"
+                raise PropTypeRequiredError(
+                    cls.__owner_name__,
+                    name,
+                    "a prop with a default value cannot be required",
                 )
 
-            try:
-                cls.__validate__(name, default)
-            except PyxlException:
-                raise PyxlException(
-                    f"<{cls.__owner_name__}>.{name}: {type(default)} `{default}` "
-                    f"is not a valid default value"
-                )
-
-            cls.__default_props__[name] = default
+            cls.__default_props__[name] = cls.__validate__(name, default)
 
     @classmethod  # noqa: C901
     def __validate__(  # pylint: disable=too-many-return-statements,too-many-branches
@@ -277,8 +285,12 @@ class BasePropTypes:
 
         Raises
         ------
-        PyxlException
-            If the value is not valid.
+        InvalidPropValueError
+            If the value is not a Choices or a bool and not valid.
+        InvalidPropChoiceError
+            If the value is a Choices and not in the list.
+        InvalidPropBoolError
+            If the value is a bool and not in the list of acceptable choices.
 
         """
         if name.startswith("data_") or name.startswith("aria_"):
@@ -288,12 +300,11 @@ class BasePropTypes:
             if not BasePropTypes.__dev_mode__:
                 return value
 
-            if value in getattr(cls, name):
+            choices = getattr(cls, name)
+            if value in choices:
                 return value
 
-            raise PyxlException(
-                f"<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid choice"
-            )
+            raise InvalidPropChoiceError(cls.__owner_name__, name, value, choices)
 
         if cls.__is_bool__(name):
             # Special case for bool.
@@ -323,9 +334,7 @@ class BasePropTypes:
             if not BasePropTypes.__dev_mode__:
                 return bool(value)
 
-            raise PyxlException(
-                f"<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value"
-            )
+            raise InvalidPropBoolError(cls.__owner_name__, name, value)
 
         # normal check
 
@@ -336,9 +345,7 @@ class BasePropTypes:
         try:
             if isinstance(value, prop_type):
                 return value
-            raise PyxlException(
-                f"<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value"
-            )
+            raise InvalidPropValueError(cls.__owner_name__, name, value, prop_type)
 
         except TypeError:
             # we use "enforce" to check complex types
@@ -354,9 +361,7 @@ class BasePropTypes:
             try:
                 check(value)
             except RuntimeTypeError:
-                raise PyxlException(
-                    f"<{cls.__owner_name__}>.{name}: {type(value)} `{value}` is not a valid value"
-                )
+                raise InvalidPropValueError(cls.__owner_name__, name, value, prop_type)
 
             return value
 
@@ -371,7 +376,7 @@ class BasePropTypes:
 
         Raises
         ------
-        PyxlException
+        RequiredPropError
             If a required prop is not defined in `props`, of if its value is ``NotProvided``.
 
         """
@@ -379,9 +384,7 @@ class BasePropTypes:
             return
         for name in cls.__required_props__:
             if props.get(name, NotProvided) is NotProvided:
-                raise PyxlException(
-                    f"<{cls.__owner_name__}>.{name}: is required but not set"
-                )
+                raise RequiredPropError(cls.__owner_name__, name)
 
     @classmethod
     def __set_dev_mode__(cls, dev_mode: bool = True) -> None:

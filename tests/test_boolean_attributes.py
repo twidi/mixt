@@ -4,7 +4,7 @@
 
 import pytest
 from mixt import html
-from mixt.exceptions import PyxlException
+from mixt.exceptions import InvalidPropBoolError
 
 
 def test_without_value():
@@ -30,14 +30,14 @@ def test_with_string_false_as_value():
     assert str(<textarea readonly="false" />) == '<textarea></textarea>'
 
 def test_with_other_thing_as_value():
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropBoolError):
         <textarea readonly="other" />
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropBoolError):
         <textarea readonly=123 />
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropBoolError):
         <textarea readonly={"other"} />
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropBoolError):
         <textarea readonly={123} />

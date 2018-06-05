@@ -4,7 +4,7 @@
 
 import pytest
 from mixt import html
-from mixt.codec.parser import ParseError
+from mixt.exceptions import ParserError
 from mixt.codec.register import pyxl_decode
 
 
@@ -47,5 +47,5 @@ def test_invalid_duplicate_arguments():
 
 
 def test_invalid_python():
-    with pytest.raises(ParseError):
+    with pytest.raises(ParserError):
         pyxl_decode(b'<textarea {"foo"} />')

@@ -1,21 +1,13 @@
 import tokenize
 
 from mixt import html
+from mixt.exceptions import ParserStateError, ParserError, RequiredPropError, InvalidPropNameError
 from mixt.internal.html import __tags__
 from mixt.internal.proptypes import BasePropTypes
-from .html_tokenizer import (
-        HTMLTokenizer,
-        ParseError as TokenizerParseError,
-        State,
-)
+from .html_tokenizer import HTMLTokenizer
+from mixt.codec.state import State
 from .pytokenize import Untokenizer
 
-class ParseError(Exception):
-    def __init__(self, message, pos=None):
-        if pos is not None:
-            super().__init__("%s at line %d char %d" % ((message,) + pos))
-        else:
-            super().__init__(message)
 
 class PyxlParser(HTMLTokenizer):
     def __init__(self, row, col):
@@ -50,8 +42,8 @@ class PyxlParser(HTMLTokenizer):
                     self.end = (self.end[0], self.end[1]+1)
                 try:
                     super().feed(c)
-                except TokenizerParseError:
-                    raise ParseError("HTML Parsing error", self.end)
+                except ParserStateError as exc:
+                    raise ParserError("HTML Parsing error", self.end, exc)
         if self.done():
             self.remainder = (ttype, tvalue, self.end, tend, tline)
         else:
@@ -81,8 +73,7 @@ class PyxlParser(HTMLTokenizer):
             # will only allow **somedict kind of python
             super().feed_python(tokens)
         else:
-            raise ParseError("Python not allowed in state state %r" %
-                             State.state_name(self.state), tstart)
+            raise ParserError("Python not allowed here", tstart)
 
     def feed_position_only(self, token):
         """update with any whitespace we might have missed, and advance position to after the
@@ -188,12 +179,14 @@ class PyxlParser(HTMLTokenizer):
         return data
 
     def handle_starttag(self, tag, attrs, kwargs_attrs=None, call=True):
-        self.open_tags.append({'tag':tag, 'row': self.end[0]})
+        self.open_tags.append({'tag':tag, 'pos': self.end})
         if tag == 'if':
             if len(attrs) != 1:
-                raise ParseError("if tag only takes one prop called 'cond'", self.end)
+                for attr in attrs:
+                    if attr != 'cond':
+                        raise ParserError("Invalid <if> tag: only allowed prop is `cond`", self.end, InvalidPropNameError('if', attr))
             if 'cond' not in attrs:
-                raise ParseError("if tag must contain the 'cond' prop", self.end)
+                raise ParserError("Invalid <if> tag", self.end, RequiredPropError('if', 'cond'))
 
             self.output.append('html.IFStack.push_condition(bool(')
             self.output.extend(self._handle_attr_value(attrs['cond']))
@@ -203,9 +196,10 @@ class PyxlParser(HTMLTokenizer):
             return
         elif tag == 'else':
             if len(attrs) != 0:
-                raise ParseError("<else> tag takes no props", self.end)
+                for attr in attrs:
+                    raise ParserError("Invalid <else> tag: no allowed props", self.end, InvalidPropNameError('else', attr))
             if not self.last_thing_was_close_if_tag:
-                raise ParseError("<else> tag must come right after </if>", self.end)
+                raise ParserError("<else> tag must come right after </if>", self.end)
 
             self.output.append('(not html.IFStack.last) and html.Fragment()(')
             self.last_thing_was_python = False
@@ -227,7 +221,7 @@ class PyxlParser(HTMLTokenizer):
             try:
                 safe_attr_name = BasePropTypes.__to_python__(attr_name)
             except NameError:
-                raise ParseError("Invalid prop name %s" % attr_name, self.start)
+                raise ParserError(f"Invalid prop name {attr_name}", self.start)
 
             self.output.append(safe_attr_name)
             self.output.append('=')
@@ -242,11 +236,9 @@ class PyxlParser(HTMLTokenizer):
                 left_striped_handled_kwargs_attr = handled_kwargs_attr.lstrip()
 
                 if not left_striped_handled_kwargs_attr.startswith('**'):
-                    start = kwargs_attr[0][0][2][1]
-                    raise ParseError("Only **kwargs style is allowed", (
-                        kwargs_attr[0][0][2][0],
-                        kwargs_attr[0][0][2][1] + len(handled_kwargs_attr) - len(left_striped_handled_kwargs_attr) + 1)
-                    )
+                    line = kwargs_attr[0][0][2][0]
+                    col = kwargs_attr[0][0][2][1] + len(handled_kwargs_attr) - len(left_striped_handled_kwargs_attr) + 1
+                    raise ParserError("Only **kwargs style is allowed here", (line, col))
 
                 self.output.append(handled_kwargs_attr)
 
@@ -266,8 +258,10 @@ class PyxlParser(HTMLTokenizer):
 
         open_tag = self.open_tags.pop()
         if open_tag['tag'] != tag_name:
-            raise ParseError("<%s> on line %d closed by </%s> on line %d" %
-                             (open_tag['tag'], open_tag['row'], tag_name, self.end[0]))
+            raise ParserError(
+                f"<{open_tag['tag']}> closed by </{tag_name}> on "
+                f"[line={self.end[0]}, col={self.end[1]}]", open_tag['pos']
+            )
 
         if open_tag['tag'] == 'if':
             self.output.append(',html.IFStack.leave_if()')

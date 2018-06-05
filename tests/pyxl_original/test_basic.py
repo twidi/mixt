@@ -5,7 +5,7 @@ import pytest
 from mixt import html
 from mixt.internal.html import HtmlElement
 from mixt.internal.base import Base
-from mixt.exceptions import PyxlException
+from mixt.exceptions import PropTypeChoicesError, UnsetPropError, InvalidPropChoiceError
 from mixt.proptypes import NotProvided, DefaultChoices, Choices
 
 
@@ -61,22 +61,22 @@ def test_decl():
 
 def test_enum_prop():
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(PropTypeChoicesError):
         class Foo(DummyBase):
             class PropTypes:
                 value: Choices
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(PropTypeChoicesError):
         class Foo(DummyBase):
             class PropTypes:
                 value: Choices = []
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(PropTypeChoicesError):
         class Foo(DummyBase):
             class PropTypes:
                 value: Choices = 'foo'
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(PropTypeChoicesError):
         class Foo(DummyBase):
             class PropTypes:
                 value: Choices = 123
@@ -85,22 +85,22 @@ def test_enum_prop():
         class PropTypes:
             value: Choices = ['a', 'b']
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(UnsetPropError):
         <Foo />.prop('value')
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(UnsetPropError):
         <Foo />.value
 
     assert (<Foo value="b" />.prop('value')) == 'b'
     assert (<Foo value="b" />.value) == 'b'
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropChoiceError):
         <Foo value="c" />
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropChoiceError):
         <Foo value={None} />
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(UnsetPropError):
         <Foo value={NotProvided} />.value
 
     class Bar(DummyBase):
@@ -112,10 +112,10 @@ def test_enum_prop():
     assert (<Bar value="b" />.prop('value')) == 'b'
     assert (<Bar value="b" />.value) == 'b'
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropChoiceError):
         <Bar value="c" />
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropChoiceError):
         <Bar value={None} />
 
     assert (<Bar value={NotProvided} />.value) == 'a'

@@ -5,7 +5,7 @@
 import pytest
 from mixt import html
 from mixt.internal.base import Base
-from mixt.exceptions import PyxlException
+from mixt.exceptions import PropTypeRequiredError, RequiredPropError, InvalidPropValueError
 from mixt.proptypes import NotProvided, Required
 
 from typing import *
@@ -35,7 +35,7 @@ def test_prop_required_fail_if_not_passed():
         class PropTypes:
             value: Required[str]
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(RequiredPropError):
         <Foo />
 
 def test_complex_prop_required():
@@ -43,16 +43,16 @@ def test_complex_prop_required():
         class PropTypes:
             value: Required[Union[int, float]]
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(RequiredPropError):
         <Foo />
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropValueError):
         <Foo value="foo" />
 
     (<Foo value={1} />)
 
 def test_required_prop_cannot_have_default():
-    with pytest.raises(PyxlException):
+    with pytest.raises(PropTypeRequiredError):
         class Foo(DummyBase):
             class PropTypes:
                 value: Required[str] = "foo"

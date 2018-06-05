@@ -4,7 +4,7 @@ from itertools import chain
 from typing import Any, Dict, List, Sequence, Set, Union, cast
 from xml.sax.saxutils import escape as xml_escape, unescape as xml_unescape
 
-from ..exceptions import PyxlException  # noqa: T484
+from ..exceptions import InvalidPropNameError, UnsetPropError  # noqa: T484
 from ..proptypes import NotProvided  # noqa: T484
 from .proptypes import BasePropTypes
 
@@ -312,17 +312,18 @@ class Base(object, metaclass=BaseMetaclass):
         Raises
         ------
         AttributeError
-            - If the prop does not exist.
-            - If the prop exist but is not set.
+            If the prop does not exist and is a dunder attribute ("__xxx__")
+        InvalidPropNameError
+            If there is no prop with the given `name`.
+        UnsetPropError
+            If the prop is not set and no default value is available.
 
         """
         if len(name) > 4 and name.startswith("__") and name.endswith("__"):
-            # For dunder name (e.g. __iter__),raise AttributeError, not PyxlException.
+            # For dunder name (e.g. __iter__),raise AttributeError, not MixtException.
             raise AttributeError(name)
-        try:
-            return self.prop(name)
-        except PyxlException as exc:
-            raise AttributeError(exc)
+
+        return self.prop(name)
 
     def prop(self, name: str, default: Any = NotProvided) -> Any:
         """Return a prop defined by `name`, if it is defined, or the `default` if provided.
@@ -345,15 +346,15 @@ class Base(object, metaclass=BaseMetaclass):
 
         Raises
         ------
-        PyxlException
+        InvalidPropNameError
             If there is no prop with the given `name`.
-        AttributeError
+        UnsetPropError
             If the prop is not set and no default value is available.
 
         """
         name = BasePropTypes.__to_python__(name)
         if not self.PropTypes.__allow__(name):
-            raise PyxlException(f'<{self.__tag_human__}> has no prop named "{name}"')
+            raise InvalidPropNameError(self.__tag_human__, name)
 
         # First we try to get the actual prop value
         value = self.__props__.get(name, NotProvided)
@@ -370,7 +371,7 @@ class Base(object, metaclass=BaseMetaclass):
             return prop_default
 
         # Finally, no value is available, we raise
-        raise AttributeError(f"<{self.__tag_human__}>.{name} is not set")
+        raise UnsetPropError(self.__tag_human__, name)
 
     def set_prop(self, name: str, value: Any) -> Any:
         """Set the `value` of the prop defined by `name`, if it is valid.
@@ -397,14 +398,15 @@ class Base(object, metaclass=BaseMetaclass):
 
         Raises
         ------
-        PyxlException
+        InvalidPropNameError
             If the prop does not exist.
+        InvalidPropValueError
             If the value is not valid.
 
         """
         name = BasePropTypes.__to_python__(name)
         if not self.PropTypes.__allow__(name):
-            raise PyxlException(f'<{self.__tag_human__}> has no prop named "{name}"')
+            raise InvalidPropNameError(self.__tag_human__, name)
 
         if value is NotProvided:
             return self.__props__.pop(name, NotProvided)
@@ -427,7 +429,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Raises
         ------
-        PyxlException
+        InvalidPropNameError
             If the prop does not exist.
 
         """
@@ -457,8 +459,9 @@ class Base(object, metaclass=BaseMetaclass):
 
         Raises
         ------
-        PyxlException
+        InvalidPropNameError
             If a prop does not exist.
+        InvalidPropValueError
             If a value is not valid (if dev-mode)
 
         """

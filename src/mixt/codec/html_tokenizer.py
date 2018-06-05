@@ -8,42 +8,9 @@ In the ATTRIBUTE_VALUE and BEFORE_ATTRIBUTE_VALUE states, python tokens are acce
 import sys
 from collections import OrderedDict
 
-class State(object):
-    DATA = 1
-    # unused states: charrefs, RCDATA, script, RAWTEXT, PLAINTEXT
-    TAG_OPEN = 7
-    END_TAG_OPEN = 8
-    TAG_NAME = 9
-    # unused states: RCDATA, RAWTEXT, script
-    BEFORE_ATTRIBUTE_NAME = 34
-    ATTRIBUTE_NAME = 35
-    AFTER_ATTRIBUTE_NAME = 36
-    BEFORE_ATTRIBUTE_VALUE = 37
-    ATTRIBUTE_VALUE_DOUBLE_QUOTED = 38
-    ATTRIBUTE_VALUE_SINGLE_QUOTED = 39
-    ATTRIBUTE_VALUE_UNQUOTED = 40
-    # unused state: CHARREF_IN_ATTRIBUTE_VALUE = 41
-    AFTER_ATTRIBUTE_VALUE = 42
-    SELF_CLOSING_START_TAG = 43
-    # unused state: BOGUS_COMMENT_STATE = 44
-    MARKUP_DECLARATION_OPEN = 45
-    COMMENT_START = 46
-    COMMENT_START_DASH = 47
-    COMMENT = 48
-    COMMENT_END_DASH = 49
-    COMMENT_END = 50
-    # unused state: COMMENT_END_BANG = 51
-    DOCTYPE = 52
-    DOCTYPE_CONTENTS = 53 # Gross oversimplification. Not to spec.
-    # unused states: doctypes
-    CDATA_SECTION = 68
+from ..exceptions import BadCharError, ParserStateError
+from .state import State
 
-    @classmethod
-    def state_name(cls, state_val):
-        for k, v in cls.__dict__.items():
-            if v == state_val:
-                return k
-        assert False, "impossible state value %r!" % state_val
 
 class Tag(object):
     def __init__(self):
@@ -53,13 +20,6 @@ class Tag(object):
         self.startendtag = False
         self.kwargs_attrs = []
 
-class ParseError(Exception):
-    pass
-
-class BadCharError(Exception):
-    def __init__(self, state, char):
-        super().__init__("unexpected character %r in state %r" %
-                                           (char, State.state_name(state)))
 
 class Unimplemented(Exception):
     pass
@@ -106,7 +66,7 @@ class HTMLTokenizer(object):
 
     def emit_tag(self):
         if self.tag.startendtag and self.tag.endtag:
-            raise ParseError("both startendtag and endtag!?")
+            raise ParserStateError(self.state, "Both startendtag and endtag!?")
         if self.tag.startendtag:
             self.handle_startendtag(self.tag.tag_name, self.tag.attrs, self.tag.kwargs_attrs)
         elif self.tag.endtag:
@@ -128,7 +88,7 @@ class HTMLTokenizer(object):
 
     def got_attribute(self):
         if self.attribute_name in self.tag.attrs:
-            raise ParseError("Repeat prop name %r" % self.attribute_name)
+            raise ParserStateError(self.state, f"Repeated prop name `{self.attribute_name}`")
         if self.attribute_value is None:
             # special boolean attributes case without values
             self.attribute_value = True
@@ -405,7 +365,7 @@ class HTMLTokenizer(object):
                             State.AFTER_ATTRIBUTE_NAME]:
             self.tag.kwargs_attrs.append([tokens])
         else:
-            raise ParseError("Python not allowed in state %r" % State.state_name(self.state))
+            raise ParserStateError(self.state, "Python not allowed here")
 
 class HTMLTokenDumper(HTMLTokenizer):
     def handle_data(self, data):

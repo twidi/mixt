@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Type, Union, cast
 
-from .exceptions import PyxlException
+from .exceptions import InvalidPropChoiceError, InvalidPropNameError, RequiredPropError
 from .internal.html import (  # noqa: F401  # pylint: disable=unused-import
     AUTOCAPITALIZES,
     CROSSORIGINS,
@@ -638,10 +638,12 @@ class Input(HtmlElementNoChild):
 
         Raises
         ------
-        PyxlException
-            - If `cls` is ``Input`` and the ``type `` prop is not given.
-            - If `cls` is ``Input`` and the ``type `` prop given but invalid.
-            - If `cls` is a subclass and the ``type `` prop is given.
+        RequiredPropError
+            If `cls` is ``Input`` and the ``type`` prop is not given.
+        InvalidPropChoiceError
+            If `cls` is ``Input`` and the ``type`` prop given but invalid.
+        InvalidPropNameError
+            If `cls` is a subclass and the ``type`` prop is given.
 
         """
         if not Input.__types__:
@@ -669,17 +671,17 @@ class Input(HtmlElementNoChild):
         if cls is not Input:
             # For a subclass, we don't accept the ``type`` prop.
             if "type" in kwargs:
-                raise PyxlException(f"<{cls.__tag_human__}>.type: must not be set")
+                raise InvalidPropNameError(cls.__tag_human__, "type")
             return super().__new__(cls)
 
         try:
             input_type: str = kwargs.pop("type")
         except KeyError:
-            raise PyxlException(f"<input>.type: is required but not set")
+            raise RequiredPropError("input", "type")
         else:
             if input_type not in Input.__types__:
-                raise PyxlException(
-                    f"<input>.type: {type(input_type)} `{input_type}` is not a valid choice"
+                raise InvalidPropChoiceError(
+                    "input", "type", input_type, list(Input.__types__.keys())
                 )
 
         obj = super().__new__(Input.__types__[input_type])

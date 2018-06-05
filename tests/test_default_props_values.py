@@ -5,7 +5,7 @@
 import pytest
 from mixt import html
 from mixt.internal.base import Base
-from mixt.exceptions import PyxlException
+from mixt.exceptions import InvalidPropValueError, PropTypeRequiredError
 from mixt.proptypes import NotProvided, DefaultChoices, Required, Choices
 
 from typing import *
@@ -32,7 +32,7 @@ def test_valid_default_value_simple_type():
     assert((<Foo />.value) == "foo")
 
 def test_invalid_default_value_simple_type():
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropValueError):
         class Foo(DummyBase):
             class PropTypes:
                 value: str = 123
@@ -45,7 +45,7 @@ def test_valid_default_value_complex_type():
     assert (<Foo />.value) == 123
 
 def test_invalid_default_value_complex_type():
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropValueError):
         class Foo(DummyBase):
             class PropTypes:
                 value: Union[int, float] = "foo"
@@ -74,7 +74,7 @@ def test_choices_have_no_default():
         <Foo />.value
 
 def test_default_cannot_be_required():
-    with pytest.raises(PyxlException):
+    with pytest.raises(PropTypeRequiredError):
         class Foo(DummyBase):
             class PropTypes:
                 value: Required[str] = "foo"

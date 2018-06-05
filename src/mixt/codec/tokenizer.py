@@ -3,8 +3,7 @@ import re
 from io import StringIO
 from .parser import PyxlParser
 from .pytokenize import Untokenizer
-
-class PyxlParseError(Exception): pass
+from ..exceptions import GeneralParserError
 
 def get_end_pos(start_pos, tvalue):
     row, col = start_pos
@@ -249,9 +248,8 @@ def get_pyxl_token(start_token, tokens):
         if pyxl_parser.done(): break
 
     if not pyxl_parser.done():
-        lines = ['<%s> at (line:%d)' % (tag_info['tag'], tag_info['row'])
-                 for tag_info in pyxl_parser.open_tags]
-        raise PyxlParseError('Unclosed Tags: %s' % ', '.join(lines))
+        lines = [f"<{t['tag']}> at [line={t['pos'][0]}, col={t['pos'][1]}]" for t in pyxl_parser.open_tags]
+        raise GeneralParserError('Unclosed Tags: %s' % ', '.join(lines))
 
     remainder = pyxl_parser.get_remainder()
     if remainder:

@@ -5,7 +5,7 @@ from typing import Union
 
 import pytest
 from mixt.internal.base import Base
-from mixt.exceptions import PyxlException
+from mixt.exceptions import InvalidPropChoiceError, InvalidPropBoolError, InvalidPropValueError
 from mixt.internal.proptypes import BasePropTypes as PropTypes
 from mixt.internal.dev_mode import set_dev_mode, unset_dev_mode, override_dev_mode, in_dev_mode
 from mixt.proptypes import Choices
@@ -144,7 +144,7 @@ def test_choices_are_not_checked_in_non_dev_mode():
     with override_dev_mode(dev_mode=False):
         assert (<Foo value='c' />.value) == 'c'
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropChoiceError):
         <Foo value='c' />
 
 
@@ -162,10 +162,10 @@ def test_boolean_is_not_validated_in_non_dev_mode():
         assert (<Foo value='fake' />.value) is True
         assert (<Foo value={0} />.value) is False
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropBoolError):
         <Foo value='fake' />
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropBoolError):
         <Foo value={0} />
 
 
@@ -179,8 +179,8 @@ def test_normal_value_is_not_validated_in_non_dev_mode():
         assert (<Foo value='foo' />.value) == 'foo'
         assert (<Foo complex='bar' />.complex) == 'bar'
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropValueError):
         <Foo value='foo' />
 
-    with pytest.raises(PyxlException):
+    with pytest.raises(InvalidPropValueError):
         <Foo complex='bar' />
