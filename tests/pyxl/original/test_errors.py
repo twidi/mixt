@@ -4,6 +4,7 @@ import pytest
 from mixt.codec.register import pyxl_decode
 from mixt.codec.parser import ParseError
 
+
 def test_malformed_if():
     with pytest.raises(ParseError):
         pyxl_decode(b"""
@@ -13,6 +14,7 @@ def test_malformed_if():
                 <else>bar</else>
             </Fragment>""")
 
+
 def test_multiple_else():
     with pytest.raises(ParseError):
         pyxl_decode(b"""
@@ -21,6 +23,7 @@ def test_multiple_else():
                 <else>bar</else>
                 <else>baz</else>
              </Fragment>""")
+
 
 def test_nested_else():
     with pytest.raises(ParseError):

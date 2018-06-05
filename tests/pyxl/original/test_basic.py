@@ -21,9 +21,11 @@ def test_basics():
     assert str(<div><span></span></div>) == '<div><span></span></div>'
     assert str(<Fragment><span /><span /></Fragment>) == '<span></span><span></span>'
 
+
 def test_escaping():
     assert str(<div class="&">&{'&'}</div>) == '<div class="&amp;">&&amp;</div>'
     assert str(<div>{html.Raw('&')}</div>) == '<div>&</div>'
+
 
 def test_comments():
     pyxl = (
@@ -36,6 +38,7 @@ def test_comments():
         </div>)
     assert str(pyxl) == '<div class="blah">text</div>'
 
+
 def test_conditional_comment():
     s = 'blahblah'
     assert (str(<ConditionalComment cond="lt IE 8"><div class=">">{s}</div></ConditionalComment>)
@@ -43,12 +46,14 @@ def test_conditional_comment():
     assert (str(<ConditionalComment cond="(lt IE 8) & (gt IE 5)"><div>{s}</div></ConditionalComment>)
         == '<!--[if (lt IE 8) & (gt IE 5)]><div>blahblah</div><![endif]-->')
 
+
 def test_conditional_non_comment():
     s = 'blahblah'
     assert (str(<ConditionalNonComment cond="lt IE 8"><div class=">">{s}</div></ConditionalNonComment>)
         == '<!--[if lt IE 8]><!--><div class="&gt;">blahblah</div><!--<![endif]-->')
     assert (str(<ConditionalNonComment cond="(lt IE 8) & (gt IE 5)"><div>{s}</div></ConditionalNonComment>)
         == '<!--[if (lt IE 8) & (gt IE 5)]><!--><div>blahblah</div><!--<![endif]-->')
+
 
 def test_decl():
     assert (str(<script><![CDATA[<div><div>]]></script>)
@@ -155,6 +160,7 @@ def test_special_prop_names():
 def test_doctype():
     assert str(<!DOCTYPE html>) == '<!DOCTYPE html>'
     assert str(<Doctype doctype=html/>) == '<!DOCTYPE html>'
+
 
 def test_cdata():
     assert str(<div><![CDATA[Testing Data here]]></div>) == '<div><![CDATA[Testing Data here]]></div>'
