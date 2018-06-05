@@ -1,8 +1,8 @@
 # coding: mixt
 import pytest
 
-from mixt.pyxl.codec.register import pyxl_decode
-from mixt.pyxl.codec.parser import ParseError
+from mixt.codec.register import pyxl_decode
+from mixt.codec.parser import ParseError
 
 def test_malformed_if():
     with pytest.raises(ParseError):

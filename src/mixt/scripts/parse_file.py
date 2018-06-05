@@ -3,7 +3,7 @@
 """A script to convert a "mixt" encoded file to a pure python file."""
 
 import sys
-from mixt.pyxl.codec.tokenizer import pyxl_tokenize, pyxl_untokenize
+from mixt.codec.tokenizer import pyxl_tokenize, pyxl_untokenize
 
 
 def main() -> None:

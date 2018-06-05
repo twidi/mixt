@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from . import pytokenize as tokenize
 import re
 from io import StringIO

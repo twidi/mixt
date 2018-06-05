@@ -10,7 +10,7 @@ PTH_FILENAME = "mixt.pth"
 PTH_CONTENT = (
     "import sys; exec('"
     "try:\\n"
-    "    import mixt.pyxl.codec.register\\n"
+    "    import mixt.codec.register\\n"
     "except ImportError:\\n"
     "    pass\\n"
     "')"

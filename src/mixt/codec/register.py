@@ -60,8 +60,8 @@ Wraps a python command to allow it to recognize pyxl-coded files with
 no source modifications.
 
 Usage:
-    python -m mixt.pyxl.codec.register -m module.to.run [args...]
-    python -m mixt.pyxl.codec.register path/to/script.py [args...]
+    python -m mixt.codec.register -m module.to.run [args...]
+    python -m mixt.codec.register path/to/script.py [args...]
 """
 
 if __name__ == '__main__':

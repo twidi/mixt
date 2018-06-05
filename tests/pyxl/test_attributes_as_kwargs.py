@@ -4,8 +4,8 @@
 
 import pytest
 from mixt import html
-from mixt.pyxl.codec.parser import ParseError
-from mixt.pyxl.codec.register import pyxl_decode
+from mixt.codec.parser import ParseError
+from mixt.codec.register import pyxl_decode
 
 
 def test_single_valid_kwargs():

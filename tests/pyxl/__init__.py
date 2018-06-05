@@ -1,1 +1,1 @@
-import mixt.pyxl.codec.register
+import mixt.codec.register

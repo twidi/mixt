@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-
 import tokenize
 
-from ... import html
-from ...internal.html import __tags__
-from ...internal.proptypes import BasePropTypes
+from mixt import html
+from mixt.internal.html import __tags__
+from mixt.internal.proptypes import BasePropTypes
 from .html_tokenizer import (
         HTMLTokenizer,
         ParseError as TokenizerParseError,
