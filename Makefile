@@ -23,6 +23,7 @@ dev:  ## Install the project in the current environment, with its dependencies, 
 	@echo "$(BOLD)Installing $(PROJECT_NAME) $(PROJECT_VERSION) in dev mode$(RESET)"
 	@pip install -e .[dev]
 	@mixt-post-install
+	@$(MAKE) full-clean
 
 .PHONY: dev-upgrade
 dev-upgrade:  ## Upgrade all default+dev dependencies defined in setup.cfg
