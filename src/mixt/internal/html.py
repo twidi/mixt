@@ -4,8 +4,7 @@ from typing import Any, Dict, List, Optional, Sequence, cast
 
 from ..exceptions import PyxlException  # noqa: T484
 from ..proptypes import Choices, NotProvided  # noqa: T484
-from ..pyxl.utils import escape  # noqa: T484
-from .base import Base, BaseMetaclass, OneOrManyElements, WithClass
+from .base import Base, BaseMetaclass, OneOrManyElements, WithClass, escape
 from .proptypes import BasePropTypes
 
 

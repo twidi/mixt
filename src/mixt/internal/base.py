@@ -2,10 +2,10 @@
 
 from itertools import chain
 from typing import Any, Dict, List, Sequence, Set, Union, cast
+from xml.sax.saxutils import escape as xml_escape, unescape as xml_unescape
 
 from ..exceptions import PyxlException  # noqa: T484
 from ..proptypes import NotProvided  # noqa: T484
-from ..pyxl.utils import escape  # noqa: T484
 from .proptypes import BasePropTypes
 
 
@@ -18,6 +18,44 @@ Props = Dict[str, Any]
 # pylint: enable=invalid-name
 
 IGNORED_CHILDREN = [None, False]  # cannot use a Set because elements are not hashable
+
+
+ESCAPE_CHARS = {'"': "&quot;"}
+UNESCAPE_CHARS = {"&quot;": '"'}
+
+
+def escape(obj: Any) -> str:
+    """Escape xml entities.
+
+    Parameters
+    ----------
+    obj: Any
+        Can be anything that will be converted to string, then where xml entities will be escaped.
+
+    Returns
+    -------
+    str
+        The escaped string version of `obj`.
+
+    """
+    return xml_escape(str(obj), ESCAPE_CHARS)
+
+
+def unescape(obj: Any) -> str:
+    """Unescape xml entities.
+
+    Parameters
+    ----------
+    obj: Any
+        Can be anything that will be converted to string, then where xml entities will be unescaped.
+
+    Returns
+    -------
+    str
+        The unescaped string version of `obj`.
+
+    """
+    return xml_unescape(str(obj), UNESCAPE_CHARS)
 
 
 class BaseMetaclass(type):
