@@ -35,7 +35,7 @@ def test_invalid_default_value_simple_type():
     with pytest.raises(InvalidPropValueError):
         class Foo(DummyBase):
             class PropTypes:
-                value: str = 123
+                value: str = {1, 2, 3}
 
 def test_valid_default_value_complex_type():
     class Foo(DummyBase):

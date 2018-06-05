@@ -133,6 +133,21 @@ class PyxlParser(HTMLTokenizer):
                         yield part
                     prev_was_python = False
 
+        def format_part(part):
+            """Allow numbers, bools, None and NotProvided to be passed without being stringified."""
+            if part in {'True', 'False', 'None', 'NotProvided'}:
+                return part
+            if part.isdecimal():
+                return part
+            try:
+                float(part)
+            except:
+                pass
+            else:
+                return part
+
+            return repr(part)
+
         output = []
 
         if attr_value is True:
@@ -145,7 +160,7 @@ class PyxlParser(HTMLTokenizer):
                 if type(part) == list:
                     output.append(Untokenizer().untokenize(part))
                 else:
-                    output.append(repr(part))
+                    output.append(format_part(part))
             else:
                 output.append('u"".join((')
                 for part in attr_value:
@@ -154,7 +169,7 @@ class PyxlParser(HTMLTokenizer):
                         output.append(Untokenizer().untokenize(part))
                         output.append(')')
                     else:
-                        output.append(repr(part))
+                        output.append(format_part(part))
                     output.append(', ')
                 output.append('))')
 

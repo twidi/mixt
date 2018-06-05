@@ -337,11 +337,15 @@ class BasePropTypes:
             raise InvalidPropBoolError(cls.__owner_name__, name, value)
 
         # normal check
+        prop_type = cls.__type__(name)
+
+        # allow numbers to be passed without quotes
+        if prop_type is str and isinstance(value, (int, float)):
+            value = str(value)
 
         if not BasePropTypes.__dev_mode__:
             return value
 
-        prop_type = cls.__type__(name)
         try:
             if isinstance(value, prop_type):
                 return value
