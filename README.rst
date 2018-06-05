@@ -73,7 +73,7 @@ To check that everything is ready, run:
 
 .. code-block:: shell
 
-   python -m mixt.example
+   python -m mixt.examples.simple
 
 You should have this output:
 
@@ -85,7 +85,7 @@ If you don't want to use the html-in-python stuff, don't run ``mixt-post-install
 
 .. code-block:: shell
 
-   python -m mixt.example_pure_python
+   python -m mixt.examples.simple_pure_python
 
 ***********
 Development
@@ -102,7 +102,7 @@ To check that everything is ready, run:
 
 .. code-block:: shell
 
-   python -m mixt.example
+   python -m mixt.examples.simple
 
 
 You should have this output:

@@ -1,5 +1,8 @@
 """Root of the ``mixt`` package."""
 
-from mixt.pyxl import html  # noqa: F401
-from mixt.pyxl.base import Required, Choices, BaseContext  # noqa: F401
-from mixt.pyxl.element import Element  # noqa: F401
+
+from .element import Element  # noqa: F401
+from . import exceptions  # noqa: F401
+from .internal.base import BaseContext  # noqa: F401
+from .internal.dev_mode import *  # noqa: F401,F403  # pylint: disable=wildcard-import
+from .proptypes import *  # noqa: F401,F403  # pylint: disable=wildcard-import

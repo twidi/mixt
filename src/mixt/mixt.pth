@@ -1,2 +1,0 @@
-import sys; exec('try:\n    import mixt.pyxl.codec.register\nexcept ImportError:\n    pass\n')
-

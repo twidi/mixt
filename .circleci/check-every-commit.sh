@@ -238,7 +238,7 @@ do
 
     # Go on the correct commit and install needed things
     git checkout -q "${GIT_SHA1}"
-    pip install -q -e .[dev]
+    make dev
 
     MAKE_FAILURES=""
     for TARGET in ${TARGETS_TO_DO}
