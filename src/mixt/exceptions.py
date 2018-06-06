@@ -40,7 +40,7 @@ class ElementError(MixtException):
             message = " " + message
         self.tag_name = tag_name
 
-        super().__init__(message)
+        super().__init__(f"{tag_name}{message}")
 
 
 class PropError(ElementError):
