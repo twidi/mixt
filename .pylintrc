@@ -16,7 +16,7 @@ persistent=yes
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
-load-plugins=pylint.extensions.docparams
+load-plugins=pylint.extensions.docparams,mixt.misc.pylint_no_mixt_encoding_checker
 
 # Use multiple processes to speed up Pylint.
 jobs=1
