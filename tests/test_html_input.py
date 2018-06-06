@@ -5,9 +5,15 @@ import pytest
 from mixt import html
 from mixt.exceptions import InvalidPropNameError
 
+def test_using_input():
+    tag = <input type="text" maxlength={3} />
+    assert str(tag) == '<input type="text" maxlength="3" />'
+    assert isinstance(tag, html.InputText)
 
 def test_using_subclass():
-    assert str(<itext maxlength={3} />) == '<input type="text" maxlength="3" />'
+    tag = <itext maxlength={3} />
+    assert str(tag) == '<input type="text" maxlength="3" />'
+    assert isinstance(tag, html.InputText)
 
 def test_using_subclass_with_type_fails():
     with pytest.raises(InvalidPropNameError):
