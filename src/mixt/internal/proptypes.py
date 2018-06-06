@@ -340,7 +340,11 @@ class BasePropTypes:
         prop_type = cls.__type__(name)
 
         # allow numbers to be passed without quotes
-        if prop_type is str and isinstance(value, (int, float)):
+        if (
+            prop_type is str
+            and isinstance(value, (int, float))
+            and not isinstance(value, bool)
+        ):
             value = str(value)
 
         if not BasePropTypes.__dev_mode__:
