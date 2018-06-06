@@ -373,6 +373,27 @@ class Base(object, metaclass=BaseMetaclass):
         # Finally, no value is available, we raise
         raise UnsetPropError(self.__tag_human__, name)
 
+    def has_prop(self, name: str) -> bool:
+        """Tell if the prop defined by `name` is defined (or has a default value.
+
+        Parameters
+        ----------
+        name: str
+            The name of the prop to check
+
+        Returns
+        -------
+        bool
+            ``True`` if the prop is defined, ``False`` otherwise.
+
+        """
+        try:
+            self.prop(name)
+        except UnsetPropError:
+            return False
+        else:
+            return True
+
     def set_prop(self, name: str, value: Any) -> Any:
         """Set the `value` of the prop defined by `name`, if it is valid.
 

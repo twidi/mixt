@@ -24,12 +24,16 @@ def test_no_default_value():
     with pytest.raises(AttributeError):
         <Foo />.value
 
+    assert (<Foo />.has_prop('value')) is False
+    assert (<Foo value="foo"/>.has_prop('value')) is True
+
 def test_valid_default_value_simple_type():
     class Foo(DummyBase):
         class PropTypes:
             value: str = "foo"
 
     assert((<Foo />.value) == "foo")
+    assert (<Foo />.has_prop('value')) is True
 
 def test_invalid_default_value_simple_type():
     with pytest.raises(InvalidPropValueError):
