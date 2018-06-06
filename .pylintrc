@@ -214,7 +214,7 @@ variable-rgx=[a-z_][a-z0-9_]{2,30}|__$
 variable-name-hint=[a-z_][a-z0-9_]{2,30}$
 
 # Regular expression matching correct attribute names
-attr-rgx=[a-z_][a-z0-9_]{2,30}$
+attr-rgx=([a-z_][a-z0-9_]{2,30}|id)$
 
 # Naming hint for attribute names
 attr-name-hint=[a-z_][a-z0-9_]{2,30}$
@@ -258,7 +258,7 @@ module-name-hint=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
 
 # Regular expression which should only match function or class names that do
 # not require a docstring.
-no-docstring-rgx=__.*__|Meta|PropTypes
+no-docstring-rgx=__.*__|Meta|PropTypes|render
 
 # Minimum line length for functions/classes that require docstrings, shorter
 # ones are exempt.
