@@ -6,7 +6,7 @@ from typing import Any, Dict, Sequence, Set, Type, get_type_hints
 
 from enforce.exceptions import RuntimeTypeError
 
-from ..exceptions import (  # noqa: T484
+from ..exceptions import (
     InvalidPropBoolError,
     InvalidPropChoiceError,
     InvalidPropValueError,
@@ -14,7 +14,7 @@ from ..exceptions import (  # noqa: T484
     PropTypeRequiredError,
     RequiredPropError,
 )
-from ..proptypes import Choices, DefaultChoices, NotProvided, Required  # noqa: T484
+from ..proptypes import Choices, DefaultChoices, NotProvided, Required
 
 
 FUTURE_KEYWORDS: Set[str] = {

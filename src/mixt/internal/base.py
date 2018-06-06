@@ -4,8 +4,8 @@ from itertools import chain
 from typing import Any, Dict, List, Sequence, Set, Union, cast
 from xml.sax.saxutils import escape as xml_escape, unescape as xml_unescape
 
-from ..exceptions import InvalidPropNameError, UnsetPropError  # noqa: T484
-from ..proptypes import NotProvided  # noqa: T484
+from ..exceptions import InvalidPropNameError, UnsetPropError
+from ..proptypes import NotProvided
 from .proptypes import BasePropTypes
 
 
