@@ -43,6 +43,7 @@ class BasePropTypes:
     __types__: Dict[str, Any] = {}
     __required_props__: Set[str] = set()
     __default_props__: Dict[str, Any] = {}
+    __excluded_props__: Set[str] = set()
 
     __dev_mode__: bool = True
 
@@ -208,7 +209,7 @@ class BasePropTypes:
         cls.__types__ = {
             name: prop_type
             for name, prop_type in get_type_hints(cls).items()
-            if not hasattr(BasePropTypes, name)
+            if not hasattr(BasePropTypes, name) and name not in cls.__excluded_props__
         }
 
         for name, prop_type in cls.__types__.items():

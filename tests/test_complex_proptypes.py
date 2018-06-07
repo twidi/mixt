@@ -2,11 +2,10 @@
 
 """Ensure that complex proptypes are correctly validated."""
 
-from typing import Union
 import pytest
 from mixt import html
 from mixt.internal.base import Base
-from mixt.exceptions import InvalidPropValueError, UnsetPropError
+from mixt.exceptions import InvalidPropNameError, InvalidPropValueError, UnsetPropError
 from mixt.proptypes import NotProvided
 
 from typing import *
@@ -264,3 +263,19 @@ def test_notprovided_can_only_be_used_as_strings_via_python():
         <Foo value={NotProvided} />.value
 
     assert (<Foo value={"NotProvided"} />.value) == 'NotProvided'
+
+
+def test_exclude():
+    class Foo(DummyBase):
+        class PropTypes:
+            val1: str
+            val2: str
+
+    class Bar(DummyBase):
+        class PropTypes(Foo.PropTypes):
+            __exclude__ = {'val1'}
+
+    with pytest.raises(InvalidPropNameError):
+        <Bar val1="bar" />
+
+    (<Bar val2="bar" />)

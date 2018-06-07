@@ -84,9 +84,11 @@ class BaseMetaclass(type):
         setattr(cls, "__display_name__", display_name)
 
         proptypes_classes = []
+        exclude: Set[str] = set()
 
         if "PropTypes" in attrs:
             proptypes_classes.append(attrs["PropTypes"])
+            exclude = getattr(attrs["PropTypes"], "__exclude__", exclude)
 
         proptypes_classes.extend(
             [
@@ -101,6 +103,12 @@ class BaseMetaclass(type):
             __types__: Dict[str, Any] = {}
             __required_props__: Set[str] = set()
             __default_props__: Dict[str, Any] = {}
+            __excluded_props__: Set[str] = exclude.union(
+                *[
+                    getattr(klass, "__excluded_props__", [])
+                    for klass in proptypes_classes
+                ]
+            )
 
         PropTypes.__validate_types__()
 
