@@ -151,7 +151,10 @@ class BasePropTypes:
             ``True`` if the type of the prop is ``Choices``. False otherwise.
 
         """
-        return issubclass(cls.__type__(name), Choices)
+        try:
+            return issubclass(cls.__type__(name), Choices)
+        except TypeError:
+            return False
 
     @classmethod
     def __is_bool__(cls, name: str) -> bool:
