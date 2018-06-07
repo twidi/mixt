@@ -141,14 +141,16 @@ def test_element_can_be_simple_function():
 
     def Bolding():
         # use lambda to manage children
-        return lambda children: <b>{children}</b>
+        return lambda *children: <b>{children}</b>
 
     def Hello():
         # no html at all
         return 'Hello'
 
-    def Greeting(name, title):
+    def Greeting(first_name, last_name, title):
         # accept props (but no proptypes checks)
-        return <div title={title}><Hello /> <Bolding>{name}</Bolding></div>
+        return <div title={title}><Hello /> <Bolding>{first_name} {last_name}</Bolding></div>
 
-    assert str(<Greeting title="Greetings" name="John" />) == '<div title="Greetings">Hello <b>John</b></div>'
+    assert str(
+           <Greeting title="Greetings" first_name="John" last_name="Smith" />
+    ) == '<div title="Greetings">Hello <b>John Smith</b></div>'
