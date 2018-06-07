@@ -325,6 +325,31 @@ class Base(object, metaclass=BaseMetaclass):
 
         return self.prop(name)
 
+    @classmethod
+    def prop_name(cls, name: str) -> str:
+        """Return the corrected name for the prop defined by `name`, if the prop exists.
+
+        Parameters
+        ----------
+        name: str
+            The name we want to validate.
+
+        Returns
+        -------
+        str
+            The real name of the given prop.
+
+        Raises
+        ------
+        InvalidPropNameError
+            If there is no prop with the given `name`.
+
+        """
+        name = BasePropTypes.__to_python__(name)
+        if not cls.PropTypes.__allow__(name):
+            raise InvalidPropNameError(cls.__tag_human__, name)
+        return name
+
     def prop(self, name: str, default: Any = NotProvided) -> Any:
         """Return a prop defined by `name`, if it is defined, or the `default` if provided.
 
@@ -352,9 +377,7 @@ class Base(object, metaclass=BaseMetaclass):
             If the prop is not set and no default value is available.
 
         """
-        name = BasePropTypes.__to_python__(name)
-        if not self.PropTypes.__allow__(name):
-            raise InvalidPropNameError(self.__tag_human__, name)
+        name = self.prop_name(name)
 
         # First we try to get the actual prop value
         value = self.__props__.get(name, NotProvided)
@@ -385,6 +408,11 @@ class Base(object, metaclass=BaseMetaclass):
         -------
         bool
             ``True`` if the prop is defined, ``False`` otherwise.
+
+        Raises
+        ------
+        InvalidPropNameError
+            If there is no prop with the given `name`.
 
         """
         try:
@@ -420,14 +448,12 @@ class Base(object, metaclass=BaseMetaclass):
         Raises
         ------
         InvalidPropNameError
-            If the prop does not exist.
+            If there is no prop with the given `name`.
         InvalidPropValueError
             If the value is not valid.
 
         """
-        name = BasePropTypes.__to_python__(name)
-        if not self.PropTypes.__allow__(name):
-            raise InvalidPropNameError(self.__tag_human__, name)
+        name = self.prop_name(name)
 
         if value is NotProvided:
             return self.__props__.pop(name, NotProvided)
@@ -451,10 +477,82 @@ class Base(object, metaclass=BaseMetaclass):
         Raises
         ------
         InvalidPropNameError
-            If the prop does not exist.
+            If there is no prop with the given `name`.
 
         """
         return self.set_prop(name, value=NotProvided)
+
+    def prop_default(self, name: str) -> Any:
+        """Return the default value of the prop defined by `name`.
+
+        Parameters
+        ----------
+        name: str
+            The name of the prop for which we want the default value
+
+        Returns
+        -------
+        Any
+            The default value defined in ``PropTypes`` or ``NotProvided`` if not set.
+
+        Raises
+        ------
+        InvalidPropNameError
+            If there is no prop with the given `name`.
+
+        """
+        return self.PropTypes.__default__(self.prop_name(name))
+
+    def is_prop_default(self, name: str, value: Any = NotProvided) -> bool:
+        """Tell if the actual (or given) value for the prop defined by `name` is the default one.
+
+        Parameters
+        ----------
+        name: str
+            The name of the prop we are asking for.
+        value: Any
+            If set, will use this value to check if it is the default one. Else (if
+            ``NotProvided``), it will use the actual prop.
+
+        Returns
+        -------
+        bool
+            ``True`` if the given value or the prop value is the default one, ``False`` otherwise.
+
+        Raises
+        ------
+        InvalidPropNameError
+            If there is no prop with the given `name`.
+
+        """
+        name = self.prop_name(name)
+
+        if value is NotProvided:
+            value = self.prop(name)
+
+        return value == self.prop_default(name)
+
+    @classmethod
+    def prop_type(cls, name: str) -> Any:
+        """Return the type of the prop defined by `name`.
+
+        Parameters
+        ----------
+        name: str
+            The name of the prop we want the type
+
+        Returns
+        -------
+        Any
+            The type, coming from ``PropTypes``
+
+        Raises
+        ------
+        InvalidPropNameError
+            If there is no prop with the given `name`.
+
+        """
+        return cls.PropTypes.__type__(cls.prop_name(name))
 
     @property
     def props(self) -> Props:
