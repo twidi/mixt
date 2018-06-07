@@ -72,6 +72,15 @@ def test_proptypes_context_manager():
             assert PropTypes.__in_dev_mode__()
         assert PropTypes.__in_dev_mode__()
 
+        # encapstulated
+        with override_dev_mode(False):
+            assert not in_dev_mode()
+            with override_dev_mode(True):
+                assert in_dev_mode()
+            assert not in_dev_mode()
+        assert in_dev_mode()
+
+
     finally:
         PropTypes.__dev_mode__ = True  # force restore the normal state
 
