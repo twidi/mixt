@@ -206,7 +206,7 @@ class HtmlElementNoChild(HtmlBaseElement):
 
 
         """
-        raise InvalidChildrenError(self.__tag_human__, "does not allow children")
+        raise InvalidChildrenError(self.__display_name__, "does not allow children")
 
     prepend = append
 

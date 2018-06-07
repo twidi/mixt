@@ -6,6 +6,40 @@ from mixt import html
 from mixt.element import Element
 
 
+def test_auto_display_name():
+    assert html.Div.__display_name__ == "div"
+    assert (<div />).__display_name__ == "div"
+
+    class Foo(Element):
+        pass
+
+    assert Foo.__display_name__ == "Foo"
+    assert (<Foo />).__display_name__ == "Foo"
+
+
+def test_force_display_name():
+    class Foo(Element):
+        __display_name__ = "TheFoo"
+
+    assert Foo.__display_name__ == "TheFoo"
+    assert (<Foo />).__display_name__ == "TheFoo"
+
+
+def test_display_name_is_not_inherited():
+    class Foo(Element):
+        __display_name__ = "TheFoo"
+
+
+    class Bar(Foo):
+        pass
+
+    assert Foo.__display_name__ == "TheFoo"
+    assert (<Foo />).__display_name__ == "TheFoo"
+
+    assert Bar.__display_name__ == "Bar"
+    assert (<Bar />).__display_name__ == "Bar"
+
+
 def test_class_names_are_inherited_for_single_child():
     class Child(Element):
         def render(self, context):

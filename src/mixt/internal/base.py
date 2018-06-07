@@ -80,7 +80,8 @@ class BaseMetaclass(type):
 
         tag = attrs.get("__tag__") or name
         setattr(cls, "__tag__", tag)
-        setattr(cls, "__tag_human__", attrs.get("__tag_human__") or tag)
+        display_name = attrs.get("__display_name__") or tag
+        setattr(cls, "__display_name__", display_name)
 
         proptypes_classes = []
 
@@ -96,7 +97,7 @@ class BaseMetaclass(type):
         )
 
         class PropTypes(*proptypes_classes):  # type: ignore
-            __owner_name__: str = name
+            __owner_name__: str = display_name
             __types__: Dict[str, Any] = {}
             __required_props__: Set[str] = set()
             __default_props__: Dict[str, Any] = {}
@@ -114,14 +115,14 @@ class Base(object, metaclass=BaseMetaclass):
     __tag__: str
         The tag to use when using the element in "html". If not set in the class, it will be, by
         default, the name of the class itself.
-    __tag_human__: str
+    __display_name__: str
         A "human" representation of ``__tag__``. Will be used in exceptions and can be changed to
         give more information.
 
     """
 
     __tag__: str = ""
-    __tag_human__: str = ""
+    __display_name__: str = ""
 
     class PropTypes(BasePropTypes):
         pass
@@ -347,7 +348,7 @@ class Base(object, metaclass=BaseMetaclass):
         """
         name = BasePropTypes.__to_python__(name)
         if not cls.PropTypes.__allow__(name):
-            raise InvalidPropNameError(cls.__tag_human__, name)
+            raise InvalidPropNameError(cls.__display_name__, name)
         return name
 
     def prop(self, name: str, default: Any = NotProvided) -> Any:
@@ -394,7 +395,7 @@ class Base(object, metaclass=BaseMetaclass):
             return prop_default
 
         # Finally, no value is available, we raise
-        raise UnsetPropError(self.__tag_human__, name)
+        raise UnsetPropError(self.__display_name__, name)
 
     def has_prop(self, name: str) -> bool:
         """Tell if the prop defined by `name` is defined (or has a default value.
