@@ -405,13 +405,16 @@ class Base(object, metaclass=BaseMetaclass):
         # Finally, no value is available, we raise
         raise UnsetPropError(self.__display_name__, name)
 
-    def has_prop(self, name: str) -> bool:
+    def has_prop(self, name: str, allow_invalid: bool = True) -> bool:
         """Tell if the prop defined by `name` is defined (or has a default value.
 
         Parameters
         ----------
         name: str
-            The name of the prop to check
+            The name of the prop to check.
+        allow_invalid: bool
+            If set to ``True``, it will return ``False`` if the `name` if for a prop that is
+            not allowed. Else if will raise ``InvalidPropNameError``.
 
         Returns
         -------
@@ -421,11 +424,16 @@ class Base(object, metaclass=BaseMetaclass):
         Raises
         ------
         InvalidPropNameError
-            If there is no prop with the given `name`.
+            If there is no prop with the given `name` and `allow_invalid` is False.
 
         """
         try:
             self.prop(name)
+        except InvalidPropNameError:
+            if allow_invalid:
+                return False
+            else:
+                raise
         except UnsetPropError:
             return False
         else:

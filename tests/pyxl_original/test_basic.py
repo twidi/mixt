@@ -184,6 +184,7 @@ def test_props_methods():
     assert el.foo == "FOO"
     assert el.props["foo"] == "FOO"
     assert el.has_prop("foo")
+    assert el.has_prop("foo", allow_invalid=False)
     assert el.prop_default("foo") is NotProvided
     assert not el.is_prop_default("foo")
     assert not el.is_prop_default("foo", "bar")
@@ -197,6 +198,7 @@ def test_props_methods():
     with pytest.raises(KeyError):
         el.props["bar"]
     assert not el.has_prop("bar")
+    assert not el.has_prop("bar", allow_invalid=False)
     assert el.prop_default("bar") is NotProvided
     with pytest.raises(UnsetPropError):
         el.is_prop_default("bar")
@@ -206,6 +208,7 @@ def test_props_methods():
     assert el.baz == "BAZ"
     assert el.props["baz"] == "BAZ"
     assert el.has_prop("baz")
+    assert el.has_prop("baz", allow_invalid=False)
     assert el.prop_default("baz") == "BAZ"
     assert el.is_prop_default("baz")
     assert not el.is_prop_default("baz", "ZAB")
@@ -218,8 +221,9 @@ def test_props_methods():
         el.qux
     with pytest.raises(KeyError):
         el.props["qux"]
+    assert not el.has_prop("qux")
     with pytest.raises(InvalidPropNameError):
-        el.has_prop("qux")
+        el.has_prop("qux", allow_invalid=False)
     with pytest.raises(InvalidPropNameError):
         el.prop_default("qux")
     with pytest.raises(InvalidPropNameError):
