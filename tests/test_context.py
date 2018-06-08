@@ -2,7 +2,7 @@
 
 """Ensure that context props are passed to all elements."""
 
-from mixt import html
+from mixt import html, EmptyContext
 from mixt.internal.base import BaseContext
 from mixt.element import Element
 
@@ -97,3 +97,11 @@ def test_merge_context():
     assert str(
         <ParentContext val1="foo" val2="bar"><Parent /></ParentContext>
     ) == '<div data-val1="foo" data-val2="baz" data-val3="qux"></div>'
+
+
+def test_no_context():
+    class Foo(Element):
+        def render(self, context):
+            assert context is EmptyContext
+
+    str(<Foo />)
