@@ -1,6 +1,6 @@
 """HTML tags automatically discovered by the mixt parser."""
 
-from typing import Any, Dict, List, Type, Union, cast
+from typing import Any, Dict, Type, Union, cast
 
 from .exceptions import InvalidPropChoiceError, InvalidPropNameError, RequiredPropError
 from .internal.html import (  # noqa: F401  # pylint: disable=unused-import
@@ -661,7 +661,7 @@ class Input(HtmlElementNoChild):
                 for subclass in klass.__subclasses__():
                     if getattr(subclass, "__type__", None):
                         Input.__types__[subclass.__type__] = subclass
-                        subclass.__tag_human__ = (
+                        subclass.__display_name__ = (
                             f"{subclass.__tag__} (input type={subclass.__type__})"
                         )
                     add(subclass)
@@ -671,7 +671,7 @@ class Input(HtmlElementNoChild):
         if cls is not Input:
             # For a subclass, we don't accept the ``type`` prop.
             if "type" in kwargs:
-                raise InvalidPropNameError(cls.__tag_human__, "type")
+                raise InvalidPropNameError(cls.__display_name__, "type")
             return super().__new__(cls)
 
         try:
@@ -688,21 +688,25 @@ class Input(HtmlElementNoChild):
         obj.__init__(**kwargs)
         return obj
 
-    def _to_list(self, acc: List) -> None:
-        """Add the element parts to the list `acc`.
+    def __init__(self, **kwargs: Any) -> None:
+        """Create the input and set its type prop and tag.
 
-        Parameters
-        ----------
-        acc: List
-            The accumulator list where to append the parts.
+        Notes
+        -----
+        The ``Input`` class is never used to create an instance, it's always a subclass, thanks
+        to ``__new__``.
+
+        For the parameters, see ``Base.__init__``
 
         """
-        if self.__class__ is Input:
-            super()._to_list(acc)
-        else:
-            acc.append(f'<input type="{self.__type__}"')
-            acc.extend(self._render_attributes())
-            acc.append(" />")
+        if "type" not in kwargs:
+            kwargs = dict(
+                type=self.__type__, **kwargs
+            )  # we force type to be first attr
+
+        self.__tag__ = "input"  # replace fake tag (itext, inumber...)
+
+        super().__init__(**kwargs)
 
 
 class _KeyboardInput(Input):

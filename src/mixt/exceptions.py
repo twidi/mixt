@@ -40,7 +40,7 @@ class ElementError(MixtException):
             message = " " + message
         self.tag_name = tag_name
 
-        super().__init__(message)
+        super().__init__(f"<{tag_name}>{message}")
 
 
 class PropError(ElementError):
@@ -81,7 +81,7 @@ class PropTypeRequiredError(PropTypeError):
     pass
 
 
-class InvalidPropNameError(PropError):
+class InvalidPropNameError(PropError, AttributeError):
     """Exception raised when a name is not in allowed props."""
 
     def __init__(self, tag_name: str, prop_name: str) -> None:
@@ -93,7 +93,7 @@ class InvalidPropNameError(PropError):
         super().__init__(tag_name, prop_name, "is not an allowed prop")
 
 
-class InvalidPropValueError(PropError):
+class InvalidPropValueError(PropError, TypeError):
     """Exception raised when a value is not valid for a prop."""
 
     def __init__(
@@ -173,7 +173,7 @@ class InvalidPropBoolError(InvalidPropValueError):
         )
 
 
-class RequiredPropError(PropError):
+class RequiredPropError(PropError, TypeError):
     """Exception raised when a prop is required but not set."""
 
     def __init__(self, tag_name: str, prop_name: str) -> None:

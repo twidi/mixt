@@ -162,7 +162,7 @@ class PyxlParser(HTMLTokenizer):
                 else:
                     output.append(format_part(part))
             else:
-                output.append('u"".join((')
+                output.append('"".join((')
                 for part in attr_value:
                     if type(part) == list:
                         output.append('str(')
@@ -299,9 +299,9 @@ class PyxlParser(HTMLTokenizer):
             return
 
         # XXX XXX mimics old pyxl, but this is gross and likely wrong. I'm pretty sure we actually
-        # want %r instead of this crazy quote substitution and u"%s".
+        # want %r instead of this crazy quote substitution and "%s".
         data = data.replace('"', '\\"')
-        self.output.append('html.Raw(u"%s"), ' % data)
+        self.output.append('html.Raw("%s"), ' % data)
 
         self.last_thing_was_python = False
         self.last_thing_was_close_if_tag = False

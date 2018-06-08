@@ -2,8 +2,8 @@
 
 from typing import Any, Dict, List, Optional, Sequence, cast
 
-from ..exceptions import InvalidChildrenError  # noqa: T484
-from ..proptypes import Choices, NotProvided  # noqa: T484
+from ..exceptions import InvalidChildrenError
+from ..proptypes import Choices, NotProvided
 from .base import Base, BaseMetaclass, OneOrManyElements, WithClass, escape
 from .proptypes import BasePropTypes
 
@@ -206,7 +206,7 @@ class HtmlElementNoChild(HtmlBaseElement):
 
 
         """
-        raise InvalidChildrenError(self.__tag_human__, "does not allow children")
+        raise InvalidChildrenError(self.__display_name__, "does not allow children")
 
     prepend = append
 

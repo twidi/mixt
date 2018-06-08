@@ -6,7 +6,7 @@ from typing import Any, Dict, Sequence, Set, Type, get_type_hints
 
 from enforce.exceptions import RuntimeTypeError
 
-from ..exceptions import (  # noqa: T484
+from ..exceptions import (
     InvalidPropBoolError,
     InvalidPropChoiceError,
     InvalidPropValueError,
@@ -14,7 +14,7 @@ from ..exceptions import (  # noqa: T484
     PropTypeRequiredError,
     RequiredPropError,
 )
-from ..proptypes import Choices, DefaultChoices, NotProvided, Required  # noqa: T484
+from ..proptypes import Choices, DefaultChoices, NotProvided, Required
 
 
 FUTURE_KEYWORDS: Set[str] = {
@@ -43,6 +43,7 @@ class BasePropTypes:
     __types__: Dict[str, Any] = {}
     __required_props__: Set[str] = set()
     __default_props__: Dict[str, Any] = {}
+    __excluded_props__: Set[str] = set()
 
     __dev_mode__: bool = True
 
@@ -150,7 +151,10 @@ class BasePropTypes:
             ``True`` if the type of the prop is ``Choices``. False otherwise.
 
         """
-        return issubclass(cls.__type__(name), Choices)
+        try:
+            return issubclass(cls.__type__(name), Choices)
+        except TypeError:
+            return False
 
     @classmethod
     def __is_bool__(cls, name: str) -> bool:
@@ -208,7 +212,7 @@ class BasePropTypes:
         cls.__types__ = {
             name: prop_type
             for name, prop_type in get_type_hints(cls).items()
-            if not hasattr(BasePropTypes, name)
+            if not hasattr(BasePropTypes, name) and name not in cls.__excluded_props__
         }
 
         for name, prop_type in cls.__types__.items():
@@ -340,7 +344,11 @@ class BasePropTypes:
         prop_type = cls.__type__(name)
 
         # allow numbers to be passed without quotes
-        if prop_type is str and isinstance(value, (int, float)):
+        if (
+            prop_type is str
+            and isinstance(value, (int, float))
+            and not isinstance(value, bool)
+        ):
             value = str(value)
 
         if not BasePropTypes.__dev_mode__:

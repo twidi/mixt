@@ -5,7 +5,12 @@ import pytest
 from mixt import html
 from mixt.internal.html import HtmlElement
 from mixt.internal.base import Base
-from mixt.exceptions import PropTypeChoicesError, UnsetPropError, InvalidPropChoiceError
+from mixt.exceptions import (
+    InvalidPropChoiceError,
+    InvalidPropNameError,
+    PropTypeChoicesError,
+    UnsetPropError,
+)
 from mixt.proptypes import NotProvided, DefaultChoices, Choices
 
 
@@ -147,14 +152,115 @@ def test_special_prop_names():
     # using "html" type props names
     tag = <Foo def='fed' foo-bar:baz='qux' />
     assert str(tag) == '<foo def="fed" foo-bar:baz="qux"></foo>'
+    assert tag.prop_name("def") == "_def"
     assert tag._def == 'fed'
+    assert tag.prop("def") == "fed"
+    assert tag.prop_name("foo-bar:baz") == "foo_bar__baz"
     assert tag.foo_bar__baz == 'qux'
+    assert tag.prop("foo-bar:baz") == "qux"
 
     # using "python" type props names
     tag = <Foo _def='fed' foo_bar__baz='qux' />
     assert str(tag) == '<foo def="fed" foo-bar:baz="qux"></foo>'
+    assert tag.prop_name("_def") == "_def"
     assert tag._def == 'fed'
+    assert tag.prop("_def") == "fed"
+    assert tag.prop_name("foo_bar__baz") == "foo_bar__baz"
     assert tag.foo_bar__baz == 'qux'
+    assert tag.prop("foo_bar__baz") == "qux"
+
+
+def test_props_methods():
+    class Foo(Base):
+        class PropTypes:
+            foo: str
+            bar: str
+            baz: str = "BAZ"
+
+    el = <Foo foo="FOO" />
+
+    assert el.prop_name("foo") == "foo"
+    assert el.prop("foo") == "FOO"
+    assert el.foo == "FOO"
+    assert el.props["foo"] == "FOO"
+    assert el.has_prop("foo")
+    assert el.has_prop("foo", allow_invalid=False)
+    assert el.prop_default("foo") is NotProvided
+    assert not el.is_prop_default("foo")
+    assert not el.is_prop_default("foo", "bar")
+    assert el.prop_type("foo") is str
+
+    assert el.prop_name("bar") == "bar"
+    with pytest.raises(UnsetPropError):
+        el.prop("bar")
+    with pytest.raises(UnsetPropError):
+        el.bar
+    with pytest.raises(KeyError):
+        el.props["bar"]
+    assert not el.has_prop("bar")
+    assert not el.has_prop("bar", allow_invalid=False)
+    assert el.prop_default("bar") is NotProvided
+    with pytest.raises(UnsetPropError):
+        el.is_prop_default("bar")
+
+    assert el.prop_name("baz") == "baz"
+    assert el.prop("baz") == "BAZ"
+    assert el.baz == "BAZ"
+    assert el.props["baz"] == "BAZ"
+    assert el.has_prop("baz")
+    assert el.has_prop("baz", allow_invalid=False)
+    assert el.prop_default("baz") == "BAZ"
+    assert el.is_prop_default("baz")
+    assert not el.is_prop_default("baz", "ZAB")
+
+    with pytest.raises(InvalidPropNameError):
+        el.prop_name("qux")
+    with pytest.raises(InvalidPropNameError):
+        el.prop("qux")
+    with pytest.raises(InvalidPropNameError):
+        el.qux
+    with pytest.raises(KeyError):
+        el.props["qux"]
+    assert not el.has_prop("qux")
+    with pytest.raises(InvalidPropNameError):
+        el.has_prop("qux", allow_invalid=False)
+    with pytest.raises(InvalidPropNameError):
+        el.prop_default("qux")
+    with pytest.raises(InvalidPropNameError):
+        el.is_prop_default("qux")
+    with pytest.raises(InvalidPropNameError):
+        el.prop_type("qux")
+
+    el.set_prop("bar", "BAR")
+    assert el.prop("bar") == "BAR"
+    assert el.bar == "BAR"
+    assert el.has_prop("bar")
+    assert el.props["bar"] == "BAR"
+
+    el.set_prop("bar", NotProvided)
+    with pytest.raises(UnsetPropError):
+        el.prop("bar")
+    with pytest.raises(UnsetPropError):
+        el.bar
+    assert not el.has_prop("bar")
+
+    el.set_prop("baz", "ZAB")
+    assert el.prop("baz") == "ZAB"
+    assert el.baz == "ZAB"
+    assert el.has_prop("baz")
+    assert el.props["baz"] == "ZAB"
+    assert el.prop_default("baz") == "BAZ"
+    assert not el.is_prop_default("baz")
+    assert el.is_prop_default("baz", "BAZ")
+
+    el.unset_prop("baz")
+    assert el.prop("baz") == "BAZ"
+    assert el.baz == "BAZ"
+    assert el.props["baz"] == "BAZ"
+    assert el.has_prop("baz")
+    assert el.prop_default("baz") == "BAZ"
+    assert el.is_prop_default("baz")
+
 
 
 def test_doctype():

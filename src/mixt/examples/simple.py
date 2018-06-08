@@ -13,4 +13,17 @@ class Hello(Element):
         return <div title="Greeting">Hello, {self.name}</div>
 
 
-print(<Hello name="World"/>)
+def render_example() -> str:
+    """Render the html for this example.
+
+    Returns
+    -------
+    str
+        The final html.
+
+    """
+    return str(<Hello name="World"/>)
+
+
+if __name__ == "__main__":
+    print(render_example())
