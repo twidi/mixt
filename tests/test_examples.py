@@ -1,45 +1,33 @@
 from mixt.examples import simple, simple_pure_python
-from mixt.examples.todolist import __main__ as todolist
+from mixt.examples.user_guide import (
+    __main__ as user_guide_main,
+    mixt as user_guide_mixt,
+    pure_python as user_guide_python,
+)
 
 
 def test_simple():
-    assert simple.render_example() == """<div title="Greeting">Hello, World</div>"""
+    expected = """<div title="Greeting">Hello, World</div>"""
+    assert simple.render_example() == expected
+    assert simple_pure_python.render_example() == expected
 
 
-def test_simple_pure_python():
-    assert simple_pure_python.render_example() == """<div title="Greeting">Hello, World</div>"""
+def test_user_guide():
+    expected = ''.join(line.strip() for line in """
+<div>
+    <h1>The "thing" list</h1>
+    <form method="post" action="/thing/add">
+        <label>New thing: </label>
+        <input type="text" name="todo" />
+        <button type="submit">Add</button>
+    </form>
+    <ul>
+        <li>1-1</li>
+        <li>1-2</li>
+    </ul>
+</div>""".split("\n"))
 
 
-def test_todolist():
-    assert todolist.render_example() == ''.join(line.strip() for line in """
-<html>
-
-<body>
-    <main class="app">
-        <h1>The todo list</h1>
-        <form method="post" action="/todo/add">
-            <label>New Todo: </label>
-            <input type="text" name="todo" />
-            <button type="submit">Add</button>
-        </form>
-        <ul>
-            <li>foo
-                <form method="post" action="/todo/1/remove">
-                    <button type="submit">Remove</button>
-                </form>
-            </li>
-            <li>bar
-                <form method="post" action="/todo/2/remove">
-                    <button type="submit">Remove</button>
-                </form>
-            </li>
-            <li>baz
-                <form method="post" action="/todo/3/remove">
-                    <button type="submit">Remove</button>
-                </form>
-            </li>
-        </ul>
-    </main>
-</body>
-
-</html>""".split("\n"))
+    assert user_guide_main.render_example() == expected
+    assert user_guide_mixt.render_example() == expected
+    assert user_guide_python.render_example() == expected

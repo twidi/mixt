@@ -146,6 +146,15 @@ Note that our CI will check that every commit passes the ``make lint`` and ``mak
 User Guide
 **********
 
+Note: You can find the *final* code of this user guide in ``src/mixt/examples/user_guide`` (you'll find ``mixt.py`` and ``pure_python.py``).
+
+Run it with:
+
+.. code-block:: shell
+
+    python -m mixt.examples.user_guide
+
+
 Introduction
 ============
 
