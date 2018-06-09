@@ -9,14 +9,14 @@
 
 # Add files or directories to the blacklist. They should be base names, not
 # paths.
-ignore=pyxl
+ignore=codec
 
 # Pickle collected data for later comparisons.
 persistent=yes
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
-load-plugins=pylint.extensions.docparams
+load-plugins=pylint.extensions.docparams,mixt.misc.pylint_no_mixt_encoding_checker
 
 # Use multiple processes to speed up Pylint.
 jobs=1
@@ -214,7 +214,7 @@ variable-rgx=[a-z_][a-z0-9_]{2,30}|__$
 variable-name-hint=[a-z_][a-z0-9_]{2,30}$
 
 # Regular expression matching correct attribute names
-attr-rgx=[a-z_][a-z0-9_]{2,30}$
+attr-rgx=([a-z_][a-z0-9_]{2,30}|id)$
 
 # Naming hint for attribute names
 attr-name-hint=[a-z_][a-z0-9_]{2,30}$
@@ -245,7 +245,7 @@ class-name-hint=[A-Z_][a-zA-Z0-9]+$
 
 # Regular expression matching correct constant names
 # We add `*urlpatterns`, `*router`, `logger`, `register`, `app_name` in regex bc/ these keywords are often used
-const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__)|logger)$
+const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__)|logger|.*_dev_mode)$
 
 # Naming hint for constant names
 const-name-hint=(([A-Z_][A-Z0-9_]*)|(__.*__))$
@@ -258,7 +258,7 @@ module-name-hint=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
 
 # Regular expression which should only match function or class names that do
 # not require a docstring.
-no-docstring-rgx=__.*__|Meta
+no-docstring-rgx=__.*__|Meta|PropTypes|render
 
 # Minimum line length for functions/classes that require docstrings, shorter
 # ones are exempt.

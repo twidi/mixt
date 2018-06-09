@@ -8,11 +8,16 @@ import os.path
 
 PTH_FILENAME = "mixt.pth"
 PTH_CONTENT = (
-    "import sys; exec('try:\\n    import mixt.pyxl.codec.register\\nexcept ImportError:\\n    pass\\n')"
+    "import sys; exec('"
+    "try:\\n"
+    "    import mixt.codec.register\\n"
+    "except ImportError:\\n"
+    "    pass\\n"
+    "')"
 )
 
 
-def main():
+def main() -> None:
     """Copy the codec register code in a ``mixt.pth`` file in the lib python directory."""
     python_lib = get_python_lib()
     with open(os.path.join(python_lib, PTH_FILENAME), "w") as pth_file:

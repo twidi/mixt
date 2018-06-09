@@ -23,6 +23,7 @@ dev:  ## Install the project in the current environment, with its dependencies, 
 	@echo "$(BOLD)Installing $(PROJECT_NAME) $(PROJECT_VERSION) in dev mode$(RESET)"
 	@pip install -e .[dev]
 	@mixt-post-install
+	@$(MAKE) full-clean
 
 .PHONY: dev-upgrade
 dev-upgrade:  ## Upgrade all default+dev dependencies defined in setup.cfg
@@ -41,12 +42,12 @@ mypy:  ## Run the mypy tool
 .PHONY: check-black
 check-black:  ## Run the black tool in check mode only (won't modify files)
 	@echo "$(BOLD)Checking black$(RESET)"
-	@black --check `find src/ -name '*.py' | grep -v '/pyxl/' | xargs grep -L '# coding: mixt'` 2>&1
+	@black --check `find src/ -name '*.py' | grep -v '/codec/' | xargs grep -L '# coding: mixt'` 2>&1
 
 .PHONY: black
 black:  ## Run the black tool and update files that need to
 	@echo "$(BOLD)Running black$(RESET)"
-	@black `find src/ -name '*.py' | grep -v '/pyxl/' | xargs grep -L '# coding: mixt'`
+	@black `find src/ -name '*.py' | grep -v '/codec/' | xargs grep -L '# coding: mixt'`
 
 .PHONY: flake8
 flake8:  ## Run the flake8 tool
