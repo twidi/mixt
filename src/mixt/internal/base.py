@@ -1,7 +1,7 @@
 """Base class to handle html tags and custom elements."""
 
 from itertools import chain
-from typing import Any, Dict, List, Sequence, Set, Union, cast
+from typing import Any, Dict, List, Optional, Sequence, Set, Union, cast
 from xml.sax.saxutils import escape as xml_escape, unescape as xml_unescape
 
 from ..exceptions import InvalidPropNameError, UnsetPropError
@@ -146,6 +146,7 @@ class Base(object, metaclass=BaseMetaclass):
         """
         self.__props__: Props = {}
         self.__children__: ManyElements = []
+        self.__parent__: Optional["Base"] = None
         self.context: OptionalContext = None
 
         for name, value in kwargs.items():
@@ -239,6 +240,33 @@ class Base(object, metaclass=BaseMetaclass):
             if isinstance(child, Base):
                 child._set_context(self.context)
 
+    def _attach_children(self, children: ManyElements) -> None:
+        """Attach the given `children` to the current element.
+
+        It will set the current element as their parent, and propagate the context.
+
+        Parameters
+        ----------
+        children: ManyElements
+            The children to attach. Nothing is done for strings children.
+
+        """
+        for child in children:
+            if isinstance(child, Base):
+                child._attach_to_parent(self)
+        self._propagate_context(children)
+
+    def _attach_to_parent(self, parent: "Base") -> None:
+        """Save the given `parent` as the parent of the current element.
+
+        Parameters
+        ----------
+        parent: Base
+            The element that will be saved as the parent of the current element.
+
+        """
+        self.__parent__ = parent
+
     def _child_to_children(self, child_or_children: OneOrManyElements) -> ManyElements:
         """Make a flat list of children from the given one(s).
 
@@ -281,7 +309,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         """
         children = self._child_to_children(child_or_children)
-        self._propagate_context(children)
+        self._attach_children(children)
         self.__children__.extend(children)
 
     def prepend(self, child_or_children: OneOrManyElements) -> None:
@@ -296,7 +324,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         """
         children = self._child_to_children(child_or_children)
-        self._propagate_context(children)
+        self._attach_children(children)
         self.__children__[0:0] = children
 
     def __getattr__(self, name: str) -> Any:

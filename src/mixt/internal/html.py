@@ -280,6 +280,21 @@ class Fragment(WithClass):
         """Return the ``id`` prop of the element."""
         return self.prop("id")
 
+    def _attach_to_parent(self, parent: "Base") -> None:
+        """Save the given `parent` as the parent of the children of the fragment.
+
+        Parameters
+        ----------
+        parent: Base
+            The element that will be saved as the parent of children of the fragment.
+
+        """
+        super()._attach_to_parent(parent)
+
+        for child in self.__children__:
+            if isinstance(child, Base):
+                child._attach_to_parent(parent)
+
 
 class Comment(Base):
     """Implement HTML comments. Will not set them in final HTML."""
