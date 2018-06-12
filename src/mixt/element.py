@@ -130,7 +130,9 @@ class Element(WithClass):
 
             self.prerender(context)
 
-            element: OneOrManyElements = self.render(self.context or EmptyContext)
+            element: Optional[OneOrManyElements] = self.render(
+                self.context or EmptyContext
+            )
 
             if isinstance(element, (list, tuple)):
                 element = Fragment()(element)  # type: ignore
@@ -155,8 +157,8 @@ class Element(WithClass):
 
         return self._element  # type: ignore
 
-    def render(self, context: OptionalContext) -> OneOrManyElements:
-        """Return element to be rendered as html.
+    def render(self, context: OptionalContext) -> Optional[OneOrManyElements]:
+        """Return elements to be rendered as html.
 
         Must be implemented in subclasses.
 
@@ -164,6 +166,11 @@ class Element(WithClass):
         ----------
         context: OptionalContext
             The context passed through the tree.
+
+        Returns
+        -------
+        Optional[OneOrManyElements]
+            None, or one or many elements or strings.
 
         """
         raise NotImplementedError()
