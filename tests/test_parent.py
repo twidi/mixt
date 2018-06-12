@@ -2,7 +2,7 @@
 
 """Ensure that parents are saved correctly."""
 
-from mixt import html
+from mixt import Element, html
 
 
 def test_simple_parent():
@@ -421,3 +421,96 @@ def test_remove_many_levels_list_from_non_empty():
     assert second_child.__parent__ is parent
     assert parent_children is parent.__children__
     assert str(parent) == '<div><span></span></div>'
+
+
+def test_postrender_child_element():
+
+    class Collect(Element):
+        def render(self, context):
+            pass
+
+    class Child(Element):
+        def render(self, context):
+            return [
+                <Collect id="collect-child-{self.id}"/>,
+                <div id="child-{self.id}">{self.children()}</div>
+            ]
+
+    class Parent(Element):
+        def render(self, context):
+            return [
+                <Collect id="collect-parent-{self.id}"/>,
+                <div id="parent-{self.id}">
+                    {self.children()}
+                    <Child id="fromparent-{self.id}">
+                        <span id="fromparent-{self.id}" />
+                    </Child>
+                </div>,
+            ]
+
+    elements = [
+        <Parent id=1>,
+            <span id=span1><Child id=1 /></span>,
+        </Parent>,
+        <Child id=2><span id=span2 /></Child>,
+        <span id=span3><span id=span4>Foo</span></span>,
+    ]
+
+    # start with a simple usage of prerender_child that collect all for testing
+    class Root(Element):
+        def __init__(self, **kwargs) -> None:
+            self.__postrendered_children__ = []
+            super().__init__(**kwargs)
+
+        def render(self, context):
+            return self.children()
+
+        def postrender_child_element(self, child, child_element, context):
+            self.__postrendered_children__.append(child)
+
+    root = <Root>{elements}</Root>
+    str(root)
+
+    assert [(el.__class__, el.prop('id')) for el in root.__postrendered_children__] == [
+        # In Root render we have only children
+        # In Root children with start by a Parent instance
+        (Parent, '1'),
+        # In Parent render we start with a Collect instance
+        (Collect, 'collect-parent-1'),
+        # In Parent render we continue with children
+        # In Parent children we have a Child instance
+        (Child, '1'),
+        # In a Child render we have a Collect instance
+        (Collect, 'collect-child-1'),
+        # Next in Parent render we have a Child instance
+        (Child, 'fromparent-1'),
+        # In a Child render we have a Collect instance
+        (Collect, 'collect-child-fromparent-1'),
+        # Next in Root children we have a Child instance
+        (Child, '2'),
+        # In a Child render we have a Collect instance
+        (Collect, 'collect-child-2'),
+    ]
+
+    # Now we can test a collector collecting only ``Collect`` instances
+    class Collector(Element):
+        def __init__(self, **kwargs) -> None:
+            self.__collected__ = []
+            super().__init__(**kwargs)
+
+        def render(self, context):
+            return self.children()
+
+        def postrender_child_element(self, child, child_element, context):
+            if isinstance(child, Collect):
+                self.__collected__.append(child)
+
+    collector = <Collector>{elements}</Collector>
+    str(collector)
+
+    assert [(el.__class__, el.prop('id')) for el in collector.__collected__] == [
+        (Collect, 'collect-parent-1'),
+        (Collect, 'collect-child-1'),
+        (Collect, 'collect-child-fromparent-1'),
+        (Collect, 'collect-child-2'),
+    ]

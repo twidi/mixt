@@ -138,11 +138,20 @@ class Element(WithClass):
             self._element = element  # type: ignore
 
             if isinstance(self._element, Base):
+                self._element._attach_to_parent(self)
                 self._element._set_context(
                     self.context  # pass None if context not defined, not EmptyContext
                 )
 
             self.postrender(self._element, context)  # type: ignore
+
+            parent = self.__parent__
+            while parent:
+                if isinstance(parent, Element):
+                    parent.postrender_child_element(  # type: ignore
+                        self, self._element, context
+                    )
+                parent = parent.__parent__
 
         return self._element  # type: ignore
 
@@ -154,7 +163,7 @@ class Element(WithClass):
         Parameters
         ----------
         context: OptionalContext
-            The context passed through the tree
+            The context passed through the tree.
 
         """
         raise NotImplementedError()
@@ -167,7 +176,7 @@ class Element(WithClass):
         Parameters
         ----------
         context: OptionalContext
-            The context passed through the tree
+            The context passed through the tree.
 
         """
         pass
@@ -179,10 +188,29 @@ class Element(WithClass):
 
         Parameters
         ----------
-        element: Base
+        element: AnElement
             The element rendered by ``render``. Could be an Element, an html tag, a RawHtml...
         context: OptionalContext
-            The context passed through the tree
+            The context passed through the tree.
+
+        """
+        pass
+
+    def postrender_child_element(
+        self, child: "Element", child_element: AnElement, context: OptionalContext
+    ) -> None:
+        """Provide a hook for every parent to do things after any child is rendered.
+
+        Default behavior is to do nothing.
+
+        Parameters
+        ----------
+        child: Element
+            The element in a tree on which ``render`` was just called.
+        child_element: AnElement
+            The element rendered by the call of the ``render`` method of `child`.
+        context: OptionalContext
+            The context passed through the tree.
 
         """
         pass
