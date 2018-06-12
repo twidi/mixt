@@ -276,6 +276,7 @@ class Base(object, metaclass=BaseMetaclass):
             This can be a single child, or a list of children,
             each one possibly being also a list, etc...
             Every children that is ``None`` or ``False`` is ignored.
+            A fragment is converted to a list of its children.
 
         Returns
         -------
@@ -283,6 +284,9 @@ class Base(object, metaclass=BaseMetaclass):
             The flattened list of children.
 
         """
+        if isinstance(child_or_children, Fragment):
+            child_or_children = child_or_children.__children__
+
         if isinstance(child_or_children, (list, tuple)):
             children = list(
                 chain.from_iterable(
