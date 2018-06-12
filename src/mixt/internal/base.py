@@ -1,7 +1,7 @@
 """Base class to handle html tags and custom elements."""
 
 from itertools import chain
-from typing import Any, Dict, List, Optional, Sequence, Set, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Union, cast
 from xml.sax.saxutils import escape as xml_escape, unescape as xml_unescape
 
 from ..exceptions import InvalidPropNameError, UnsetPropError
@@ -655,6 +655,34 @@ class Base(object, metaclass=BaseMetaclass):
         for name, value in props.items():
             self.set_prop(name, value)
 
+    @classmethod
+    def _str_list_to_string(cls, str_list: List) -> str:
+        """Convert an accumulated list from ``_to_list`` to a string.
+
+        It will resolve entries that are in fact callables by calling them.
+
+        Parameters
+        ----------
+        str_list: List
+            List of strings or callable to render.
+
+        Returns
+        -------
+        str
+            The concatenated list of strings, ie some HTML.
+
+        """
+        final_str_list: List[str] = []
+        for item in str_list:
+            if not callable(item):
+                final_str_list.append(item)
+                continue
+            str_sublist: List = []
+            cls._render_element_to_list(item(), str_sublist)
+            final_str_list.append(cls._str_list_to_string(str_sublist))
+
+        return "".join(final_str_list)
+
     def to_string(self) -> str:
         """Convert the element into an html string.
 
@@ -664,9 +692,9 @@ class Base(object, metaclass=BaseMetaclass):
             The html ready to be used.
 
         """
-        str_list: List[str] = []
+        str_list: List[Union[str, Callable[[], Any]]] = []
         self._to_list(str_list)
-        return "".join(str_list)
+        return self._str_list_to_string(str_list)
 
     def _to_list(self, acc: List) -> None:
         """Fill the list `acc` with strings that will be concatenated to produce the html string.
@@ -706,6 +734,8 @@ class Base(object, metaclass=BaseMetaclass):
         """
         if isinstance(element, Base):
             element._to_list(acc)
+        elif callable(element):
+            acc.append(element)
         elif element not in IGNORED_CHILDREN:
             acc.append(escape(element))
 
