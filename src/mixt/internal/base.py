@@ -327,6 +327,25 @@ class Base(object, metaclass=BaseMetaclass):
         self._attach_children(children)
         self.__children__[0:0] = children
 
+    def remove(self, child_or_children: OneOrManyElements) -> None:
+        """Remove some children from the current element.
+
+        Parameters
+        ----------
+        child_or_children: OneOrManyElements
+            The child(ren) to remove.
+
+        """
+        children_to_remove = self._child_to_children(child_or_children)
+        new_children = []
+        for child in self.__children__:
+            if child in children_to_remove:
+                if isinstance(child, Base):
+                    child.__parent__ = None
+                continue
+            new_children.append(child)
+        self.__children__[:] = new_children
+
     def __getattr__(self, name: str) -> Any:
         """Return a prop defined by `name`, if it is defined.
 
