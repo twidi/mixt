@@ -4,7 +4,14 @@ from typing import Any, Dict, List, Optional, Sequence, cast
 
 from ..exceptions import InvalidChildrenError
 from ..proptypes import Choices, NotProvided
-from .base import Base, BaseMetaclass, OneOrManyElements, WithClass, escape
+from .base import (  # noqa: F401  # pylint: disable=unused-import
+    Base,
+    BaseMetaclass,
+    Fragment,  # imported to be used in html like ``<Fragment>``, so  ``html.Fragment``
+    OneOrManyElements,
+    WithClass,
+    escape,
+)
 from .proptypes import BasePropTypes
 
 
@@ -257,43 +264,6 @@ def Raw(text: str) -> RawHtml:  # pylint: disable=invalid-name
 
     """
     return RawHtml(text=text)  # type: ignore
-
-
-class Fragment(WithClass):
-    """An invisible tag that is used to hold many others."""
-
-    class PropTypes:
-        id: str
-
-    def _to_list(self, acc: List) -> None:
-        """Add the children parts to the list `acc`.
-
-        Parameters
-        ----------
-        acc: List
-            The accumulator list where to append the parts.
-
-        """
-        self._render_children_to_list(acc)
-
-    def get_id(self) -> str:
-        """Return the ``id`` prop of the element."""
-        return self.prop("id")
-
-    def _attach_to_parent(self, parent: "Base") -> None:
-        """Save the given `parent` as the parent of the children of the fragment.
-
-        Parameters
-        ----------
-        parent: Base
-            The element that will be saved as the parent of children of the fragment.
-
-        """
-        super()._attach_to_parent(parent)
-
-        for child in self.__children__:
-            if isinstance(child, Base):
-                child._attach_to_parent(parent)
 
 
 class Comment(Base):
