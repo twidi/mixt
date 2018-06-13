@@ -4,7 +4,7 @@
 from typing import cast, Any, Dict, List, Sequence
 
 from ..element import Element
-from ..html import Style
+from ..html import Script, Style
 from ..proptypes import DefaultChoices
 from .base import AnElement, Base, BaseMetaclass, OneOrManyElements, OptionalContext
 
@@ -161,3 +161,21 @@ class CSSCollector(Collector):
         str_collected: str = cast(str, super().render_collected())
 
         return Style(type=self.type)(str_collected)
+
+
+class JSCollector(Collector):
+    """Collector that will surround collected content in a <script> tag in ``render_collected``."""
+
+    class PropTypes:
+        type: str = "text/javascript"
+
+    def render_collected(self) -> OneOrManyElements:
+        """Render the content of all collected children at once.
+
+        Simply put the result of the normal call to ``render_collected`` into a
+        ``<script>`` tag.
+
+        """
+        str_collected: str = cast(str, super().render_collected())
+
+        return Script(type=self.type)(str_collected)
