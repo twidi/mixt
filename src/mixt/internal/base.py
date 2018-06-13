@@ -1,7 +1,7 @@
 """Base class to handle html tags and custom elements."""
 
 from itertools import chain
-from typing import Any, Dict, List, Sequence, Set, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Type, Union, cast
 from xml.sax.saxutils import escape as xml_escape, unescape as xml_unescape
 
 from ..exceptions import InvalidPropNameError, UnsetPropError
@@ -115,6 +115,35 @@ class BaseMetaclass(type):
         setattr(cls, "PropTypes", PropTypes)
 
 
+class Ref:
+    """An object storing the reference to an element."""
+
+    __element__: Union[Type[NotProvided], "Base"] = NotProvided
+
+    @property
+    def current(self) -> Union[Type[NotProvided], "Base"]:
+        """Get the actual value of this ref.
+
+        Returns
+        -------
+        Union[NotProvided, "Base"]
+            If the ref was set, return the saved value, else ``NotProvided``.
+
+        """
+        return self.__element__
+
+    def _set(self, element: "Base") -> None:
+        """Set the given `element` as the ref value.
+
+        Parameters
+        ----------
+        element: Base
+            The new element to save in this ref.
+
+        """
+        self.__element__ = element
+
+
 class Base(object, metaclass=BaseMetaclass):
     """The base of all elements. Manage PropTypes, props, context and children.
 
@@ -133,7 +162,7 @@ class Base(object, metaclass=BaseMetaclass):
     __display_name__: str = ""
 
     class PropTypes(BasePropTypes):
-        pass
+        ref: Ref
 
     def __init__(self, **kwargs: Any) -> None:
         """Create the element and validate then save props.
@@ -146,12 +175,28 @@ class Base(object, metaclass=BaseMetaclass):
         """
         self.__props__: Props = {}
         self.__children__: ManyElements = []
+        self.__parent__: Optional["Base"] = None
         self.context: OptionalContext = None
+
+        ref = kwargs.pop("ref", None)
+        if ref and ref is not NotProvided:
+            ref._set(self)
 
         for name, value in kwargs.items():
             self.set_prop(name, value)
 
         self.PropTypes.__validate_required__(self.__props__)
+
+    def add_ref(self) -> Ref:
+        """Create and return a new ``Ref`` object.
+
+        Returns
+        -------
+        Ref
+            The ref, without value, ready to be set.
+
+        """
+        return Ref()
 
     def __call__(self, *children: AnElement) -> "Base":
         """Add the given `children` to the current element.
@@ -239,6 +284,33 @@ class Base(object, metaclass=BaseMetaclass):
             if isinstance(child, Base):
                 child._set_context(self.context)
 
+    def _attach_children(self, children: ManyElements) -> None:
+        """Attach the given `children` to the current element.
+
+        It will set the current element as their parent, and propagate the context.
+
+        Parameters
+        ----------
+        children: ManyElements
+            The children to attach. Nothing is done for strings children.
+
+        """
+        for child in children:
+            if isinstance(child, Base):
+                child._attach_to_parent(self)
+        self._propagate_context(children)
+
+    def _attach_to_parent(self, parent: "Base") -> None:
+        """Save the given `parent` as the parent of the current element.
+
+        Parameters
+        ----------
+        parent: Base
+            The element that will be saved as the parent of the current element.
+
+        """
+        self.__parent__ = parent
+
     def _child_to_children(self, child_or_children: OneOrManyElements) -> ManyElements:
         """Make a flat list of children from the given one(s).
 
@@ -248,6 +320,7 @@ class Base(object, metaclass=BaseMetaclass):
             This can be a single child, or a list of children,
             each one possibly being also a list, etc...
             Every children that is ``None`` or ``False`` is ignored.
+            A fragment is converted to a list of its children.
 
         Returns
         -------
@@ -255,6 +328,9 @@ class Base(object, metaclass=BaseMetaclass):
             The flattened list of children.
 
         """
+        if isinstance(child_or_children, Fragment):
+            child_or_children = child_or_children.__children__
+
         if isinstance(child_or_children, (list, tuple)):
             children = list(
                 chain.from_iterable(
@@ -281,7 +357,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         """
         children = self._child_to_children(child_or_children)
-        self._propagate_context(children)
+        self._attach_children(children)
         self.__children__.extend(children)
 
     def prepend(self, child_or_children: OneOrManyElements) -> None:
@@ -296,8 +372,27 @@ class Base(object, metaclass=BaseMetaclass):
 
         """
         children = self._child_to_children(child_or_children)
-        self._propagate_context(children)
+        self._attach_children(children)
         self.__children__[0:0] = children
+
+    def remove(self, child_or_children: OneOrManyElements) -> None:
+        """Remove some children from the current element.
+
+        Parameters
+        ----------
+        child_or_children: OneOrManyElements
+            The child(ren) to remove.
+
+        """
+        children_to_remove = self._child_to_children(child_or_children)
+        new_children = []
+        for child in self.__children__:
+            if child in children_to_remove:
+                if isinstance(child, Base):
+                    child.__parent__ = None
+                continue
+            new_children.append(child)
+        self.__children__[:] = new_children
 
     def __getattr__(self, name: str) -> Any:
         """Return a prop defined by `name`, if it is defined.
@@ -604,6 +699,34 @@ class Base(object, metaclass=BaseMetaclass):
         for name, value in props.items():
             self.set_prop(name, value)
 
+    @classmethod
+    def _str_list_to_string(cls, str_list: List) -> str:
+        """Convert an accumulated list from ``_to_list`` to a string.
+
+        It will resolve entries that are in fact callables by calling them.
+
+        Parameters
+        ----------
+        str_list: List
+            List of strings or callable to render.
+
+        Returns
+        -------
+        str
+            The concatenated list of strings, ie some HTML.
+
+        """
+        final_str_list: List[str] = []
+        for item in str_list:
+            if not callable(item):
+                final_str_list.append(item)
+                continue
+            str_sublist: List = []
+            cls._render_element_to_list(item(), str_sublist)
+            final_str_list.append(cls._str_list_to_string(str_sublist))
+
+        return "".join(final_str_list)
+
     def to_string(self) -> str:
         """Convert the element into an html string.
 
@@ -613,9 +736,9 @@ class Base(object, metaclass=BaseMetaclass):
             The html ready to be used.
 
         """
-        str_list: List[str] = []
+        str_list: List[Union[str, Callable[[], Any]]] = []
         self._to_list(str_list)
-        return "".join(str_list)
+        return self._str_list_to_string(str_list)
 
     def _to_list(self, acc: List) -> None:
         """Fill the list `acc` with strings that will be concatenated to produce the html string.
@@ -655,6 +778,8 @@ class Base(object, metaclass=BaseMetaclass):
         """
         if isinstance(element, Base):
             element._to_list(acc)
+        elif callable(element):
+            acc.append(element)
         elif element not in IGNORED_CHILDREN:
             acc.append(escape(element))
 
@@ -798,6 +923,43 @@ class WithClass(Base):
         return self.set_prop(
             "class", " ".join(c for c in self.classes if c not in klasses)
         )
+
+
+class Fragment(WithClass):
+    """An invisible tag that is used to hold many others."""
+
+    class PropTypes:
+        id: str
+
+    def _to_list(self, acc: List) -> None:
+        """Add the children parts to the list `acc`.
+
+        Parameters
+        ----------
+        acc: List
+            The accumulator list where to append the parts.
+
+        """
+        self._render_children_to_list(acc)
+
+    def get_id(self) -> str:
+        """Return the ``id`` prop of the element."""
+        return self.prop("id")
+
+    def _attach_to_parent(self, parent: "Base") -> None:
+        """Save the given `parent` as the parent of the children of the fragment.
+
+        Parameters
+        ----------
+        parent: Base
+            The element that will be saved as the parent of children of the fragment.
+
+        """
+        super()._attach_to_parent(parent)
+
+        for child in self.__children__:
+            if isinstance(child, Base):
+                child._attach_to_parent(parent)
 
 
 class BaseContext(Base):
