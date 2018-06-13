@@ -271,3 +271,20 @@ def test_doctype():
 def test_cdata():
     assert str(<div><![CDATA[Testing Data here]]></div>) == '<div><![CDATA[Testing Data here]]></div>'
     assert str(<div><CData cdata="Testing Data here"/></div>) == '<div><![CDATA[Testing Data here]]></div>'
+
+
+def test_callable_to_string():
+
+    class Foo(Base):
+
+        def render_qux(self):
+            return "qux"
+
+        def _to_list(self, acc):
+            self._render_children_to_list(acc)
+            acc.append(self.render_qux)
+
+    def render_bar():
+        return 'bar'
+
+    assert str(<Foo>foo{render_bar}baz</Foo>) == "foobarbazqux"

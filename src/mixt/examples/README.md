@@ -12,4 +12,4 @@ So far we have three examples:
 
 - `simple`: a simple component, written in `mixt` (html-in-python)
 - `simple_pure_python`: the same component but written in pure python
-- `todolist`: 4 components plugged together to render a todo list
+- `user_guide`: components, context, higher-order components... final version of the code presented in the user-guide (available in `mixt` and `pure python` version)
