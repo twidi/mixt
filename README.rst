@@ -1741,7 +1741,465 @@ And it still works with a user in the context:
 **Important note about contexts**: you can have many contexts! But defining the same prop in many contexts may lead to undefined behaviour.
 
 
-User guide onclusion
+Style and Javascript
+====================
+
+Everybody loves a beautiful design, and maybe some interaction.
+
+It is easily doable: we generate HTML and HTML can contains some CSS and JS.
+
+Let's add some interaction first: when adding an item in the ``TodoForm``, let's add it to the list.
+
+First we add in our ``TodoForm`` component a ``render_javascript`` method that will host our (bad, we could do better but it's not the point) javascript:
+
+.. code-block:: python
+
+    class TodoForm(Element):
+        # ...
+
+        def render_javascript(self, context):
+            return html.Raw("""
+    function on_todo_add_submit(form) {
+        var text = form.todo.value;
+        alert(text);
+    }
+            """)
+
+To start we only display the new todo text.
+
+Now update our ``render`` method to return this javascript (note that the use of a ``render_javascript`` method is only to separate concerns, it could have been in the ``render`` method directly.
+
+.. code-block:: python
+
+    class TodoForm(Element):
+        # ...
+
+        def render(self, context):
+            # ...
+
+            return \
+                <Fragment>
+                    <script>{self.render_javascript(context)}</script>
+                    <form method="post" action={add_url} onsubmit="return on_todo_add_submit(this);">
+                        <label>New {self.type}: </label><itext name="todo" />
+                        <button type="submit">Add</button>
+                    </form>
+                </Fragment>
+
+Notice the ``Fragment`` tag. It's a way to encapsulate many elements to be returned, like in React. It could have been a simple list but with comas at the end:
+
+.. code-block:: python
+
+    return [
+        <script>...</script>,
+        <form>
+            ...
+        </form>
+    ]
+
+Now we want to add an item to the list. It's not the role of the ``TodoForm`` to do this, but to the list. So we'll add some JS in the ``TodoList`` component: a function that take some text and create a new entry.
+
+As for ``TodoForm``, we add a ``render_javascript`` method with (still bad) javascript:
+
+.. code-block:: python
+
+    class TodoList(Element):
+        # ...
+
+        def render_javascript(self, context):
+
+            todo_placeholder = <Todo todo={TodoObject(text='placeholder')} />
+
+            return html.Raw("""
+    TODO_TEMPLATE = "%s";
+    function add_todo(text) {
+        var html = TODO_TEMPLATE.replace("placeholder", text);
+        var ul = document.querySelector('#todo-items');
+        ul.innerHTML = html + ul.innerHTML;
+    }
+            """ % (todo_placeholder))
+
+And we update our ``render`` method to add the ``<script>`` tag and an ``id`` to the ``ul`` tag, used in the javascript:
+
+.. code-block:: python
+
+    class TodoList(Element):
+        # ...
+
+        def render(self, context):
+            return \
+                <Fragment>
+                    <script>{self.render_javascript(context)}</script>
+                    <ul id="todo-items">{[<Todo todo={todo} /> for todo in self.todos]}</ul>
+                </Fragment>
+
+And now we can update the ``render_javascript`` method of the ``TodoForm`` component to use our new ``add_toto`` javascript function:
+
+
+.. code-block:: python
+
+    class TodoForm(Element):
+        # ...
+
+        def render_javascript(self, context):
+            return html.Raw("""
+    function on_todo_add_submit(form) {
+        var text = form.todo.value;
+        add_todo(text);
+    }
+            """)
+
+And that's all. Nothing special, in fact.
+
+But let's take a look at the output of ou ``TodoApp``:
+
+.. code-block:: python
+
+    print(
+        <UserContext authenticated_user_id=1>
+            <ThingApp />
+        </User>
+    )
+
+The beautified output is:
+
+.. code-block:: html
+
+    <div>
+        <h1>The "thing" list</h1>
+        <script>
+            function on_todo_add_submit(form) {
+                var text = form.todo.value;
+                add_todo(text);
+            }
+        </script>
+        <form method="post" action="/thing/add" onsubmit="return on_todo_add_submit(this);">
+            <label>New thing: </label>
+            <input type="text" name="todo" />
+            <button type="submit">Add</button>
+        </form>
+        <script>
+            TODO_TEMPLATE = "<li>placeholder</li>";
+
+            function add_todo(text) {
+                var html = TODO_TEMPLATE.replace("placeholder", text);
+                var ul = document.querySelector('#todo-items');
+                ul.innerHTML = html + ul.innerHTML;
+            }
+        </script>
+        <ul id="todo-items">
+            <li>1-1</li>
+            <li>1-2</li>
+        </ul>
+    </div>
+
+So we have many ``script`` tag. It could be great to have only one.
+
+Collectors
+----------
+
+``mixt`` comes with a way to "collect" parts of what is rendered to put them somewhere else. We have at our disposal two simple collectors, to be used as components: ``JSCollector`` and ``CSSCollector``.
+
+These components collect parts of their children tree.
+
+Collector.Collect
+^^^^^^^^^^^^^^^^^
+
+The first way is by using the collector ``Collect`` tag.
+
+First let's change our main call:
+
+.. code-block:: python
+
+    from mixt import JSCollector
+
+    print(
+        <JSCollector render_position="after">
+            <UserContext authenticated_user_id=1>
+                <ThingApp />
+            </User>
+        </JSCollector>
+    )
+
+This will collect the content of all the ``JSCollector.Collect`` tag.
+
+Let's update our ``TodoForm`` and replace our ``script`` tag by a ``JSCollector.Collect`` tag:
+
+.. code-block:: python
+
+    class TodoForm(Element):
+        # ...
+
+        def render(self, context):
+
+            if callable(self.add_url):
+                add_url = self.add_url(self.type)
+            else:
+                add_url = self.add_url
+
+            return \
+                    <JSCollector.Collect>{self.render_javascript(context)}</JSCollector.Collect>
+                    <form method="post" action={add_url} onsubmit="return on_todo_add_submit(this);">
+                        <label>New {self.type}: </label><itext name="todo" />
+                        <button type="submit">Add</button>
+                    </form>
+                </Fragment>
+
+
+We can do the same with the ``TodoList``:
+
+.. code-block:: python
+
+    class TodoList(Element):
+        # ...
+
+        def render(self, context):
+            return \
+                <Fragment>
+                    <JSCollector.Collect>{self.render_javascript(context)}</JSCollector.Collect>
+                    <ul id="todo-items">{[<Todo todo={todo} /> for todo in self.todos]}</ul>
+                </Fragment>
+
+
+Now let's run our updated code:
+
+.. code-block:: python
+
+    print(
+        <JSCollector render_position="after">
+            <UserContext authenticated_user_id=1>
+                <ThingApp />
+            </User>
+        </JSCollector>
+    )
+
+The beautified output is:
+
+.. code-block:: html
+
+    <div>
+        <h1>The "thing" list</h1>
+        <form method="post" action="/thing/add" onsubmit="return on_todo_add_submit(this);">
+            <label>New thing: </label>
+            <input type="text" name="todo" />
+            <button type="submit">Add</button>
+        </form>
+        <ul id="todo-items">
+            <li>1-1</li>
+            <li>1-2</li>
+        </ul>
+    </div>
+    <script type="text/javascript">
+        function on_todo_add_submit(form) {
+            var text = form.todo.value;
+            add_todo(text);
+        }
+
+        TODO_TEMPLATE = "<li>placeholder</li>";
+
+        function add_todo(text) {
+            var html = TODO_TEMPLATE.replace("placeholder", text);
+            var ul = document.querySelector('#todo-items');
+            ul.innerHTML = html + ul.innerHTML;
+        }
+    </script>
+
+As you can see, all the scripts are in a single ``script`` tag, at the end. More precisely, at the end of where the ``JSCollector`` tag was, because we used ``render_position="after"``. Another possibility is ``render_position="before"`` to put this where the ``JSCollector`` tag started.
+
+All of this work exactly the same way for the ``CSSCollector`` tag, where content is put in a ``<style type="text/css>`` tag.
+
+render_[js|css] methods
+^^^^^^^^^^^^^^^^^^^^^^^
+
+As using JS/CSS is quite common in the HTML world, we added some sugar to make all of this even easier to do.
+
+If you have a ``render_js`` method, the ``JSCollector`` will automatically collect the result of this method. Same for ``CSSSelector`` and the ``render_css`` method.
+
+With this, no need for a ``JSCollector.Collect`` tag.
+
+To make this work in our example, in ``TodoForm`` and ``TodoList``:
+
+- remove the ``JSCollector.Collect`` tags
+- remove the now unneeded ``Fragment`` tags
+- rename the ``render_javascript`` methods to ``render_js``.
+- remove the call to ``html.Raw`` in ``render_js`` as it's not needed when the collector calls ``render_js`` itself: if the output is a string, it is considered a "raw" one
+
+This way we have exactly the same result.
+
+render_[js|css]_global methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It works now because we only have one instance of a child with a ``render_js`` method.
+
+But if we have many children, this method will be called for each child. If fact, it should only contains code that is very specific to this instance.
+
+To serve js/css only once for a Component class, we have to use ``render_js_global`` or ``render_css_global`` (expected to be ``classmethod``)
+
+It will be collected the first time, and only the first time, an instance is found, before collecting the ``render_js`` method.
+
+So here, we can change our ``render_js`` to ``render_js_global``, decorate them with ``@classmethod`` and it will still work the same.
+
+references
+^^^^^^^^^^
+
+We now are able to regroup javascript or style. But what if we want to put it elsewhere, like in the ``head`` tag or at the end of the ``body`` tag?
+
+It's possible with references, aka "refs". It's the same context as in React, without the DOM part of course.
+
+You create a ref, pass it to a component, and you can use it anywhere.
+
+Let's update our main code to do this.
+
+First we create a ref.
+
+.. code-block:: python
+
+    from mixt import Ref
+
+    js_ref = Ref()
+
+
+This will create a new object that will hold a reference to a component. In a component, you don't need to import ``Ref`` and can use ``js_ref = self.add_ref()``, but we are not in a component here.
+
+
+To save a ref, we simply pass it to the ``ref`` prop:
+
+.. code-block:: python
+
+    <JSCollector ref={js_ref} >...</JSCollector>
+
+
+Notice that we removed the ``render_position`` prop, because now we don't want the JS to be put before or after the tag, but elsewhere.
+
+To access the component referenced by a ref, use the ``current`` attribute:
+
+.. code-block:: python
+
+    js_collector = js_ref.current
+
+Of course this can be done only AFTER the rendering.
+
+How can we use this to add a ``script`` tag in our ``head``.
+
+First update our html to include the classic ``html``, ``head`` and ``body`` tags:
+
+.. code-block:: python
+
+    return str(
+        <html>
+            <head>
+            </head>
+            <body>
+                <JSCollector ref={js_ref} >
+                    <UserContext authenticated_user_id=1>
+                        <ThingApp />
+                    </UserContext>
+                </JSCollector>
+            </body>
+        </html>
+    )
+
+At this point we don't have any ``script`` tag in the output:
+
+.. code-block:: html
+
+    <html>
+
+    <head></head>
+
+    <body>
+        <div>
+            <h1>The "thing" list</h1>
+            <form method="post" action="/thing/add" onsubmit="return on_todo_add_submit(this);">
+                <label>New thing: </label>
+                <input type="text" name="todo" />
+                <button type="submit">Add</button>
+            </form>
+            <ul id="todo-items">
+                <li>1-1</li>
+                <li>1-2</li>
+            </ul>
+        </div>
+    </body>
+
+    </html>
+
+
+First thing to know: a collector is able to render all the things it collected by calliing its ``render_collected`` method.
+
+And remembering that it already includes the ``script`` tag, we may want to do this:
+
+.. code-block:: python
+
+    # ...
+    <head>
+        {js_ref.current.render_collected()}
+    </head>
+    # ...
+
+but this doesn't work:
+
+.. code-block:: python
+
+    AttributeError: 'NoneType' object has no attribute 'render_collected'
+
+
+It's because we try to access the current value at render time. It must be done after.
+
+For this, we can use a feature of ``mixt``: if something added to the tree is a callable, it will be called after the rendering, when converting to string.
+
+So we can use for example a lambda:
+
+.. code-block:: python
+
+    # ...
+    <head>
+        {lambda: js_ref.current.render_collected()}
+    </head>
+    # ...
+
+And now it works:
+
+.. code-block:: html
+
+    <html>
+
+    <head>
+        <script type="text/javascript">
+            function on_todo_add_submit(form) {
+                var text = form.todo.value;
+                add_todo(text);
+            }
+
+            TODO_TEMPLATE = "<li>placeholder</li>";
+
+            function add_todo(text) {
+                var html = TODO_TEMPLATE.replace("placeholder", text);
+                var ul = document.querySelector('#todo-items');
+                ul.innerHTML = html + ul.innerHTML;
+            }
+        </script>
+    </head>
+
+    <body>
+        <div>
+            <h1>The "thing" list</h1>
+            <form method="post" action="/thing/add" onsubmit="return on_todo_add_submit(this);">
+                <label>New thing: </label>
+                <input type="text" name="todo" />
+                <button type="submit">Add</button>
+            </form>
+            <ul id="todo-items">
+                <li>1-1</li>
+                <li>1-2</li>
+            </ul>
+        </div>
+    </body>
+
+    </html>
+
+
+User guide conclusion
 =====================
 
 Hurray we made it! All the main features of ``mixt`` explained. You can now use ``mixt`` in your ovn projects.
