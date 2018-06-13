@@ -1,7 +1,7 @@
 """Base class to handle html tags and custom elements."""
 
 from itertools import chain
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Type, Union, cast
 from xml.sax.saxutils import escape as xml_escape, unescape as xml_unescape
 
 from ..exceptions import InvalidPropNameError, UnsetPropError
@@ -115,6 +115,35 @@ class BaseMetaclass(type):
         setattr(cls, "PropTypes", PropTypes)
 
 
+class Ref:
+    """An object storing the reference to an element."""
+
+    __element__: Union[Type[NotProvided], "Base"] = NotProvided
+
+    @property
+    def current(self) -> Union[Type[NotProvided], "Base"]:
+        """Get the actual value of this ref.
+
+        Returns
+        -------
+        Union[NotProvided, "Base"]
+            If the ref was set, return the saved value, else ``NotProvided``.
+
+        """
+        return self.__element__
+
+    def _set(self, element: "Base") -> None:
+        """Set the given `element` as the ref value.
+
+        Parameters
+        ----------
+        element: Base
+            The new element to save in this ref.
+
+        """
+        self.__element__ = element
+
+
 class Base(object, metaclass=BaseMetaclass):
     """The base of all elements. Manage PropTypes, props, context and children.
 
@@ -133,7 +162,7 @@ class Base(object, metaclass=BaseMetaclass):
     __display_name__: str = ""
 
     class PropTypes(BasePropTypes):
-        pass
+        ref: Ref
 
     def __init__(self, **kwargs: Any) -> None:
         """Create the element and validate then save props.
@@ -149,10 +178,25 @@ class Base(object, metaclass=BaseMetaclass):
         self.__parent__: Optional["Base"] = None
         self.context: OptionalContext = None
 
+        ref = kwargs.pop("ref", None)
+        if ref and ref is not NotProvided:
+            ref._set(self)
+
         for name, value in kwargs.items():
             self.set_prop(name, value)
 
         self.PropTypes.__validate_required__(self.__props__)
+
+    def add_ref(self) -> Ref:
+        """Create and return a new ``Ref`` object.
+
+        Returns
+        -------
+        Ref
+            The ref, without value, ready to be set.
+
+        """
+        return Ref()
 
     def __call__(self, *children: AnElement) -> "Base":
         """Add the given `children` to the current element.
