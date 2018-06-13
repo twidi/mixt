@@ -1,7 +1,7 @@
 """Base class to handle html tags and custom elements."""
 
 from itertools import chain
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Type, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Union, cast
 from xml.sax.saxutils import escape as xml_escape, unescape as xml_unescape
 
 from ..exceptions import InvalidPropNameError, UnsetPropError
@@ -118,16 +118,16 @@ class BaseMetaclass(type):
 class Ref:
     """An object storing the reference to an element."""
 
-    __element__: Union[Type[NotProvided], "Base"] = NotProvided
+    __element__: Optional["Base"] = None
 
     @property
-    def current(self) -> Union[Type[NotProvided], "Base"]:
+    def current(self) -> Optional["Base"]:
         """Get the actual value of this ref.
 
         Returns
         -------
         Union[NotProvided, "Base"]
-            If the ref was set, return the saved value, else ``NotProvided``.
+            If the ref was set, return the saved value, else ``None``.
 
         """
         return self.__element__
@@ -179,7 +179,7 @@ class Base(object, metaclass=BaseMetaclass):
         self.context: OptionalContext = None
 
         ref = kwargs.pop("ref", None)
-        if ref and ref is not NotProvided:
+        if ref:
             ref._set(self)
 
         for name, value in kwargs.items():
