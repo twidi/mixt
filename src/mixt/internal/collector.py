@@ -4,9 +4,10 @@
 from typing import cast, Any, Dict, List, Sequence
 
 from ..element import Element
-from ..html import Script, Style
+from ..html import Raw, Script, Style
 from ..proptypes import DefaultChoices
 from .base import AnElement, Base, BaseMetaclass, OneOrManyElements, OptionalContext
+from .html import RawHtml
 
 
 class CollectorMetaclass(BaseMetaclass):
@@ -118,9 +119,11 @@ class Collector(Element, metaclass=CollectorMetaclass):
         str_list: List[AnElement] = []
 
         for collected in self.__collected__:
-            if isinstance(collected, Base):
+            if isinstance(collected, Base) and not isinstance(collected, RawHtml):
                 for child in collected.__children__:
                     self._render_element_to_list(child, str_list)
+            elif isinstance(collected, str):
+                str_list.append(collected)
             else:
                 self._render_element_to_list(collected, str_list)
 
@@ -165,7 +168,7 @@ class CSSCollector(Collector):
         """
         str_collected: str = cast(str, super().render_collected())
 
-        return Style(type=self.type)(str_collected)
+        return Style(type=self.type)(Raw(str_collected))
 
     def postrender_child_element(
         self, child: "Element", child_element: AnElement, context: OptionalContext
@@ -200,7 +203,7 @@ class JSCollector(Collector):
         """
         str_collected: str = cast(str, super().render_collected())
 
-        return Script(type=self.type)(str_collected)
+        return Script(type=self.type)(Raw(str_collected))
 
     def postrender_child_element(
         self, child: "Element", child_element: AnElement, context: OptionalContext
