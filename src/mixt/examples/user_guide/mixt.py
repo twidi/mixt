@@ -1,20 +1,20 @@
 # coding: mixt
-# pylint: disable=missing-docstring,invalid-name,redefined-builtin,unused-argument,missing-param-doc,missing-type-doc
+# pylint: disable=missing-docstring,invalid-name,redefined-builtin,unused-argument,missing-param-doc,missing-type-doc,unnecessary-lambda
 # flake8: noqa: D
 
 """The final "mixt" version of the todolist app presented in the user-guide.
 
 To create the "pure-python" version:
 
-    cp mixt.py pure-python.py
-    black pure-python.py
+    cp mixt.py pure_python.py
+    black pure_python.py
     sed  -e 's/^# coding: mixt//' -e 's/"mixt"/"pure python"/' -i pure_python.py
 
 """
 
 from typing import Callable, List, Union
 
-from mixt import BaseContext, DefaultChoices, Element, Required, html
+from mixt import BaseContext, DefaultChoices, Element, JSCollector, Ref, Required, html
 
 
 class TodoObject:
@@ -35,6 +35,16 @@ class TodoForm(Element):
         add_url: Union[Callable[[str], str], str] = make_url
         type: DefaultChoices = ['todo', 'thing']
 
+    @classmethod
+    def render_js_global(cls, context):
+        # language=JS
+        return html.Raw("""
+function on_todo_add_submit(form) {
+    var text = form.todo.value;
+    add_todo(text);
+}
+""")
+
     def render(self, context):
 
         if callable(self.add_url):
@@ -43,11 +53,10 @@ class TodoForm(Element):
             add_url = self.add_url
 
         return \
-            <form method="post" action={add_url}>
+            <form method="post" action={add_url} onsubmit="return on_todo_add_submit(this);">
                 <label>New {self.type}: </label><itext name="todo" />
                 <button type="submit">Add</button>
             </form>
-
 
 
 class Todo(Element):
@@ -66,8 +75,23 @@ class TodoList(Element):
     class PropTypes:
         todos: Required[List[TodoObject]]
 
+    @classmethod
+    def render_js_global(cls, context):
+
+        todo_placeholder = <Todo todo={TodoObject(text='placeholder')} />
+
+        # language=JS
+        return """
+TODO_TEMPLATE = "%s";
+function add_todo(text) {
+    var html = TODO_TEMPLATE.replace("placeholder", text);
+    var ul = document.querySelector('#todo-items');
+    ul.innerHTML = html + ul.innerHTML;
+}
+""" % (todo_placeholder)
+
     def render(self, context):
-        return <ul>{[<Todo todo={todo} /> for todo in self.todos]}</ul>
+        return <ul id="todo-items">{[<Todo todo={todo} /> for todo in self.todos]}</ul>
 
 
 class TodoApp(Element):
@@ -148,10 +172,22 @@ ThingApp = thingify(SourcedTodoApp)
 
 def render_example():
     """Render the html for this example."""
+
+    js_ref = Ref()
+
     return str(
-        <UserContext authenticated_user_id=1>
-            <ThingApp />
-        </UserContext>
+        <html>
+            <head>
+                {lambda: js_ref.current.render_collected()}
+            </head>
+            <body>
+                <JSCollector ref={js_ref} >
+                    <UserContext authenticated_user_id=1>
+                        <ThingApp />
+                    </UserContext>
+                </JSCollector>
+            </body>
+        </html>
     )
 
 

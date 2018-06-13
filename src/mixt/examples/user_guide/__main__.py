@@ -6,12 +6,7 @@ To execute it:
 
 """
 
-from .pure_python import ThingApp, UserContext
-
-
-def render_example():
-    """Render the html for this example."""
-    return str(UserContext(authenticated_user_id=1)(ThingApp()))
+from .pure_python import render_example
 
 
 if __name__ == "__main__":
