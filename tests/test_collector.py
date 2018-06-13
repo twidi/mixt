@@ -94,3 +94,26 @@ def test_css_collector():
 <style type="text/css">
 .content { margin: 15px; }
 </style>"""
+
+    class App(Element):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.css_ref = self.add_ref()
+
+        def render(self, context):
+            return \
+                <html>
+                    <head>
+                    {lambda: self.css_ref.current.render_collected()}
+                    </head>
+                    <body>
+                        <CSSCollector ref={self.css_ref}>
+                            <Content><p>Hello</p></Content>
+                        </CSSCollector>
+                    </body>
+                </html>
+
+    assert str(<App />) == """\
+<html><head><style type="text/css">
+.content { margin: 15px; }
+</style></head><body><div class="content"><p>Hello</p></div></body></html>"""
