@@ -126,7 +126,7 @@ class Collector(Element, metaclass=CollectorMetaclass):
 
         return self._str_list_to_string(str_list)
 
-    def to_list(self, acc: List) -> None:
+    def _to_list(self, acc: List) -> None:
         """Fill the list `acc` with strings that will be concatenated to produce the html string.
 
         Simply prepend/append ``self.render_collected`` as a callable depening on the
