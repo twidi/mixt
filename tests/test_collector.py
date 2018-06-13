@@ -3,7 +3,7 @@
 """Ensure that parents are saved correctly."""
 
 from mixt import Element, html
-from mixt.internal.collector import Collector, CSSCollector
+from mixt.internal.collector import Collector, CSSCollector, JSCollector
 
 
 def test_collector():
@@ -71,11 +71,11 @@ PARENT<div></div>CHILDCHILD
         CHILD"""
 
 
-def test_css_collector():
+def test_css_collector_via_collect():
 
     class Content(Element):
 
-        def render_css(self, context):
+        def render_style(self, context):
             return <CSSCollector.Collect>{"""
 .content { margin: 15px; }
 """}
@@ -83,7 +83,7 @@ def test_css_collector():
 
         def render(self, context):
             return <Fragment>
-                {self.render_css(context)}
+                {self.render_style(context)}
                 <div class="content">{self.children()}</div>
             </Fragment>
 
@@ -117,3 +117,38 @@ def test_css_collector():
 <html><head><style type="text/css">
 .content { margin: 15px; }
 </style></head><body><div class="content"><p>Hello</p></div></body></html>"""
+
+
+def test_js_collector_via_render_js():
+
+    class Content(Element):
+        def render_js(self, context):
+            return """
+alert(1);
+"""
+
+        def render(self, context):
+            return <div>{self.children()}</div>
+
+    class App(Element):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.js_ref = self.add_ref()
+
+        def render(self, context):
+            return \
+                <html>
+                    <head>
+                    {lambda: self.js_ref.current.render_collected()}
+                    </head>
+                    <body>
+                        <JSCollector ref={self.js_ref}>
+                            <Content><p>Hello</p></Content>
+                        </JSCollector>
+                    </body>
+                </html>
+
+    assert str(<App />) == """\
+<html><head><script type="text/javascript">
+alert(1);
+</script></head><body><div><p>Hello</p></div></body></html>"""

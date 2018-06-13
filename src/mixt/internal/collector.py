@@ -146,7 +146,12 @@ class Collector(Element, metaclass=CollectorMetaclass):
 
 
 class CSSCollector(Collector):
-    """A collector that will surround collected content in a <style> tag in ``render_collected``."""
+    """A collector that will surround collected content in a <style> tag in ``render_collected``.
+
+    It can collect via the ``<CSSCollector.Collect>`` tag, and/or via the ``render_css`` method
+    on the child.
+
+    """
 
     class PropTypes:
         type: str = "text/css"
@@ -162,9 +167,26 @@ class CSSCollector(Collector):
 
         return Style(type=self.type)(str_collected)
 
+    def postrender_child_element(
+        self, child: "Element", child_element: AnElement, context: OptionalContext
+    ) -> None:
+        """Catch ``child.render_css`` output in addition to ``Collect`` elements.
+
+        For the parameters, see ``Collector.postrender_child_element``.
+
+        """
+        if hasattr(child, "render_css") and callable(child.render_css):
+            self.__collected__.append(child.render_css(context))
+        super().postrender_child_element(child, child_element, context)
+
 
 class JSCollector(Collector):
-    """Collector that will surround collected content in a <script> tag in ``render_collected``."""
+    """A collector that will surround collected content in a <script> tag in ``render_collected``.
+
+    It can collect via the ``<JSCollector.Collect>`` tag, and/or via the ``render_js`` method
+    on the child.
+
+    """
 
     class PropTypes:
         type: str = "text/javascript"
@@ -179,3 +201,15 @@ class JSCollector(Collector):
         str_collected: str = cast(str, super().render_collected())
 
         return Script(type=self.type)(str_collected)
+
+    def postrender_child_element(
+        self, child: "Element", child_element: AnElement, context: OptionalContext
+    ) -> None:
+        """Catch ``child.render_js`` output in addition to ``Collect`` elements.
+
+        For the parameters, see ``Collector.postrender_child_element``.
+
+        """
+        if hasattr(child, "render_js") and callable(child.render_js):
+            self.__collected__.append(child.render_js(context))
+        super().postrender_child_element(child, child_element, context)
