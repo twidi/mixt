@@ -1,7 +1,7 @@
 """Provide the ``Element`` class to create reusable components."""
 
 
-from typing import cast, Any, Dict, List, Sequence
+from typing import cast, Any, Dict, List, Optional, Sequence, Type
 
 from ..element import Element
 from ..html import Raw, Script, Style
@@ -51,6 +51,8 @@ class CollectorMetaclass(BaseMetaclass):
 class Collector(Element, metaclass=CollectorMetaclass):
     """Base of all collectors. Render children and collect ones of its own Collect class."""
 
+    KIND: Optional[str] = None
+
     class PropTypes:
         render_position: DefaultChoices = cast(
             DefaultChoices, [None, "before", "after"]
@@ -68,6 +70,7 @@ class Collector(Element, metaclass=CollectorMetaclass):
 
         """
         self.__collected__: List[AnElement] = []
+        self.__global__: List[Type[Base]] = []
         super().__init__(**kwargs)
 
     def render(self, context: OptionalContext) -> OneOrManyElements:
@@ -89,7 +92,12 @@ class Collector(Element, metaclass=CollectorMetaclass):
     def postrender_child_element(
         self, child: "Element", child_element: AnElement, context: OptionalContext
     ) -> None:
-        """Catch all children being instance of the ``Collect`` class when rendered.
+        """Catch child render_{KIND} method, or child content if a ``Collect``.
+
+        If there is KIND:
+        - try to collect ``render_{KIND}_global`` if not already done for the child's class
+        - try to collect ``render_{KIND}
+        Then collect if it's a ``Collect`` instance.
 
         Parameters
         ----------
@@ -101,6 +109,20 @@ class Collector(Element, metaclass=CollectorMetaclass):
             The context passed through the tree.
 
         """
+        if self.KIND:
+
+            if child.__class__ not in self.__global__:
+                self.__global__.append(child.__class__)
+                if hasattr(child, f"render_{self.KIND}_global"):
+                    method = getattr(child, f"render_{self.KIND}_global")
+                    if callable(method):
+                        self.__collected__.append(method(context))
+
+            if hasattr(child, f"render_{self.KIND}"):
+                method = getattr(child, f"render_{self.KIND}")
+                if callable(method):
+                    self.__collected__.append(method(context))
+
         if isinstance(child, self.Collect):
             self.__collected__.append(child)
 
@@ -156,6 +178,8 @@ class CSSCollector(Collector):
 
     """
 
+    KIND = "css"
+
     class PropTypes:
         type: str = "text/css"
 
@@ -170,18 +194,6 @@ class CSSCollector(Collector):
 
         return Style(type=self.type)(Raw(str_collected))
 
-    def postrender_child_element(
-        self, child: "Element", child_element: AnElement, context: OptionalContext
-    ) -> None:
-        """Catch ``child.render_css`` output in addition to ``Collect`` elements.
-
-        For the parameters, see ``Collector.postrender_child_element``.
-
-        """
-        if hasattr(child, "render_css") and callable(child.render_css):
-            self.__collected__.append(child.render_css(context))
-        super().postrender_child_element(child, child_element, context)
-
 
 class JSCollector(Collector):
     """A collector that will surround collected content in a <script> tag in ``render_collected``.
@@ -190,6 +202,8 @@ class JSCollector(Collector):
     on the child.
 
     """
+
+    KIND = "js"
 
     class PropTypes:
         type: str = "text/javascript"
@@ -204,15 +218,3 @@ class JSCollector(Collector):
         str_collected: str = cast(str, super().render_collected())
 
         return Script(type=self.type)(Raw(str_collected))
-
-    def postrender_child_element(
-        self, child: "Element", child_element: AnElement, context: OptionalContext
-    ) -> None:
-        """Catch ``child.render_js`` output in addition to ``Collect`` elements.
-
-        For the parameters, see ``Collector.postrender_child_element``.
-
-        """
-        if hasattr(child, "render_js") and callable(child.render_js):
-            self.__collected__.append(child.render_js(context))
-        super().postrender_child_element(child, child_element, context)
