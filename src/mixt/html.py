@@ -508,7 +508,7 @@ class Input(HtmlElementNoChild):
 
     Attributes
     ----------
-    __types__: dict
+    __types__ : dict
         Contains the class to use for each input types.
 
     """
@@ -628,7 +628,7 @@ class Input(HtmlElementNoChild):
 
         Parameters
         ----------
-        kwargs: Dict[str, Any]
+        kwargs : Dict[str, Any]
             Props that will be passed to the instance to be created.
 
         Returns
@@ -654,7 +654,7 @@ class Input(HtmlElementNoChild):
 
                 Parameters
                 ----------
-                klass: type(Input)
+                klass : type(Input)
                     The class for which to iterate on subclasses.
 
                 """

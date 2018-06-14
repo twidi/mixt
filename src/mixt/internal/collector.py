@@ -20,11 +20,11 @@ class CollectorMetaclass(BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the class to construct.
-        parents: Sequence[type]
+        parents : Sequence[type]
             A tuple with the direct parent classes of the class to construct.
-        attrs: Dict[str, Any]
+        attrs : Dict[str, Any]
             Dict with the attributes defined in the class.
 
         """
@@ -39,7 +39,7 @@ class CollectorMetaclass(BaseMetaclass):
 
                     Parameters
                     ----------
-                    context: OptionalContext
+                    context : OptionalContext
                         The context passed through the tree.
 
                     """
@@ -78,7 +78,7 @@ class Collector(Element, metaclass=CollectorMetaclass):
 
         Parameters
         ----------
-        context: OptionalContext
+        context : OptionalContext
             The context passed through the tree.
 
         Returns
@@ -101,11 +101,11 @@ class Collector(Element, metaclass=CollectorMetaclass):
 
         Parameters
         ----------
-        child: Element
+        child : Element
             The element in a tree on which ``render`` was just called.
-        child_element: AnElement
+        child_element : AnElement
             The element rendered by the call of the ``render`` method of `child`.
-        context: OptionalContext
+        context : OptionalContext
             The context passed through the tree.
 
         """
@@ -159,7 +159,7 @@ class Collector(Element, metaclass=CollectorMetaclass):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """

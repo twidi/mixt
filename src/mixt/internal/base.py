@@ -29,7 +29,7 @@ def escape(obj: Any) -> str:
 
     Parameters
     ----------
-    obj: Any
+    obj : Any
         Can be anything that will be converted to string, then where xml entities will be escaped.
 
     Returns
@@ -46,7 +46,7 @@ def unescape(obj: Any) -> str:
 
     Parameters
     ----------
-    obj: Any
+    obj : Any
         Can be anything that will be converted to string, then where xml entities will be unescaped.
 
     Returns
@@ -68,11 +68,11 @@ class BaseMetaclass(type):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the class to construct.
-        parents: Sequence[type]
+        parents : Sequence[type]
             A tuple with the direct parent classes of the class to construct.
-        attrs: Dict[str, Any]
+        attrs : Dict[str, Any]
             Dict with the attributes defined in the class.
 
         """
@@ -137,7 +137,7 @@ class Ref:
 
         Parameters
         ----------
-        element: Base
+        element : Base
             The new element to save in this ref.
 
         """
@@ -149,10 +149,10 @@ class Base(object, metaclass=BaseMetaclass):
 
     Attributes
     ----------
-    __tag__: str
+    __tag__ : str
         The tag to use when using the element in "html". If not set in the class, it will be, by
         default, the name of the class itself.
-    __display_name__: str
+    __display_name__ : str
         A "human" representation of ``__tag__``. Will be used in exceptions and can be changed to
         give more information.
 
@@ -203,7 +203,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        children: OneOrManyElements
+        children : OneOrManyElements
             List of children to add.
 
         Returns
@@ -242,7 +242,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        context: OptionalContext
+        context : OptionalContext
             The context (or ``None``) to set.
 
         """
@@ -274,7 +274,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        children: ManyElements
+        children : ManyElements
             The children for which to set the context.
 
         """
@@ -291,7 +291,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        children: ManyElements
+        children : ManyElements
             The children to attach. Nothing is done for strings children.
 
         """
@@ -305,7 +305,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        parent: Base
+        parent : Base
             The element that will be saved as the parent of the current element.
 
         """
@@ -352,7 +352,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        child_or_children: OneOrManyElements
+        child_or_children : OneOrManyElements
             The child(ren) to add.
 
         """
@@ -367,7 +367,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        child_or_children: OneOrManyElements
+        child_or_children : OneOrManyElements
             The child(ren) to add.
 
         """
@@ -380,7 +380,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        child_or_children: OneOrManyElements
+        child_or_children : OneOrManyElements
             The child(ren) to remove.
 
         """
@@ -405,7 +405,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the wanted prop.
 
         Returns
@@ -435,7 +435,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name we want to validate.
 
         Returns
@@ -462,9 +462,9 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the wanted prop.
-        default: Any
+        default : Any
             The value to return if the prop is not set. If ``NotProvided``, the default value set
             in PropTypes is used. Else we raise.
 
@@ -505,9 +505,9 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop to check.
-        allow_invalid: bool
+        allow_invalid : bool
             If set to ``True``, it will return ``False`` if the `name` if for a prop that is
             not allowed. Else if will raise ``InvalidPropNameError``.
 
@@ -543,9 +543,9 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop to set.
-        value: Any
+        value : Any
             The value to set to the prop.
             If set to ``NotProvided``, this will unset the actual set value for this prop.
 
@@ -578,7 +578,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop to unset.
 
         Returns
@@ -599,7 +599,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop for which we want the default value
 
         Returns
@@ -620,9 +620,9 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop we are asking for.
-        value: Any
+        value : Any
             If set, will use this value to check if it is the default one. Else (if
             ``NotProvided``), it will use the actual prop.
 
@@ -650,7 +650,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop we want the type
 
         Returns
@@ -684,7 +684,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        props: Props
+        props : Props
             A dict with each prop to set. If a prop is already set, it will be replaced.
 
 
@@ -707,7 +707,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        str_list: List
+        str_list : List
             List of strings or callable to render.
 
         Returns
@@ -747,7 +747,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -770,9 +770,9 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        element: AnElement
+        element : AnElement
             The element to be converted to string parts.
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -788,7 +788,7 @@ class Base(object, metaclass=BaseMetaclass):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -846,9 +846,9 @@ class WithClass(Base):
 
         Parameters
         ----------
-        klass: str
+        klass : str
             The class to add. If contains spaces, it will be a list of classes.
-        prepend: bool
+        prepend : bool
             If ``False`` (the default), the new class(es) will be added at the end of the existing
             list. If ``True``, it/they will be added at the beginning.
 
@@ -878,7 +878,7 @@ class WithClass(Base):
 
         Parameters
         ----------
-        klass: str
+        klass : str
             The class to add. If contains spaces, it will be a list of classes.
 
         Returns
@@ -894,7 +894,7 @@ class WithClass(Base):
 
         Parameters
         ----------
-        klass: str
+        klass : str
             The class to add. If contains spaces, it will be a list of classes.
 
         Returns
@@ -910,7 +910,7 @@ class WithClass(Base):
 
         Parameters
         ----------
-        klass: str
+        klass : str
             The class to remove. If contains spaces, it will be a list of classes.
 
         Returns
@@ -936,7 +936,7 @@ class Fragment(WithClass):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -951,7 +951,7 @@ class Fragment(WithClass):
 
         Parameters
         ----------
-        parent: Base
+        parent : Base
             The element that will be saved as the parent of children of the fragment.
 
         """

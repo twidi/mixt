@@ -13,7 +13,7 @@ class MixtException(Exception):
 
         Parameters
         ----------
-        message: str
+        message : str
             The exception message.
 
         """
@@ -30,9 +30,9 @@ class ElementError(MixtException):
 
         Parameters
         ----------
-        tag_name: str
+        tag_name : str
             The element tag for which this exception is raised.
-        message: str
+        message : str
             The exception message.
 
         """
@@ -51,7 +51,7 @@ class PropError(ElementError):
 
         Parameters
         ----------
-        prop_name: str
+        prop_name : str
             The prop name for which this exception is raised.
 
         For the other parameters, see ``ElementError``.
@@ -103,9 +103,9 @@ class InvalidPropValueError(PropError, TypeError):
 
         Parameters
         ----------
-        value: Any
+        value : Any
             The invalid value
-        expected_type: Any
+        expected_type : Any
             The expected type
 
         For the other parameters, see ``PropError``.
@@ -132,7 +132,7 @@ class InvalidPropChoiceError(InvalidPropValueError):
 
         Parameters
         ----------
-        choices: List[Any]
+        choices : List[Any]
             The list of valid choices.
 
         For the other parameters, see ``InvalidPropValueError``.
@@ -211,7 +211,7 @@ class GeneralParserError(Exception):
 
         Parameters
         ----------
-        message: str
+        message : str
             The exception message.
 
         """
@@ -227,7 +227,7 @@ class ParserStateError(GeneralParserError):
 
         Parameters
         ----------
-        state: int
+        state : int
             One of the states defined in ``State``
 
         For the other parameters, see ``GeneralParserError``.
@@ -246,7 +246,7 @@ class BadCharError(ParserStateError):
 
         Parameters
         ----------
-        char: str
+        char : str
             The unexpected character
 
         For the other parameters, see ``ParserStateException``.
@@ -270,9 +270,9 @@ class ParserError(GeneralParserError):
 
         Parameters
         ----------
-        pos: Tuple[int, int]
+        pos : Tuple[int, int]
             One of the states defined in ``State``
-        from_exception: Exception
+        from_exception : Exception
             The exception that may have triggered this one.
 
         For the other parameters, see ``GeneralParserError``.

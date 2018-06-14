@@ -64,7 +64,7 @@ class Element(WithClass):
 
         Parameters
         ----------
-        selector: str
+        selector : str
             Empty by default, it's a string to specify how to filter the children.
             If it starts with a dot ``.``, we select children having this class.
             If it starts with a sharp ``#``, we select children having this id.
@@ -108,7 +108,7 @@ class Element(WithClass):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -164,7 +164,7 @@ class Element(WithClass):
 
         Parameters
         ----------
-        context: OptionalContext
+        context : OptionalContext
             The context passed through the tree.
 
         Returns
@@ -182,7 +182,7 @@ class Element(WithClass):
 
         Parameters
         ----------
-        context: OptionalContext
+        context : OptionalContext
             The context passed through the tree.
 
         """
@@ -195,9 +195,9 @@ class Element(WithClass):
 
         Parameters
         ----------
-        element: AnElement
+        element : AnElement
             The element rendered by ``render``. Could be an Element, an html tag, a RawHtml...
-        context: OptionalContext
+        context : OptionalContext
             The context passed through the tree.
 
         """
@@ -212,11 +212,11 @@ class Element(WithClass):
 
         Parameters
         ----------
-        child: Element
+        child : Element
             The element in a tree on which ``render`` was just called.
-        child_element: AnElement
+        child_element : AnElement
             The element rendered by the call of the ``render`` method of `child`.
-        context: OptionalContext
+        context : OptionalContext
             The context passed through the tree.
 
         """

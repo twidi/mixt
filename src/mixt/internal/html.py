@@ -46,11 +46,11 @@ class HtmlElementMetaclass(BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the class to construct.
-        parents: Sequence[type]
+        parents : Sequence[type]
             A tuple with the direct parent classes of the class to construct.
-        attrs: Dict[str, Any]
+        attrs : Dict[str, Any]
             Dict with the attributes defined in the class.
 
         """
@@ -184,7 +184,7 @@ class HtmlElement(HtmlBaseElement):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -203,7 +203,7 @@ class HtmlElementNoChild(HtmlBaseElement):
 
         Parameters
         ----------
-        child_or_children: OneOrManyElements
+        child_or_children : OneOrManyElements
             The child(ren) we cannot add.
 
         Raises
@@ -222,7 +222,7 @@ class HtmlElementNoChild(HtmlBaseElement):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -242,7 +242,7 @@ class RawHtml(HtmlElementNoChild):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The list where to append the text.
 
         """
@@ -254,7 +254,7 @@ def Raw(text: str) -> RawHtml:  # pylint: disable=invalid-name
 
     Parameters
     ----------
-    text: str
+    text : str
         The text to pass as a prop to the RawHtml element to construct.
 
     Returns
@@ -279,7 +279,7 @@ class Comment(Base):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The list where to append nothing.
 
         """
@@ -297,7 +297,7 @@ class Doctype(Base):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -315,7 +315,7 @@ class CData(Base):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -348,7 +348,7 @@ class ConditionalComment(Base):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -365,7 +365,7 @@ class ConditionalNonComment(ConditionalComment):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -386,7 +386,7 @@ class IFStack:
 
         Parameters
         ----------
-        cond: bool
+        cond : bool
             The condition to add to the stack.
 
         Returns

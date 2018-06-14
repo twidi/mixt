@@ -53,7 +53,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name to convert.
 
         Returns
@@ -72,7 +72,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name to convert.
 
         Returns
@@ -101,7 +101,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name to check.
 
         Returns
@@ -125,7 +125,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop for which we want the type.
 
         Returns
@@ -142,7 +142,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop we ask for.
 
         Returns
@@ -162,7 +162,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop we ask for.
 
         Returns
@@ -179,7 +179,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop we ask for.
 
         Returns
@@ -277,9 +277,9 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop for which we want to validate the value.
-        value: Any
+        value : Any
             The value we want to validate.
 
         Returns
@@ -383,7 +383,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        props: Dict[str, Any]
+        props : Dict[str, Any]
             The props to check.
 
         Raises
@@ -404,7 +404,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        dev_mode: bool
+        dev_mode : bool
             The new dev mode wanted. Default to ``True``. Will be casted to ``bool``
 
         """
@@ -424,7 +424,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        dev_mode: bool
+        dev_mode : bool
             The dev-mode wanted inside the ``with`` block.
 
         Examples
