@@ -112,6 +112,11 @@ def test_children_filtering():
     assert get_ids(el.children('span', exclude=True)) == ['0', '1', '3', '4']
     assert get_ids(el.children('Child', exclude=True)) == ['0', '1', '2', '3']
 
+    assert get_ids(el.children(Element)) == ['4']
+    assert get_ids(el.children(Child)) == ['4']
+    assert get_ids(el.children(Element, exclude=True)) == ['0', '1', '2', '3']
+    assert get_ids(el.children(Child, exclude=True)) == ['0', '1', '2', '3']
+
 
 def test_pre_post_render():
 

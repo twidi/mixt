@@ -1,6 +1,6 @@
 """Provide the ``Element`` class to create reusable components."""
 
-from typing import List, Optional
+from typing import List, Optional, Type, Union
 
 from .html import Fragment
 from .internal.base import (
@@ -58,17 +58,19 @@ class Element(WithClass):
         return self.prop("id")
 
     def children(  # pylint: disable=arguments-differ
-        self, selector: str = "", exclude: bool = False
+        self, selector: Optional[Union[str, Type[Base]]] = None, exclude: bool = False
     ) -> ManyElements:
         """Return the (direct) children, maybe filtered.
 
         Parameters
         ----------
-        selector : str
-            Empty by default, it's a string to specify how to filter the children.
-            If it starts with a dot ``.``, we select children having this class.
-            If it starts with a sharp ``#``, we select children having this id.
-            Else we select children having this tag name.
+        selector : Union[str, Type[Base]
+            Empty by default.
+            If it's a string to specify how to filter the children:
+              - If it starts with a dot ``.``, we select children having this class.
+              - If it starts with a sharp ``#``, we select children having this id.
+              - Else we select children having this tag name.
+            If it's a class, only instances of this class (or subclass) are returned
         exclude : bool
             ``False`` by default. If ``True``, the result of the selection done by ``selector`` is
             reversed. Ie we select ALL BUT children having this clas/id/tag.
@@ -84,17 +86,24 @@ class Element(WithClass):
         if not selector:
             return children
 
-        # filter by class
-        if selector[0] == ".":
-            select = lambda x: selector[1:] in x.classes
+        if isinstance(selector, str):
 
-        # filter by id
-        elif selector[0] == "#":
-            select = lambda x: selector[1:] == x.get_id()
+            compare_str: str = selector[1:]
 
-        # filter by tag name
-        else:
-            select = lambda x: selector == x.__tag__
+            # filter by class
+            if selector[0] == ".":
+                select = lambda x: compare_str in x.classes
+
+            # filter by id
+            elif selector[0] == "#":
+                select = lambda x: compare_str == x.get_id()
+
+            # filter by tag name
+            else:
+                select = lambda x: selector == x.__tag__
+
+        elif issubclass(selector, Base):
+            select = lambda x: isinstance(x, selector)  # type: ignore
 
         if exclude:
             func = lambda x: not select(x)  # type: ignore
