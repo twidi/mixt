@@ -20,7 +20,7 @@ from .internal.html import (  # noqa: F401  # pylint: disable=unused-import
     IFStack,
     Raw,
 )
-from .proptypes import Choices, Number
+from .proptypes import Choices, Number, Required
 
 
 class _Hyperlink(HtmlElement):
@@ -385,10 +385,29 @@ class Form(HtmlElement):
         target: str
 
 
-class _H(HtmlElement):
-    """Base for H* elements."""
+class H(HtmlElement):  # noqa: E742  # pylint: disable=invalid-name
+    """Can replace H* tags by passing a ``level`` prop."""
 
-    role: Choices = cast(Choices, ["tab", "presentation"])
+    class PropTypes:
+        role: Choices = cast(Choices, ["tab", "presentation"])
+        level: Required[Choices] = cast(Required[Choices], [1, 2, 3, 4, 5, 6])
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Create the Hx* tag using the ``level`` prop.
+
+        For the parameters, see ``Base.__init__``.
+
+        """
+        super().__init__(**kwargs)
+        self.level = kwargs.pop("level")
+        self.unset_prop("level")
+        self.__tag__ = f"h{self.level}"
+
+
+class _H(HtmlElement):
+    """Base for normal H* elements."""
+
+    pass
 
 
 class H1(_H):
