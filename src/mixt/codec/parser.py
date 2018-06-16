@@ -221,9 +221,12 @@ class PyxlParser(HTMLTokenizer):
             self.last_thing_was_close_if_tag = False
             return
 
-        if tag.lower() in __tags__:
-            self.output.append('html.%s(' % __tags__[tag.lower()])
-        elif hasattr(html, tag):
+        tag_lower = tag.lower()
+        if tag == tag_lower and tag_lower in __tags__:
+            # allow only lower-cased tags in html
+            self.output.append('html.%s(' % __tags__[tag_lower])
+        elif hasattr(html, tag) and tag_lower not in __tags__:
+            # or other in html but not html tags: just "special" tags
             self.output.append('html.%s(' % tag)
         else:
             self.output.append('%s(' % tag)
