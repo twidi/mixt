@@ -73,22 +73,6 @@ class Collector(Element, metaclass=CollectorMetaclass):
         self.__global__: List[Type[Base]] = []
         super().__init__(**kwargs)
 
-    def render(self, context: OptionalContext) -> OneOrManyElements:
-        """Return the children of a collector, to be rendered as html.
-
-        Parameters
-        ----------
-        context : OptionalContext
-            The context passed through the tree.
-
-        Returns
-        -------
-        Optional[OneOrManyElements]
-            None, or one or many elements or strings.
-
-        """
-        return self.children()
-
     def postrender_child_element(
         self, child: "Element", child_element: AnElement, context: OptionalContext
     ) -> None:

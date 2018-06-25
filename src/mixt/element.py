@@ -166,10 +166,17 @@ class Element(WithClass):
 
         return self._element  # type: ignore
 
-    def render(self, context: OptionalContext) -> Optional[OneOrManyElements]:
+    def render(  # noqa: B950  # pylint: disable=unused-argument
+        self, context: OptionalContext
+    ) -> Optional[OneOrManyElements]:
         """Return elements to be rendered as html.
 
-        Must be implemented in subclasses.
+        Returns only all children (``self.children()``) by default.
+
+        Must be implemented in subclasses to do something else.
+
+        Must return a component, a list of components, a fragment, or False/None. See example for
+        more details.
 
         Parameters
         ----------
@@ -182,7 +189,7 @@ class Element(WithClass):
             None, or one or many elements or strings.
 
         """
-        raise NotImplementedError()
+        return self.children()
 
     def prerender(self, context: OptionalContext) -> None:
         """Provide a hook to do things before the element is rendered.
