@@ -165,7 +165,9 @@ def test_classes_can_be_changed():
             return <div class="div divremoved" />
 
         def prerender(self, context):
+            assert not self.has_class('prepended')
             self.prepend_class('prepended removed')
+            assert self.has_class('prepended')
 
         def postrender(self, element, context):
             self.append_class('appended')

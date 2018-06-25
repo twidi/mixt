@@ -854,7 +854,11 @@ class WithClass(Base):
             The "class" prop, stripped.
 
         """
-        return self.prop("class", "").strip()
+        try:
+            klass = self.prop("class")
+        except UnsetPropError:
+            klass = ""
+        return klass.strip()
 
     @property
     def classes(self) -> List[str]:
@@ -950,6 +954,22 @@ class WithClass(Base):
         return self.set_prop(
             "class", " ".join(c for c in self.classes if c not in klasses)
         )
+
+    def has_class(self, klass: str) -> bool:
+        """Tell if the given `class` is in the actual list of classes.
+
+        Parameters
+        ----------
+        klass : str
+            The class to check.
+
+        Returns
+        -------
+        bool
+            The new value of the ``class`` prop.
+
+        """
+        return klass.strip() in self.classes
 
 
 class Fragment(WithClass):
