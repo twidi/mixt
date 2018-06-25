@@ -19,6 +19,7 @@ from .internal.html import (  # noqa: F401  # pylint: disable=unused-import
     HtmlElementNoChild,
     IFStack,
     Raw,
+    RawHtml,
 )
 from .proptypes import Choices, Number, Required
 
