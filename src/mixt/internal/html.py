@@ -290,7 +290,7 @@ class Doctype(Base):
     """Implement HTML doctype declaration."""
 
     class PropTypes:
-        doctype: str
+        doctype: str = "html"
 
     def _to_list(self, acc: List) -> None:
         """Add the doctype html declaration to the list `acc`.
