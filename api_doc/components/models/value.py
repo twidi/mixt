@@ -85,7 +85,7 @@ class NamedValue(_Value):
     def render(self, context):
         value = self.value
 
-        id_prefix = f"{self.id_prefix}{value.name}"
+        id_prefix = f"{self.id_prefix}{value.name.replace('*', '')}"
 
         output_type = output_default = None
         if value.type:
