@@ -86,9 +86,11 @@ class BaseMetaclass(type):
         proptypes_classes = []
         exclude: Set[str] = set()
 
+        proptypes_doc = None
         if "PropTypes" in attrs:
             proptypes_classes.append(attrs["PropTypes"])
             exclude = getattr(attrs["PropTypes"], "__exclude__", exclude)
+            proptypes_doc = getattr(attrs["PropTypes"], "__doc__", None)
 
         proptypes_classes.extend(
             [
@@ -109,6 +111,9 @@ class BaseMetaclass(type):
                     for klass in proptypes_classes
                 ]
             )
+
+        if proptypes_doc:
+            PropTypes.__doc__ = proptypes_doc
 
         PropTypes.__validate_types__()
 
