@@ -194,6 +194,23 @@ class BasePropTypes:
         return cls.__default_props__.get(name, NotProvided)
 
     @classmethod
+    def __is_required__(cls, name: str) -> bool:
+        """Tell if the prop defined by `name` is a required one.
+
+        Parameters
+        ----------
+        name : str
+            The name of the prop we want to know if it is required.
+
+        Returns
+        -------
+        bool
+            ``True`` if the prop is required, ``False`` otherwise.
+
+        """
+        return name in cls.__required_props__
+
+    @classmethod
     def __validate_types__(cls: Type["BasePropTypes"]) -> None:
         """Validate the types of the props defined in the current PropTypes class.
 

@@ -666,6 +666,28 @@ class Base(object, metaclass=BaseMetaclass):
         """
         return cls.PropTypes.__type__(cls.prop_name(name))
 
+    @classmethod
+    def is_prop_required(cls, name: str) -> bool:
+        """Tell if the prop defined by `name` is a required one.
+
+        Parameters
+        ----------
+        name : str
+            The name of the prop we want to know if it is required.
+
+        Returns
+        -------
+        bool
+            ``True`` if the prop is required, ``False`` otherwise.
+
+        Raises
+        ------
+        InvalidPropNameError
+            If there is no prop with the given `name`.
+
+        """
+        return cls.PropTypes.__is_required__(cls.prop_name(name))
+
     @property
     def props(self) -> Props:
         """Get all the available and set props, including default ones.
