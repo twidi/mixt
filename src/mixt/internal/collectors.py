@@ -236,7 +236,6 @@ class JSCollector(Collector):
 
     It can collect via the ``<JSCollector.Collect>`` tag, and/or via the ``render_js`` method
     on the child.
-
     """
 
     KIND = "js"
