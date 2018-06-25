@@ -3,7 +3,7 @@
 from typing import Any, Dict, List, Optional, Sequence, cast
 
 from ..exceptions import InvalidChildrenError
-from ..proptypes import Choices, NotProvided
+from ..proptypes import Choices, NotProvided, Required
 from .base import (  # noqa: F401  # isort: skip  # pylint: disable=unused-import
     Base,
     BaseMetaclass,
@@ -308,7 +308,7 @@ class CData(Base):
     """Implement HTML CDATA declaration."""
 
     class PropTypes:
-        cdata: str
+        cdata: Required[str]
 
     def _to_list(self, acc: List) -> None:
         """Add the cdata html declaration to the list `acc`.
