@@ -3,7 +3,7 @@
 """Ensure that parents are saved correctly."""
 
 from mixt import Element, html
-from mixt.internal.collector import Collector, CSSCollector, JSCollector
+from mixt.internal.collectors import Collector, CSSCollector, JSCollector
 
 
 def test_collector():

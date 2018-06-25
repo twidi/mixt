@@ -279,3 +279,31 @@ def test_exclude():
         <Bar val1="bar" />
 
     (<Bar val2="bar" />)
+
+
+def test_covariance():
+    class Obj:
+        pass
+
+    class SubObj(Obj):
+        pass
+
+    class SubSubObj(SubObj):
+        pass
+
+    class SubObj2(Obj):
+        pass
+
+    class Foo(DummyBase):
+        class PropTypes:
+            obj: SubObj
+
+    with pytest.raises(InvalidPropValueError):
+        <Foo obj={Obj()} />
+
+    with pytest.raises(InvalidPropValueError):
+        <Foo obj={SubObj2()} />
+
+    str(<Foo obj={SubObj()} />)
+
+    str(<Foo obj={SubSubObj()} />)

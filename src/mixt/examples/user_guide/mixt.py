@@ -38,12 +38,12 @@ class TodoForm(Element):
     @classmethod
     def render_js_global(cls, context):
         # language=JS
-        return html.Raw("""
+        return """
 function on_todo_add_submit(form) {
     var text = form.todo.value;
     add_todo(text);
 }
-""")
+"""
 
     def render(self, context):
 

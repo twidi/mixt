@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import keyword
 from typing import Any, Dict, Sequence, Set, Type, get_type_hints
 
+import enforce  # we use "enforce" to check complex types
 from enforce.exceptions import RuntimeTypeError
 
 from ..exceptions import (
@@ -15,6 +16,10 @@ from ..exceptions import (
     RequiredPropError,
 )
 from ..proptypes import Choices, DefaultChoices, NotProvided, Required
+
+
+# Allow using a subclass of one defined in PropTypes
+enforce.config({"mode": "covariant"})
 
 
 FUTURE_KEYWORDS: Set[str] = {
@@ -53,7 +58,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name to convert.
 
         Returns
@@ -72,7 +77,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name to convert.
 
         Returns
@@ -101,7 +106,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name to check.
 
         Returns
@@ -125,7 +130,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop for which we want the type.
 
         Returns
@@ -142,7 +147,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop we ask for.
 
         Returns
@@ -162,7 +167,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop we ask for.
 
         Returns
@@ -179,7 +184,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop we ask for.
 
         Returns
@@ -192,6 +197,23 @@ class BasePropTypes:
 
         """
         return cls.__default_props__.get(name, NotProvided)
+
+    @classmethod
+    def __is_required__(cls, name: str) -> bool:
+        """Tell if the prop defined by `name` is a required one.
+
+        Parameters
+        ----------
+        name : str
+            The name of the prop we want to know if it is required.
+
+        Returns
+        -------
+        bool
+            ``True`` if the prop is required, ``False`` otherwise.
+
+        """
+        return name in cls.__required_props__
 
     @classmethod
     def __validate_types__(cls: Type["BasePropTypes"]) -> None:
@@ -277,9 +299,9 @@ class BasePropTypes:
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the prop for which we want to validate the value.
-        value: Any
+        value : Any
             The value we want to validate.
 
         Returns
@@ -360,8 +382,6 @@ class BasePropTypes:
             raise InvalidPropValueError(cls.__owner_name__, name, value, prop_type)
 
         except TypeError:
-            # we use "enforce" to check complex types
-            import enforce
 
             @enforce.runtime_validation  # type: ignore
             def check(  # type: ignore  # pylint: disable=missing-param-doc,missing-type-doc,unused-argument
@@ -383,7 +403,7 @@ class BasePropTypes:
 
         Parameters
         ----------
-        props: Dict[str, Any]
+        props : Dict[str, Any]
             The props to check.
 
         Raises
@@ -404,15 +424,38 @@ class BasePropTypes:
 
         Parameters
         ----------
-        dev_mode: bool
-            The new dev mode wanted. Default to ``True``. Will be casted to ``bool``
+        dev_mode : bool
+            The new dev mode wanted. Default to ``True``. Will be casted to ``bool``.
+
+        Examples
+        --------
+        >>> from mixt import set_dev_mode, in_dev_mode
+        >>> in_dev_mode()
+        True
+        >>> set_dev_mode(False)
+        >>> in_dev_mode()
+        False
+        >>> set_dev_mode()
+        >>> in_dev_mode()
+        True
 
         """
         cls.__dev_mode__ = dev_mode
 
     @classmethod
     def __unset_dev_mode__(cls) -> None:
-        """Deactivate the dev-mode."""
+        """Deactivate the dev-mode.
+
+        Examples
+        --------
+        >>> from mixt import unset_dev_mode, in_dev_mode
+        >>> in_dev_mode()
+        True
+        >>> unset_dev_mode()
+        >>> in_dev_mode()
+        False
+
+        """
         cls.__set_dev_mode__(dev_mode=False)
 
     @classmethod
@@ -424,15 +467,24 @@ class BasePropTypes:
 
         Parameters
         ----------
-        dev_mode: bool
+        dev_mode : bool
             The dev-mode wanted inside the ``with`` block.
 
         Examples
         --------
-        >>> assert PropTypes.__in_dev_mode__()
-        >>> with PropTypes.__override_dev_mode__(False):
-        ...     assert not PropTypes.__in_dev_mode__()
-        >>> assert PropTypes.__in_dev_mode__()
+        >>> from mixt import override_dev_mode, in_dev_mode
+        >>> in_dev_mode()
+        True
+        >>> with override_dev_mode(False):
+        ...     print('off:', in_dev_mode())
+        ...     with override_dev_mode(True):
+        ...         print('on:', in_dev_mode())
+        ...     print('back off:', in_dev_mode())
+        ... print('back on:', in_dev_mode())
+        off: False
+        on: True
+        back off: False
+        back on: True
 
         """
         old_dev_mode: bool = cls.__dev_mode__
@@ -450,6 +502,19 @@ class BasePropTypes:
         -------
         bool
             The value of the actual dev-mode.
+
+        Examples
+        --------
+        >>> from mixt import set_dev_mode, unset_dev_mode, in_dev_mode
+        >>> in_dev_mode()
+        True
+        >>> unset_dev_mode()
+        >>> in_dev_mode()
+        False
+        >>> set_dev_mode()
+        >>> in_dev_mode()
+        True
+
 
         """
         return cls.__dev_mode__

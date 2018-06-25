@@ -462,9 +462,6 @@ def test_postrender_child_element():
             self.__postrendered_children__ = []
             super().__init__(**kwargs)
 
-        def render(self, context):
-            return self.children()
-
         def postrender_child_element(self, child, child_element, context):
             self.__postrendered_children__.append(child)
 
@@ -497,9 +494,6 @@ def test_postrender_child_element():
         def __init__(self, **kwargs) -> None:
             self.__collected__ = []
             super().__init__(**kwargs)
-
-        def render(self, context):
-            return self.children()
 
         def postrender_child_element(self, child, child_element, context):
             if isinstance(child, Collect):

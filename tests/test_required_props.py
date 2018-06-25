@@ -21,6 +21,7 @@ def test_prop_optional_by_default():
         class PropTypes:
             value: str
 
+    assert not Foo.is_prop_required("value")
     (<Foo />)
 
 def test_prop_required_ok_if_passed():
@@ -28,6 +29,7 @@ def test_prop_required_ok_if_passed():
         class PropTypes:
             value: Required[str]
 
+    assert Foo.is_prop_required("value")
     (<Foo value="foo" />)
 
 def test_prop_required_fail_if_not_passed():

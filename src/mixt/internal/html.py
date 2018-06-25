@@ -3,11 +3,11 @@
 from typing import Any, Dict, List, Optional, Sequence, cast
 
 from ..exceptions import InvalidChildrenError
-from ..proptypes import Choices, NotProvided
-from .base import (  # noqa: F401  # pylint: disable=unused-import
+from ..proptypes import Choices, NotProvided, Required
+from .base import (  # noqa: F401  # isort: skip  # pylint: disable=unused-import
     Base,
     BaseMetaclass,
-    Fragment,  # imported to be used in html like ``<Fragment>``, so  ``html.Fragment``
+    Fragment,
     OneOrManyElements,
     WithClass,
     escape,
@@ -46,11 +46,11 @@ class HtmlElementMetaclass(BaseMetaclass):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the class to construct.
-        parents: Sequence[type]
+        parents : Sequence[type]
             A tuple with the direct parent classes of the class to construct.
-        attrs: Dict[str, Any]
+        attrs : Dict[str, Any]
             Dict with the attributes defined in the class.
 
         """
@@ -184,7 +184,7 @@ class HtmlElement(HtmlBaseElement):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -203,7 +203,7 @@ class HtmlElementNoChild(HtmlBaseElement):
 
         Parameters
         ----------
-        child_or_children: OneOrManyElements
+        child_or_children : OneOrManyElements
             The child(ren) we cannot add.
 
         Raises
@@ -222,7 +222,7 @@ class HtmlElementNoChild(HtmlBaseElement):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -232,9 +232,99 @@ class HtmlElementNoChild(HtmlBaseElement):
 
 
 class RawHtml(HtmlElementNoChild):
-    """Element to handle raw text in html."""
+    """Element to handle raw text in html.
+
+    The rule to know when some text will be automatically escaped or not is simple:
+
+    - if it's python: it will be escaped
+    - if it's "mixt": it will not
+
+    ``RawHtml`` helps to tell mixt to not escape some text. It's a component with a ``text``
+    prop that is generally used via the ``Raw`` function that take some text as an unnamed
+    argument that is passed to the ``text`` prop of a new ``RawHtml`` component.
+
+    So calling ``html.Raw("some text")`` is sugar for calling ``html.RawHtml(text="some text)``.
+
+    Generally you should not have to worry, ``mixt`` does its best to handle things for you.
+
+    But for example, when rendering some JS or CSS, you really want RAW, without escaping.
+
+    Below are some examples to show when text is escaped or not.
+
+    Examples
+    --------
+    >>> from mixt import h, html  # same but ``html`` for mixt mode, and ``h`` as a shortcut
+
+    # Simple rendered text will be escaped. Because it's seen as python
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return 'Hello "world" !'
+
+    >>> print(<Component />)
+    Hello &quot;world&quot; !
+
+
+    # If we don't want this, we need to mark the text as raw.
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return h.Raw('Hello "world" !')
+
+    >>> print(<Component />)
+    Hello "world" !
+
+    # In "mixt" mode, text will NOT be escaped.
+    # Because calling ``<div>text</div>`` is in fact calling ``html.Div()(html.Raw('text'))``
+    >>> class Component(Element):
+    ...     def render(self, context):
+            return <div>Hello "world" !</Div>"hello
+
+    >>> print(<Component />)
+    <div>Hello "world" !</div>
+
+    # But it will be in attributes:
+    >>> class Component(Element):
+    ...     def render(self, context):
+            return <div data-foo="<bar>">Hello "world" !</div>
+
+    >>> print(<Component />)
+    <div data-foo="&lt;bar&gt;">Hello "world" !</div>
+
+    # Even if given as a python string
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return <div data-foo={"<bar>"}>Hello "world" !</div>
+
+    >>> print(<Component />)
+    <div data-foo="&lt;bar&gt;">Hello "world" !</div>
+
+    # Text in python mode, will be escaped:
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return h.Fragment()('Hello "world" !')
+
+    >>> print(<Component />)
+    <div>Hello &quot;world&quot; !</div>
+
+    # Use ``RawHtml`` to solve this.
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return h.Div()(h.Raw('Hello "world" !'))
+
+    >>> print(<Component />)
+    <div>Hello "world" !</div>
+
+    """
 
     class PropTypes:
+        """PropTypes for the ``RawHtml`` component.
+
+        Attributes
+        ----------
+        text : str
+            The text that will be rendered without escaping.
+
+        """
+
         text: str
 
     def _to_list(self, acc: List) -> None:
@@ -242,7 +332,7 @@ class RawHtml(HtmlElementNoChild):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The list where to append the text.
 
         """
@@ -252,9 +342,11 @@ class RawHtml(HtmlElementNoChild):
 def Raw(text: str) -> RawHtml:  # pylint: disable=invalid-name
     """Help to easily construct a RawHtml element.
 
+    See ``RawHtml`` for more information.
+
     Parameters
     ----------
-    text: str
+    text : str
         The text to pass as a prop to the RawHtml element to construct.
 
     Returns
@@ -279,7 +371,7 @@ class Comment(Base):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The list where to append nothing.
 
         """
@@ -287,17 +379,57 @@ class Comment(Base):
 
 
 class Doctype(Base):
-    """Implement HTML doctype declaration."""
+    """Implement HTML doctype declaration.
+
+    Examples
+    --------
+    # It can be used as a normal HTML doctype:
+
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return <!DOCTYPE html>
+
+    >>> print(<Component />)
+    <!DOCTYPE html>
+
+    # Or using it as a component:
+
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return <Doctype doctype=html />
+
+    >>> print(<Component />)
+    <!DOCTYPE html>
+
+    # Or even better, taking advantage of the default value of the ``doctype`` prop:
+
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return <Doctype />
+
+    >>> print(<Component />)
+    <!DOCTYPE html>
+
+    """
 
     class PropTypes:
-        doctype: str
+        """PropTypes for the ``Doctype`` element.
+
+        Attributes
+        ----------
+        doctype : str
+            The doctype to use. Default to ``html``.
+
+        """
+
+        doctype: str = "html"
 
     def _to_list(self, acc: List) -> None:
         """Add the doctype html declaration to the list `acc`.
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -308,14 +440,14 @@ class CData(Base):
     """Implement HTML CDATA declaration."""
 
     class PropTypes:
-        cdata: str
+        cdata: Required[str]
 
     def _to_list(self, acc: List) -> None:
         """Add the cdata html declaration to the list `acc`.
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -348,7 +480,7 @@ class ConditionalComment(Base):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -365,7 +497,7 @@ class ConditionalNonComment(ConditionalComment):
 
         Parameters
         ----------
-        acc: List
+        acc : List
             The accumulator list where to append the parts.
 
         """
@@ -386,7 +518,7 @@ class IFStack:
 
         Parameters
         ----------
-        cond: bool
+        cond : bool
             The condition to add to the stack.
 
         Returns
