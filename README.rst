@@ -141,6 +141,12 @@ If you touch things in the ``codec`` directory, you'll have to run ``make dev`` 
 
 Note that our CI will check that every commit passes the ``make lint`` and ``make tests``. So don't forget to run these two for each commit.
 
+One way to do it before pushing is:
+
+.. code-block:: shell
+
+    git rebase develop --exec 'make lint && make tests'
+
 
 **********
 User Guide
