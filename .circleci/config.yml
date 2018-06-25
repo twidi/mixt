@@ -154,10 +154,63 @@ jobs:
             make dist
       - store_artifacts:
           path: dist/
-      - persist_to_workspace:
-          root: "~/"
+      - save_cache:
+          key: v1-mixt-dist-{{ .Revision }}
           paths:
-            - mixt/dist
+            - ~/mixt/dist
+
+  # will test that the python wheel package is installable and works
+  test_python_package_whl:
+    <<: *python_only_config
+    steps:
+      - checkout
+      - *restore_pip_cache
+      - restore_cache:
+          keys:
+            - v1-mixt-dist-{{ .Revision }}
+      - run:
+          name: Check package
+          command: |
+            ls -la
+            mv dist _dist
+            rm -r src
+            make full-clean
+            python -m venv ~/venv
+            source ~/venv/bin/activate
+            pip install --upgrade pip
+            pip install $(ls -tr _dist/*.whl | tail -n 1)
+            mixt-post-install
+            diff -q <(python -m mixt.examples.simple) <(echo '<div title="Greeting">Hello, World</div>') || (echo 'Unexpected output for "python -m mixt.examples.simple"')
+            pip install $(ls -tr _dist/*.whl | tail -n 1)[test]
+            make tests
+
+  # will test that the python tar.gz package is installable and works
+  test_python_package_targz:
+    <<: *python_only_config
+    steps:
+      - checkout
+      - *restore_pip_cache
+      - restore_cache:
+          keys:
+            - v1-mixt-dist-{{ .Revision }}
+      - run:
+          name: Check package
+          command: |
+            ls -la
+            python -m venv ~/venv
+            source ~/venv/bin/activate
+            pip install --upgrade pip
+            mv dist _dist
+            rm -r src
+            make full-clean
+            python -m venv ~/venv
+            source ~/venv/bin/activate
+            pip install --upgrade pip
+            pip install $(ls -tr _dist/*.tar.gz | tail -n 1)
+            mixt-post-install
+            diff -q <(python -m mixt.examples.simple) <(echo '<div title="Greeting">Hello, World</div>') || (echo 'Unexpected output for "python -m mixt.examples.simple"')
+            pip install $(ls -tr _dist/*.tar.gz | tail -n 1)[test]
+            make tests
 
   # will check that documentation is up to date
   check_doc:
@@ -179,7 +232,7 @@ jobs:
 workflows:
   version: 2
 
-  marsha:
+  mixt:
     jobs:
       - checkout_code
       - install_code:
@@ -222,3 +275,9 @@ workflows:
             - linter_flake8
             - linter_pylint
             - run_tests
+      - test_python_package_whl:
+          requires:
+            - build_python_package
+      - test_python_package_targz:
+          requires:
+            - build_python_package
