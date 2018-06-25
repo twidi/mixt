@@ -1,9 +1,10 @@
 """Provide the ``Element`` class to create reusable components."""
 
 
-from typing import Any, Dict, List, Optional, Sequence, Type, cast
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Type, cast
 
 from ..element import Element
+from ..exceptions import MixtException
 from ..html import Raw, Script, Style
 from ..proptypes import DefaultChoices
 from .base import AnElement, Base, BaseMetaclass, OneOrManyElements, OptionalContext
@@ -70,7 +71,8 @@ class Collector(Element, metaclass=CollectorMetaclass):
 
         """
         self.__collected__: List[AnElement] = []
-        self.__global__: List[Type[Base]] = []
+        self.__global_classes__: Set[Type[Base]] = set()
+        self.__global_methods__: Set[Callable] = set()
         super().__init__(**kwargs)
 
     def postrender_child_element(
@@ -79,8 +81,11 @@ class Collector(Element, metaclass=CollectorMetaclass):
         """Catch child render_{KIND} method, or child content if a ``Collect``.
 
         If there is KIND:
-        - try to collect ``render_{KIND}_global`` if not already done for the child's class
+        - try to collect  the``render_{KIND}_global`` class method if not already done for the child
+        's class (it will collect this method for all parents, starting for the higher in the mro:
+        do not use ``super`` in this class)
         - try to collect ``render_{KIND}
+
         Then collect if it's a ``Collect`` instance.
 
         Parameters
@@ -92,23 +97,70 @@ class Collector(Element, metaclass=CollectorMetaclass):
         context : OptionalContext
             The context passed through the tree.
 
+        Raises
+        ------
+        MixtException
+            If the ``render_{KIND}_global`` is not a ``classmethod``.
+
         """
         if self.KIND:
-
-            if child.__class__ not in self.__global__:
-                self.__global__.append(child.__class__)
-                if hasattr(child, f"render_{self.KIND}_global"):
-                    method = getattr(child, f"render_{self.KIND}_global")
-                    if callable(method):
-                        self.__collected__.append(method(context))
+            if child.__class__ not in self.__global_classes__:
+                for base in reversed(child.__class__.__mro__):
+                    if base in self.__global_classes__:
+                        continue
+                    self.__global_classes__.add(base)
+                    if not hasattr(base, f"render_{self.KIND}_global"):
+                        continue
+                    method = getattr(base, f"render_{self.KIND}_global")
+                    if not hasattr(method, "__func__"):
+                        if getattr(base, "__display_name__", None):
+                            name = f"<{base.__display_name__}>"  # type: ignore
+                        else:
+                            name = str(base)
+                        raise MixtException(
+                            f"{name}.render_{self.KIND}_global must be a classmethod"
+                        )
+                    if method.__func__ in self.__global_methods__:
+                        continue
+                    self.__global_methods__.add(method.__func__)
+                    self.__collected__.append(
+                        self.call_collected_method(method, context, True)
+                    )
 
             if hasattr(child, f"render_{self.KIND}"):
                 method = getattr(child, f"render_{self.KIND}")
                 if callable(method):
-                    self.__collected__.append(method(context))
+                    self.__collected__.append(
+                        self.call_collected_method(method, context, False)
+                    )
 
         if isinstance(child, self.Collect):
             self.__collected__.append(child)
+
+    def call_collected_method(
+        self,
+        method: Callable,
+        context: OptionalContext,
+        is_global: bool,  # pylint: disable=unused-argument
+    ) -> str:
+        """Call the collected `method`, passing it the `context`.
+
+        Parameters
+        ----------
+        method : Callable
+            The method to run to collect the output.
+        context : OptionalContext
+            The context passed through the tree.
+        is_global : bool
+            If the `method` to execute is a global one (ie ``render_{KIND}_global``) or not.
+
+        Returns
+        -------
+        str
+            The result of the call to `method`, ready to be collected.
+
+        """
+        return method(context)
 
     def render_collected(self) -> OneOrManyElements:
         """Render the content of all collected children at once.
@@ -155,7 +207,7 @@ class Collector(Element, metaclass=CollectorMetaclass):
 
 
 class CSSCollector(Collector):
-    """A collector that will surround collected content in a <style> tag in ``render_collected``.
+    """A collector that'll surround collected content in a ``<style>`` tag in ``render_collected``.
 
     It can collect via the ``<CSSCollector.Collect>`` tag, and/or via the ``render_css`` method
     on the child.
@@ -180,7 +232,7 @@ class CSSCollector(Collector):
 
 
 class JSCollector(Collector):
-    """A collector that will surround collected content in a <script> tag in ``render_collected``.
+    """A collector that'll surround collected content in a ``<script>`` tag in ``render_collected``.
 
     It can collect via the ``<JSCollector.Collect>`` tag, and/or via the ``render_js`` method
     on the child.
