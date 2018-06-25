@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import keyword
 from typing import Any, Dict, Sequence, Set, Type, get_type_hints
 
+import enforce  # we use "enforce" to check complex types
 from enforce.exceptions import RuntimeTypeError
 
 from ..exceptions import (
@@ -15,6 +16,10 @@ from ..exceptions import (
     RequiredPropError,
 )
 from ..proptypes import Choices, DefaultChoices, NotProvided, Required
+
+
+# Allow using a subclass of one defined in PropTypes
+enforce.config({"mode": "covariant"})
 
 
 FUTURE_KEYWORDS: Set[str] = {
@@ -377,8 +382,6 @@ class BasePropTypes:
             raise InvalidPropValueError(cls.__owner_name__, name, value, prop_type)
 
         except TypeError:
-            # we use "enforce" to check complex types
-            import enforce
 
             @enforce.runtime_validation  # type: ignore
             def check(  # type: ignore  # pylint: disable=missing-param-doc,missing-type-doc,unused-argument
