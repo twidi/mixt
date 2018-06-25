@@ -232,9 +232,99 @@ class HtmlElementNoChild(HtmlBaseElement):
 
 
 class RawHtml(HtmlElementNoChild):
-    """Element to handle raw text in html."""
+    """Element to handle raw text in html.
+
+    The rule to know when some text will be automatically escaped or not is simple:
+
+    - if it's python: it will be escaped
+    - if it's "mixt": it will not
+
+    ``RawHtml`` helps to tell mixt to not escape some text. It's a component with a ``text``
+    prop that is generally used via the ``Raw`` function that take some text as an unnamed
+    argument that is passed to the ``text`` prop of a new ``RawHtml`` component.
+
+    So calling ``html.Raw("some text")`` is sugar for calling ``html.RawHtml(text="some text)``.
+
+    Generally you should not have to worry, ``mixt`` does its best to handle things for you.
+
+    But for example, when rendering some JS or CSS, you really want RAW, without escaping.
+
+    Below are some examples to show when text is escaped or not.
+
+    Examples
+    --------
+    >>> from mixt import h, html  # same but ``html`` for mixt mode, and ``h`` as a shortcut
+
+    # Simple rendered text will be escaped. Because it's seen as python
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return 'Hello "world" !'
+
+    >>> print(<Component />)
+    Hello &quot;world&quot; !
+
+
+    # If we don't want this, we need to mark the text as raw.
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return h.Raw('Hello "world" !')
+
+    >>> print(<Component />)
+    Hello "world" !
+
+    # In "mixt" mode, text will NOT be escaped.
+    # Because calling ``<div>text</div>`` is in fact calling ``html.Div()(html.Raw('text'))``
+    >>> class Component(Element):
+    ...     def render(self, context):
+            return <div>Hello "world" !</Div>"hello
+
+    >>> print(<Component />)
+    <div>Hello "world" !</div>
+
+    # But it will be in attributes:
+    >>> class Component(Element):
+    ...     def render(self, context):
+            return <div data-foo="<bar>">Hello "world" !</div>
+
+    >>> print(<Component />)
+    <div data-foo="&lt;bar&gt;">Hello "world" !</div>
+
+    # Even if given as a python string
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return <div data-foo={"<bar>"}>Hello "world" !</div>
+
+    >>> print(<Component />)
+    <div data-foo="&lt;bar&gt;">Hello "world" !</div>
+
+    # Text in python mode, will be escaped:
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return h.Fragment()('Hello "world" !')
+
+    >>> print(<Component />)
+    <div>Hello &quot;world&quot; !</div>
+
+    # Use ``RawHtml`` to solve this.
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return h.Div()(h.Raw('Hello "world" !'))
+
+    >>> print(<Component />)
+    <div>Hello "world" !</div>
+
+    """
 
     class PropTypes:
+        """PropTypes for the ``RawHtml`` component.
+
+        Attributes
+        ----------
+        text : str
+            The text that will be rendered without escaping.
+
+        """
+
         text: str
 
     def _to_list(self, acc: List) -> None:
@@ -251,6 +341,8 @@ class RawHtml(HtmlElementNoChild):
 
 def Raw(text: str) -> RawHtml:  # pylint: disable=invalid-name
     """Help to easily construct a RawHtml element.
+
+    See ``RawHtml`` for more information.
 
     Parameters
     ----------
@@ -287,9 +379,49 @@ class Comment(Base):
 
 
 class Doctype(Base):
-    """Implement HTML doctype declaration."""
+    """Implement HTML doctype declaration.
+
+    Examples
+    --------
+    # It can be used as a normal HTML doctype:
+
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return <!DOCTYPE html>
+
+    >>> print(<Component />)
+    <!DOCTYPE html>
+
+    # Or using it as a component:
+
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return <Doctype doctype=html />
+
+    >>> print(<Component />)
+    <!DOCTYPE html>
+
+    # Or even better, taking advantage of the default value of the ``doctype`` prop:
+
+    >>> class Component(Element):
+    ...     def render(self, context):
+    ...         return <Doctype />
+
+    >>> print(<Component />)
+    <!DOCTYPE html>
+
+    """
 
     class PropTypes:
+        """PropTypes for the ``Doctype`` element.
+
+        Attributes
+        ----------
+        doctype : str
+            The doctype to use. Default to ``html``.
+
+        """
+
         doctype: str = "html"
 
     def _to_list(self, acc: List) -> None:

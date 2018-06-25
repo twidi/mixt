@@ -425,14 +425,37 @@ class BasePropTypes:
         Parameters
         ----------
         dev_mode : bool
-            The new dev mode wanted. Default to ``True``. Will be casted to ``bool``
+            The new dev mode wanted. Default to ``True``. Will be casted to ``bool``.
+
+        Examples
+        --------
+        >>> from mixt import set_dev_mode, in_dev_mode
+        >>> in_dev_mode()
+        True
+        >>> set_dev_mode(False)
+        >>> in_dev_mode()
+        False
+        >>> set_dev_mode()
+        >>> in_dev_mode()
+        True
 
         """
         cls.__dev_mode__ = dev_mode
 
     @classmethod
     def __unset_dev_mode__(cls) -> None:
-        """Deactivate the dev-mode."""
+        """Deactivate the dev-mode.
+
+        Examples
+        --------
+        >>> from mixt import unset_dev_mode, in_dev_mode
+        >>> in_dev_mode()
+        True
+        >>> unset_dev_mode()
+        >>> in_dev_mode()
+        False
+
+        """
         cls.__set_dev_mode__(dev_mode=False)
 
     @classmethod
@@ -449,10 +472,19 @@ class BasePropTypes:
 
         Examples
         --------
-        >>> assert PropTypes.__in_dev_mode__()
-        >>> with PropTypes.__override_dev_mode__(False):
-        ...     assert not PropTypes.__in_dev_mode__()
-        >>> assert PropTypes.__in_dev_mode__()
+        >>> from mixt import override_dev_mode, in_dev_mode
+        >>> in_dev_mode()
+        True
+        >>> with override_dev_mode(False):
+        ...     print('off:', in_dev_mode())
+        ...     with override_dev_mode(True):
+        ...         print('on:', in_dev_mode())
+        ...     print('back off:', in_dev_mode())
+        ... print('back on:', in_dev_mode())
+        off: False
+        on: True
+        back off: False
+        back on: True
 
         """
         old_dev_mode: bool = cls.__dev_mode__
@@ -470,6 +502,19 @@ class BasePropTypes:
         -------
         bool
             The value of the actual dev-mode.
+
+        Examples
+        --------
+        >>> from mixt import set_dev_mode, unset_dev_mode, in_dev_mode
+        >>> in_dev_mode()
+        True
+        >>> unset_dev_mode()
+        >>> in_dev_mode()
+        False
+        >>> set_dev_mode()
+        >>> in_dev_mode()
+        True
+
 
         """
         return cls.__dev_mode__

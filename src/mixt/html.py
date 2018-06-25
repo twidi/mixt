@@ -1,4 +1,22 @@
-"""HTML tags automatically discovered by the mixt parser."""
+"""All available HTML tags, with their props.
+
+We support only actual (and not deprecated) tags in the HTML5 spec, with all their - not
+deprecated - attributes.
+
+All tags in this ``html`` module must be used in lowercase in "mixt" mode. For example
+``html.A`` is used like this: ``<a>``.
+
+To use in "mixt" mode, a file must import ``html`` from ``mixt``.
+
+There is also a shortcut: ``from mixt import h`` to use directly. But still, for "mixt" mode,
+importing ``html`` is mandatory.
+
+All props of type ``bool`` are considered ``False`` by default, in the sense of ``HTML``: the prop
+is not passed to the tag. But using ``el.bool_prop`` or ``el.prop("bool_prop")`` won't work if
+not specifically set. Use ``el.prop("bool_prop", False)`` if you need to access such a prop from
+a parent component.
+
+"""
 
 from typing import Any, Dict, Type, Union, cast
 
@@ -25,7 +43,7 @@ from .proptypes import Choices, Number, Required
 
 
 class _Hyperlink(HtmlElement):
-    """Base for A and Area elements."""
+    """Base for ``A`` and ``Area`` elements."""
 
     class PropTypes:
         download: Union[bool, str]
@@ -101,7 +119,7 @@ class Aside(HtmlElement):
 
 
 class _Media(HtmlElement):
-    """Base for Audio and Video elements."""
+    """Base for ``Audio`` and ``Video`` elements."""
 
     class PropTypes:
         role: Choices = cast(Choices, ["application"])
@@ -523,6 +541,8 @@ class Input(HtmlElementNoChild):
     The props defined in this class are the one available for each input types.
     Each type has its own class, ``InputXXX``, defining their own props.
 
+    Notes
+    -----
     An instance of ``Input`` is never constructed: an instance of a subclass is always returned
     to validate the correct props. This is done in the ``__new__`` method.
 

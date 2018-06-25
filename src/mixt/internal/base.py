@@ -121,7 +121,59 @@ class BaseMetaclass(type):
 
 
 class Ref:
-    """An object storing the reference to an element."""
+    """An object storing the reference to an element.
+
+    The goal is to use it later, once the element is rendered. For example by "collectors", like
+    the first example below (or ``CSSCollector`` and ``JSCollector``).
+
+    Examples
+    --------
+    >>> class ComponentCounter(Element):
+    ...     def __init__(self, **kwargs):
+    ...         self.count = defaultdict(int)
+    ...         super().__init__(**kwargs)
+    ...
+    ...     def postrender_child_element(self, child, child_element, context):
+    ...         self.count[child.__class__.__name__] += 1
+
+    >>> counter = Ref()
+
+    # Here we use the ref to display data from the referenced component, once it is rendered.
+    # Without this, it would not be possible. Also note the ``lambda``: this is mandatory
+    # because without it, we would not have the finalized data.
+
+    >>> print(
+    ...     <ComponentCounter ref={counter}>
+    ...         <div>
+    ...             Rendered:
+    ...             {lambda: str(dict(counter.current.count))}
+    ...         </div>
+    ...         <Greeting name='World'/>
+    ...         <Greeting name='John'/>
+    ...     </ComponentCounter>
+    ... )
+    <div>Rendered: {'Greeting': 2}</div><div>Hello, <strong>World</strong></div><div>Hello,
+    <strong>John</strong></div>
+
+    # Another example, using a ref inside the ``render`` method to, for example,
+    # access it in ``postrender``.
+    # Using ``ref = self.add_ref()`` in an element is the same as using ``ref = Ref()``.
+
+    >>> class Greeting(Element):
+    ...     class PropTypes:
+    ...         name: Required[str]
+    ...
+    ...     def render(self, context):
+    ...         self.strong_ref = self.add_ref()
+    ...         return <div>Hello, <strong ref={self.strong_ref}>{self.name}</strong></div>
+    ...
+    ...     def postrender(self, element, context):
+    ...         self.strong_ref.current.add_class('very-strong')
+
+    >>> print(<Greeting name="John"></Greeting>)
+    <div>Hello, <strong class="very-strong">John</strong></div>
+
+    """
 
     __element__: Optional["Base"] = None
 
@@ -131,7 +183,7 @@ class Ref:
 
         Returns
         -------
-        Union[NotProvided, "Base"]
+        Optional["Base"]
             If the ref was set, return the saved value, else ``None``.
 
         """
@@ -157,6 +209,7 @@ class Base(object, metaclass=BaseMetaclass):
     __tag__ : str
         The tag to use when using the element in "html". If not set in the class, it will be, by
         default, the name of the class itself.
+
     __display_name__ : str
         A "human" representation of ``__tag__``. Will be used in exceptions and can be changed to
         give more information.
@@ -167,6 +220,16 @@ class Base(object, metaclass=BaseMetaclass):
     __display_name__: str = ""
 
     class PropTypes(BasePropTypes):
+        """Props used in every mixt elements/components...
+
+        Attributes
+        ----------
+        ref : Ref
+            A reference to the element itself that can be used later. See ``Ref`` for more
+            information.
+
+        """
+
         ref: Ref
 
     def __init__(self, **kwargs: Any) -> None:
@@ -199,6 +262,23 @@ class Base(object, metaclass=BaseMetaclass):
         -------
         Ref
             The ref, without value, ready to be set.
+
+        Examples
+        --------
+        # This:
+        >>> class Component(Element):
+        ...     def render(self, context):
+        ...         some_ref = self.add_ref()
+
+        # Is exactly the same as:
+        >>> from mixt import Ref
+        >>> class Component(Element):
+        ...     def render(self, context):
+        ...         some_ref = Ref()
+
+        # It will simply avoid an import.
+
+        # See ``Ref`` documentation to know more about refs.
 
         """
         return Ref()
@@ -360,6 +440,17 @@ class Base(object, metaclass=BaseMetaclass):
         child_or_children : OneOrManyElements
             The child(ren) to add.
 
+        Examples
+        --------
+        >>> class AddNote(Element):
+        ...     class PropTypes:
+        ...         note: Required[str]
+        ...     def prerender(self, context):
+        ...         self.append(<aside class="note">Note: {self.note}</aside>)
+
+        >>> print(<div><AddNote note="you're welcome"><p>Hello, John</p></AddNote></div>)
+        <div><p>Hello, John</p><aside class="note">Note: you're welcome</aside></div>
+
         """
         children = self._child_to_children(child_or_children)
         self._attach_children(children)
@@ -375,6 +466,18 @@ class Base(object, metaclass=BaseMetaclass):
         child_or_children : OneOrManyElements
             The child(ren) to add.
 
+        Examples
+        --------
+        >>> class Title(Element):
+        ...     class PropTypes:
+        ...         text: Required[str]
+        ...         level: Required[int]
+        ...     def prerender(self, context):
+        ...         self.prepend(<h level={self.level}>{self.text}</h>)
+
+        >>> print(<Title text="Welcome" level=1><p>Hello, John</p></Title>)
+        <h1>Welcome</h1><p>Hello, John</p>
+
         """
         children = self._child_to_children(child_or_children)
         self._attach_children(children)
@@ -387,6 +490,15 @@ class Base(object, metaclass=BaseMetaclass):
         ----------
         child_or_children : OneOrManyElements
             The child(ren) to remove.
+
+        Examples
+        --------
+        >>> class NoHr(Element):
+        ...     def prerender(self, context):
+        ...     self.remove(self.children(html.Hr))
+
+        >>> print(<NoHr><p>Foo</p><hr /><p>Bar</p><hr /><p>Baz</p></NoHr>)
+        <p>Foo</p><p>Bar</p><p>Baz</p>
 
         """
         children_to_remove = self._child_to_children(child_or_children)
@@ -438,6 +550,9 @@ class Base(object, metaclass=BaseMetaclass):
     def prop_name(cls, name: str) -> str:
         """Return the corrected name for the prop defined by `name`, if the prop exists.
 
+        For example, if `name` is "class", it will return "_class". If "data-foo", it will
+        return "data_foo".
+
         Parameters
         ----------
         name : str
@@ -453,6 +568,17 @@ class Base(object, metaclass=BaseMetaclass):
         InvalidPropNameError
             If there is no prop with the given `name`.
 
+        Examples
+        --------
+        >>> class Component(Element):
+        ...     class PropTypes:
+        ...         some_name: str
+
+        >>> Component.prop_name('some-name')
+        'some_name'
+        >>> Component.prop_name('class')
+        '_class'
+
         """
         name = BasePropTypes.__to_python__(name)
         if not cls.PropTypes.__allow__(name):
@@ -464,6 +590,8 @@ class Base(object, metaclass=BaseMetaclass):
 
         If the prop exists but is not set, `default` is not provided, and the prop has a default
         value, this default value is returned.
+
+        Calling ``el.prop("name")`` is the same as calling ``el.name``.
 
         Parameters
         ----------
@@ -484,6 +612,45 @@ class Base(object, metaclass=BaseMetaclass):
             If there is no prop with the given `name`.
         UnsetPropError
             If the prop is not set and no default value is available.
+
+        Examples
+        --------
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: str = "World"
+        ...         surname: str
+
+        >>> <Greeting />.prop("name")
+        'World'
+        >>> <Greeting />.name
+        'World'
+
+        >>> <Greeting />.prop("surname")
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.UnsetPropError: <Greeting>.surname: prop is not set
+
+        >>> <Greeting />.surname
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.UnsetPropError: <Greeting>.surname: prop is not set
+
+        >>> <Greeting />.prop("surname", "J")
+        'J'
+        >>> <Greeting surname="JJ"/>.prop("surname")
+        'JJ'
+        >>> <Greeting name="John"/>.prop("name")
+        'John'
+
+        >>> <Greeting />.prop("firstname")
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.InvalidPropNameError: <Greeting>.firstname: is not an allowed prop
+
+        >>> <Greeting />.firstname
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.InvalidPropNameError: <Greeting>.firstname: is not an allowed prop
 
         """
         name = self.prop_name(name)
@@ -525,6 +692,30 @@ class Base(object, metaclass=BaseMetaclass):
         ------
         InvalidPropNameError
             If there is no prop with the given `name` and `allow_invalid` is False.
+
+        Examples
+        --------
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: str = "World"
+        ...         surname: str
+
+        >>> <Greeting />.has_prop("name")
+        True
+        >>> <Greeting />.has_prop("surname")
+        False
+        >>> <Greeting surname="J"/>.has_prop("surname")
+        True
+        >>> <Greeting name="John"/>.has_prop("name")
+        True
+
+        >>> <Greeting />.has_prop("firstname")
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.InvalidPropNameError: <Greeting>.firstname: is not an allowed prop
+
+        >>> <Greeting />.has_prop("firstname", allow_invalid=True)
+        False
 
         """
         try:
@@ -569,6 +760,29 @@ class Base(object, metaclass=BaseMetaclass):
         InvalidPropValueError
             If the value is not valid.
 
+        Examples
+        --------
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: str = "World"
+        ...         surname: str
+
+        >>> el = <Greeting />
+        >>> el.set_prop("name", "John")
+        >>> el.name
+        'John'
+
+        >>> el.set_prop("name", {"first": "John"})
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.InvalidPropValueError: <Greeting>.name: `{'first': 'John'}` is not a
+        valid value for this prop (type: <class 'dict'>, expected: <class 'str'>)
+
+        >>> el.set_prop("firstname", "John")
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.InvalidPropNameError: <Greeting>.firstname: is not an allowed prop
+
         """
         name = self.prop_name(name)
 
@@ -596,6 +810,37 @@ class Base(object, metaclass=BaseMetaclass):
         InvalidPropNameError
             If there is no prop with the given `name`.
 
+        Examples
+        --------
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: str = "World"
+        ...         surname: str
+
+        >>> el = <Greeting />
+        >>> el.set_prop("name", "John")
+        >>> el.name
+        'John'
+
+        >>> el.unset_prop("name")
+        >>> el.name
+        'World'
+
+        >>> el.set_prop("surname", "JJ")
+        >>> el.surname
+        'JJ'
+
+        >>> el.unset_prop("surname")
+        >>> el.surnname
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.UnsetPropError: <Greeting>.surname: prop is not set
+
+        >>> el.unset_prop("firstname")
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.InvalidPropNameError: <Greeting>.firstname: is not an allowed prop
+
         """
         return self.set_prop(name, value=NotProvided)
 
@@ -616,6 +861,24 @@ class Base(object, metaclass=BaseMetaclass):
         ------
         InvalidPropNameError
             If there is no prop with the given `name`.
+
+        Examples
+        --------
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: str = "World"
+        ...         surname: str
+
+        >>> <Greeting />.prop_default("name")
+        'World'
+
+        >>> <Greeting />.prop_default("surname")
+        <class 'mixt.proptypes.NotProvided'>
+
+        >>> <Greeting />.prop_default("firstname")
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.InvalidPropNameError: <Greeting>.firstname: is not an allowed prop
 
         """
         return self.PropTypes.__default__(self.prop_name(name))
@@ -640,6 +903,37 @@ class Base(object, metaclass=BaseMetaclass):
         ------
         InvalidPropNameError
             If there is no prop with the given `name`.
+
+        Examples
+        --------
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: str = "World"
+        ...         surname: str
+
+        >>> <Greeting />.is_prop_default("name", "John")
+        False
+        >>> <Greeting />.is_prop_default("name", "World")
+        True
+        >>> <Greeting />.is_prop_default("name")
+        True
+
+        >>> <Greeting name="John"/>.is_prop_default("name", "World")
+        True
+        >>> <Greeting name="John"/>.is_prop_default("name", "John")
+        False
+        >>> <Greeting name="John"/>.is_prop_default("name")
+        False
+
+        >>> <Greeting />.is_prop_default("surname")
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.UnsetPropError: <Greeting>.surname: prop is not set
+
+        >>> <Greeting />.is_prop_default("surname", "JJ")
+        False
+        >>> <Greeting surname="JJ" />.is_prop_default("surname")
+        False
 
         """
         name = self.prop_name(name)
@@ -668,6 +962,21 @@ class Base(object, metaclass=BaseMetaclass):
         InvalidPropNameError
             If there is no prop with the given `name`.
 
+        Examples
+        --------
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: str = "World"
+        ...         surname: str
+
+        >>> Greeting.prop_type("name")
+        <class 'str'>
+        >>> Greeting.prop_type("surname")
+        <class 'str'>
+        >>> Greeting.prop_type("firstname")
+        Traceback (most recent call last):
+        mixt.exceptions.InvalidPropNameError: <Greeting>.firstname: is not an allowed prop
+
         """
         return cls.PropTypes.__type__(cls.prop_name(name))
 
@@ -690,6 +999,22 @@ class Base(object, metaclass=BaseMetaclass):
         InvalidPropNameError
             If there is no prop with the given `name`.
 
+        Examples
+        --------
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: str = "World"
+        ...         surname: Required[str]
+
+        >>> Greeting.is_prop_required("name")
+        False
+        >>> Greeting.is_prop_required("surname")
+        True
+        >>> Greeting.is_prop_required("firstname")
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.InvalidPropNameError: <Greeting>.firstname: is not an allowed prop
+
         """
         return cls.PropTypes.__is_required__(cls.prop_name(name))
 
@@ -703,6 +1028,19 @@ class Base(object, metaclass=BaseMetaclass):
             A dict with each defined props. If a prop is not set but has a default value, this one
             is used.
 
+        Examples
+        --------
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: str = "World"
+        ...         surname: str
+
+        >>> <Greeting />.props)
+        {'name': 'World'}
+
+        >>> <Greeting name="John" surname="JJ"/>.props)
+        {'name': 'John', 'surname': 'JJ'}
+
         """
         return dict(self.PropTypes.__default_props__, **self.__props__)
 
@@ -714,13 +1052,37 @@ class Base(object, metaclass=BaseMetaclass):
         props : Props
             A dict with each prop to set. If a prop is already set, it will be replaced.
 
-
         Raises
         ------
         InvalidPropNameError
             If a prop does not exist.
         InvalidPropValueError
             If a value is not valid (if dev-mode)
+
+        Examples
+        --------
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: str = "World"
+        ...         surname: str
+
+        >>> el = <Greeting />
+        >>> el.set_props({"name": "John", "surname": "JJ"})
+        >>> el.name
+        'John'
+        >>> el.surname
+        'JJ'
+
+        >>> el.set_props({"name": {"first": "John"}})
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.InvalidPropValueError: <Greeting>.name: `{'first': 'John'}` is not a
+        valid value for this prop (type: <class 'dict'>, expected: <class 'str'>)
+
+        >>> el.set_props({"firstname": "John"})
+        Traceback (most recent call last):
+        ...
+        mixt.exceptions.InvalidPropNameError: <Greeting>.firstname: is not an allowed prop
 
         """
         for name, value in props.items():
@@ -761,6 +1123,23 @@ class Base(object, metaclass=BaseMetaclass):
         -------
         str
             The html ready to be used.
+
+        Examples
+        --------
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: str = "World"
+        ...         surname: str
+        ...
+        ...     def render(self, context):
+        ...         return <div>Hello, <strong>{self.name}</strong></div>
+
+        >>> <Greeting />.to_string()
+        <div>Hello, <strong>World</strong></div>
+
+        # It's what is actually called when using ``str(...)``
+        >>> str(<Greeting />)
+        <div>Hello, <strong>World</strong></div>
 
         """
         str_list: List[Union[str, Callable[[], Any]]] = []
@@ -840,6 +1219,22 @@ class WithClass(Base):
     """
 
     class PropTypes:
+        """Default props for all elements having a class.
+
+        Attributes
+        ----------
+        _class : str
+            A string containing the "class" html attribute that will be passed down to the first
+            rendered html element.
+
+        Examples
+        --------
+        >>> class Component(Element)
+
+
+        """
+
+        id: str
         _class: str
 
     def get_class(self) -> str:
@@ -869,11 +1264,21 @@ class WithClass(Base):
         List[str]
             List of all the classes defined in the "class" prop.
 
+        Examples
+        --------
+        >>> class Component(Element):
+        ...     pass
+
+        >>> <Component />.classes
+        []
+        >>> <Component class="foo bar" />.classes
+        ['foo', 'bar']
+
         """
         return self.get_class().split()
 
     def add_class(self, klass: str, prepend: bool = False) -> str:
-        """Add the given `class`(es) to the actual list of class.
+        """Add the given `class`(es) to the actual list of classes.
 
         Parameters
         ----------
@@ -887,6 +1292,24 @@ class WithClass(Base):
         -------
         str
             The new value of the ``class`` prop.
+
+        Examples
+        --------
+        >>> class Component(Element):
+        ...     pass
+
+        >>> el = <Component />
+        >>> el.add_class("foo")
+        >>> el.classes
+        ['foo']
+
+        >>> el.add_class("bar baz")
+        >>> el.classes
+        ['foo', 'bar', 'baz']
+
+        >>> el.add_class("zab rab", prepend=True)
+        >>> el.classes
+        ['zab', 'rab', 'foo', 'bar', 'baz']
 
         """
         klasses: List[str] = klass.split()
@@ -905,7 +1328,7 @@ class WithClass(Base):
         return self.set_prop("class", " ".join(classes))
 
     def prepend_class(self, klass: str) -> str:
-        """Add the given `class`(es) to the beginning of the actual list of class.
+        """Add the given `class`(es) to the beginning of the actual list of classes.
 
         Parameters
         ----------
@@ -916,12 +1339,26 @@ class WithClass(Base):
         -------
         str
             The new value of the ``class`` prop.
+
+        Examples
+        --------
+        >>> class Component(Element):
+        ...     pass
+
+        >>> el = <Component />
+        >>> el.prepend_class("foo")
+        >>> el.classes
+        ['foo']
+
+        >>> el.prepend_class("bar baz")
+        >>> el.classes
+        ['bar', 'baz', 'foo']
 
         """
         return self.add_class(klass, prepend=True)
 
     def append_class(self, klass: str) -> str:
-        """Add the given `class`(es) to the end of the actual list of class.
+        """Add the given `class`(es) to the end of the actual list of classes.
 
         Parameters
         ----------
@@ -933,11 +1370,25 @@ class WithClass(Base):
         str
             The new value of the ``class`` prop.
 
+        Examples
+        --------
+        >>> class Component(Element):
+        ...     pass
+
+        >>> el = <Component />
+        >>> el.append_class("foo")
+        >>> el.classes
+        ['foo']
+
+        >>> el.append_class("bar baz")
+        >>> el.classes
+        ['foo', 'bar', 'baz']
+
         """
         return self.add_class(klass, prepend=False)
 
     def remove_class(self, klass: str) -> None:
-        """Remove the given `class`(es) from the actual list of class.
+        """Remove the given `class`(es) from the actual list of classes.
 
         Parameters
         ----------
@@ -948,6 +1399,24 @@ class WithClass(Base):
         -------
         str
             The new value of the ``class`` prop.
+
+        Examples
+        --------
+        >>> class Component(Element):
+        ...     pass
+
+        >>> el = <Component class="foo bar"/>
+        >>> el.remove_class("baz")
+        >>> el.classes
+        ['foo', 'bar']
+
+        >>> el.remove_class("bar")
+        >>> el.classes
+        ['foo']
+
+        >>> el.remove_class("foo bar baz")
+        >>> el.classes
+        []
 
         """
         klasses: Set[str] = set(klass.split())
@@ -968,12 +1437,37 @@ class WithClass(Base):
         bool
             The new value of the ``class`` prop.
 
+        Examples
+        --------
+        >>> class Component(Element):
+        ...     pass
+
+        >>> el = <Component class="foo"/>
+        >>> el.has_class("foo")
+        True
+        >>> el.has_class("bar")
+        True
+
         """
         return klass.strip() in self.classes
 
 
 class Fragment(WithClass):
-    """An invisible tag that is used to hold many others."""
+    """An invisible tag that is used to hold many other tags.
+
+    Examples
+    --------
+        >>> class Component(Element):
+        ...     def render(self, context):
+        ...         return <Fragment>
+        ...             <div>Foo</div>
+        ...             <div>Bar</div>
+        ...         </Fragment>
+
+        >>> print(<Component />)
+        <div>Foo</div><div>Bar</div>
+
+    """
 
     class PropTypes:
         id: str

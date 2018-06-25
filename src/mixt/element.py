@@ -15,10 +15,73 @@ from .internal.base import (
 
 
 class Element(WithClass):
-    """Base element for reuasable components."""
+    """Base element for reusable components.
+
+    Examples
+    --------
+    # In pure python:
+
+    >>> from mixt import Element, Required, html
+
+    >>> class Greeting(Element):
+    ...     class PropTypes:
+    ...         name: Required[str]
+    ...
+    ...     def render(self, context):
+    ...        return html.Div(
+    ...            'Hello, ',
+    ...            html.Strong()(self.name)
+    ...        )
+
+    >>> print(<Greeting name='World' />)
+    <div>Hello, <strong>World</strong></div>
+
+    # In "mixt", aka 'html in python":
+    # Notes: "html in python" does not work in a python shell, only in files.
+    # And you must import ``html`` from ``mixt`` to use normal html tags.
+
+    >>> # coding: mixt
+
+    >>> from mixt import Element, Required, html
+
+    >>> class Greeting(Element):
+    ...     class PropTypes:
+    ...         name: Required[str]
+    ...
+    ...     def render(self, context):
+    ...        return <div>Hello, <strong>{self.name}</strong></div>
+
+    >>> print(<Greeting name='World' />)
+    <div>Hello, <strong>World</strong></div>
+
+    # And to show how the ``__tag__`` and ``__display_name__`` attributes are composed by default:
+    >>> Greeting.__tag__
+    'Greeting'
+
+    >>> Greeting.__display_name__
+    'Greeting'
+
+    """
 
     class PropTypes:
-        _class: str
+        """Default props for all elements.
+
+        Attributes
+        ----------
+        id : str
+            The id of the element. It will not be passed down the tree like ``_class``.
+
+        Examples
+        --------
+        >>> class Component(Element):
+        ...    def render(self, context):
+        ...        return <div id={self.id}>Hello</div>
+
+        >>> print(<Component class="some class" id="FOO" />)
+        <div id="FOO" class="some class">Hello</div>
+
+        """
+
         id: str
 
     _element: Optional[
@@ -65,20 +128,33 @@ class Element(WithClass):
         Parameters
         ----------
         selector : Union[str, Type[Base]
-            Empty by default.
+            Empty by default. Used to filter the children.
+
             If it's a string to specify how to filter the children:
               - If it starts with a dot ``.``, we select children having this class.
               - If it starts with a sharp ``#``, we select children having this id.
               - Else we select children having this tag name.
+
             If it's a class, only instances of this class (or subclass) are returned
         exclude : bool
             ``False`` by default. If ``True``, the result of the selection done by ``selector`` is
-            reversed. Ie we select ALL BUT children having this clas/id/tag.
+            reversed. Ie we select ALL BUT children having this class/id/tag.
 
         Returns
         -------
         ManyElements
             A List, maybe empty, of all the children, maybe filtered.
+
+        Examples
+        --------
+        >>> class Details(Element):
+        ...    def render(self, context):
+        ...        p_element = self.children(html.P)
+        ...        other_children = self.children(html.P, exclude=True)
+        ...        return <details>
+        ...            <summary>{p_element}</summary>
+        ...            {other_children}
+        ...        </details>
 
         """
         children = super().children()
@@ -188,6 +264,71 @@ class Element(WithClass):
         Optional[OneOrManyElements]
             None, or one or many elements or strings.
 
+        Examples
+        --------
+        # It can return a single element (a normal html tag or another component),
+        # which can have children:
+        >>> class Greeting(Element):
+        ...     class PropTypes:
+        ...         name: Required[str]
+        ...
+        ...     def render(self, context):
+        ...         return <div>Hello, <strong>{self.name}</strong>{self.children()}</div>
+
+        >>> print(<Greeting name="John">, you look great today!</Greeting>)
+        <div>Hello, <strong>John</strong>, you look great today!</div>
+
+        # It can return many nodes, using ``<Fragment>``:
+        >>>     def render(self, context):
+        ...         return <Fragment>
+        ...             <div>Foo</div>
+        ...             <div>Bar</div>
+        ...         </Fragment>
+        <div>Foo</div><div>Bar</div>
+
+        # It can return many nodes, using an iterable (note the commas after each entry). The
+        # main purpose is to be able to compose the list before calling ``return``:
+        >>>     def render(self, context):
+        ...         return [
+        ...             <div>Foo</div>,
+        ...             <div>Bar</div>,
+        ...         ]
+        <div>Foo</div><div>Bar</div>
+
+        # It can return a simple string:
+        >>>     def render(self, context):
+        ...         return "Foo Bar"
+        Foo Bar
+
+        # And a list of strings:
+        >>>     def render(self, context):
+        ...         return ["Foo", "Bar"]
+        FooBar
+
+        # ``False`` and ``None`` are ignored:
+        >>>     def render(self, context):
+        ...         return [
+        ...             False,
+        ...             <div>Foo</div>,
+        ...             None,
+        ...             <div>Bar</div>,
+        ...         ]
+        <div>Foo</div><div>Bar</div>
+
+        # All of these rules can be mized up.
+        # Note how lists can be used not only at the first level:
+        >>>     def render(self, context):
+        ...         return [
+        ...             False,
+        ...             [
+        ...                 <div>Foo</div>,
+        ...                 <div>Bar</div>,
+        ...             ],
+        ...             None,
+        ...             "Baz"
+        ...         ]
+        <div>Foo</div><div>Bar</div>Baz
+
         """
         return self.children()
 
@@ -201,13 +342,23 @@ class Element(WithClass):
         context : OptionalContext
             The context passed through the tree.
 
+        Examples
+        --------
+        >>> class Component(Element):
+        ...     def prerender(self, context):
+        ...         self.started_at = datetime.utcnow()
+        ...         print(f"Rendering <{self.__display_name__}>...")
+        ...     def postrender(self, element, context):
+        ...         duration = datetime.utcnow() - self.started_at
+        ...         print(f"Rendered <{self.__display_name__}> in {duration}")
+
         """
         pass
 
     def postrender(self, element: AnElement, context: OptionalContext) -> None:
         """Provide a hook to do things after the element is rendered.
 
-        Default behavior is to do nothing.
+        Default behavior is to do nothing. See ``prerender`` for an example.
 
         Parameters
         ----------
@@ -224,7 +375,8 @@ class Element(WithClass):
     ) -> None:
         """Provide a hook for every parent to do things after any child is rendered.
 
-        Default behavior is to do nothing.
+        Default behavior is to do nothing. Useful to collect stuff for delayed rendering (see
+        ``CSSCollector`` and ``JSCollector``), stats...
 
         Parameters
         ----------
@@ -234,6 +386,30 @@ class Element(WithClass):
             The element rendered by the call of the ``render`` method of `child`.
         context : OptionalContext
             The context passed through the tree.
+
+        Examples
+        --------
+        >>> class ComponentCounter(Element):
+        ...     def __init__(self, **kwargs):
+        ...         self.count = defaultdict(int)
+        ...         super().__init__(**kwargs)
+        ...
+        ...     def postrender_child_element(self, child, child_element, context):
+        ...         self.count[child.__class__.__name__] += 1
+
+        >>> counter = Ref()
+        >>> print(
+        ...     <ComponentCounter ref={counter}>
+        ...         <div>
+        ...             Rendered:
+        ...             {lambda: str(dict(counter.current.count))}
+        ...         </div>
+        ...         <Greeting name='World'/>
+        ...         <Greeting name='John'/>
+        ...     </ComponentCounter>
+        ... )
+        <div>Rendered: {'Greeting': 2}</div><div>Hello, <strong>World</strong></div><div>Hello,
+        <strong>John</strong></div>
 
         """
         pass

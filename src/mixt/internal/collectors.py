@@ -55,6 +55,21 @@ class Collector(Element, metaclass=CollectorMetaclass):
     KIND: Optional[str] = None
 
     class PropTypes:
+        """Base PropTypes for collectors.
+
+        Attributes
+        ----------
+        render_position : DefaultChoices
+            Tell where to insert the collected content.
+
+            If set, the collected content will be inserted ``before`` opening tag of the collector
+            or ``after`` its closing tag.
+
+            If not set, the content won't be inserted: the ``render_collected`` method will need
+            to be called to get the content. For example using the ``ref`` prop.
+
+        """
+
         render_position: DefaultChoices = cast(
             DefaultChoices, [None, "before", "after"]
         )
@@ -212,11 +227,111 @@ class CSSCollector(Collector):
     It can collect via the ``<CSSCollector.Collect>`` tag, and/or via the ``render_css`` method
     on the child.
 
+    Examples
+    --------
+    # Using ``render_position``:
+    >>> from mixt import CSSCollector, Element, Ref, Required, h, html
+
+    # First a component we want to style:
+    >>> class Component(Element):
+    ...     class PropTypes:
+    ...         id: Required[str]  # already exists but we force it via Required
+    ...         color: str
+    ...
+    ...     @classmethod
+    ...     def render_css_global(cls, context):
+    ...         return '''
+    ... /* rendered once via render_css_global */
+    ... .comp { color: red; }
+    ...         '''
+    ...
+    ...     def render_css(self, context):
+    ...         if self.has_prop('color'):
+    ...             return '''
+    ... /* rendered for each component via render_css */
+    ... #%(id)s.comp { color: %(color)s; }
+    ...             '''{
+    ...                 'id': self.id,
+    ...                 'color': self.color,
+    ...             }
+    ...
+    ...     def render(self, context):
+    ...         return <div class="comp" id={self.id}  />
+
+    # Now we can render many instances of this component and collect the CSS:
+    >>> print(
+    ...     <CSSCollector render_position=after>
+    ...         <CSSCollector.Collect>{h.Raw('''
+    ... /* rendered once via Collect */
+    ... div { color: black;}
+    ...         ''')}</CSSCollector.Collect>
+    ...         <Component id=c1 color=blue />
+    ...         <Component id=c2 color=green />
+    ...     </CSSCollector>
+    ... )
+    <div class="comp" id="c1"></div><div class="comp" id="c2"></div><style type="text/css">
+    /* rendered once via Collect */
+    div { color: black;}
+
+    /* rendered once via render_css_global */
+    .comp { color: red; }
+
+    /* rendered for each component via render_css */
+    #c1.comp { color: blue; }
+
+    /* rendered for each component via render_css */
+    #c2.comp { color: green; }
+                </style>
+
+    # Same component, but this time using a ref and ``render_collected``:
+    >>> css_ref = Ref()
+    >>> print(
+    ... <html>
+    ...     <head>
+    ...         {lambda: css_ref.current.render_collected()}
+    ...     </head>
+    ...     <body>
+    ...         <CSSCollector ref={css_ref}>
+    ...             <CSSCollector.Collect>{h.Raw('''
+    ... /* rendered once via Collect */
+    ... div { color: black;}
+    ...         ''')}</CSSCollector.Collect>
+    ...             <Component id=c1 color=blue />
+    ...             <Component id=c2 color=green />
+    ...         </CSSCollector>
+    ...     </body>
+    ... </html>
+    ... )
+    <html><head><style type="text/css">
+    /* rendered once via Collect */
+    div { color: black;}
+
+    /* rendered once via render_css_global */
+    .comp { color: red; }
+
+    /* rendered for each component via render_css */
+    #c1.comp { color: blue; }
+
+    /* rendered for each component via render_css */
+    #c2.comp { color: green; }
+    </style></head><body>
+    <div class="comp" id="c1"></div><div class="comp" id="c2"></div></body></html>
+
+
     """
 
     KIND = "css"
 
     class PropTypes:
+        """PropTypes for the ``CSSCollector`` component.
+
+        Attributes
+        ----------
+        type : str
+            The value of the ``type`` attribute of the ``style`` tag that will be generated.
+
+        """
+
         type: str = "text/css"
 
     def render_collected(self) -> OneOrManyElements:
@@ -236,11 +351,29 @@ class JSCollector(Collector):
 
     It can collect via the ``<JSCollector.Collect>`` tag, and/or via the ``render_js`` method
     on the child.
+
+    Examples
+    --------
+    # See example from ``CSSCollector``.
+    # The same principles apply with ``JSCollector``:
+    # - a ``JSCollector.Collect`` component
+    # - ``render_js_global`` class methods are collected once
+    # - ``render_js`` methods are collected for every component
+
     """
 
     KIND = "js"
 
     class PropTypes:
+        """PropTypes for the ``JSCollector`` component.
+
+        Attributes
+        ----------
+        type : str
+            The value of the ``type`` attribute of the ``script`` tag that will be generated.
+
+        """
+
         type: str = "text/javascript"
 
     def render_collected(self) -> OneOrManyElements:
