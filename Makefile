@@ -21,7 +21,7 @@ install:  ## Install the project in the current environment, with its dependenci
 .PHONY: dev
 dev:  ## Install the project in the current environment, with its dependencies, including the ones needed in a development environment
 	@echo "$(BOLD)Installing $(PROJECT_NAME) $(PROJECT_VERSION) in dev mode$(RESET)"
-	@pip install -e .[dev]
+	@pip install -e .[dev,doc]
 	@mixt-post-install
 	@$(MAKE) full-clean
 
@@ -79,8 +79,20 @@ tests:  ## Run test tests
 	@echo "$(BOLD)Running tests$(RESET)"
 	@pytest tests
 
+.PHONY: check-doc
+check-doc:  ## Check if documentation is up to date
+	@echo "$(BOLD)Checking documentation$(RESET)"
+	@python -m api_doc.app > docs/index.html.new
+	@diff docs/index.html.new docs/index.html > /dev/null && (echo 'Doc is up to date'; rm docs/index.html.new) || (echo 'Doc is not up to date' 1>&2; rm docs/index.html.new)
+
+.PHONY: doc
+doc:  ## Build the documentation and save it to docs/
+	@echo "$(BOLD)Building documentation$(RESET)"
+	@python -m api_doc.app > docs/index.html
+
 .PHONY: dist
 dist:  ## Build the package
+	@echo "$(BOLD)Building package$(RESET)"
 	@python setup.py sdist bdist_wheel
 
 .PHONY: clean

@@ -16,10 +16,23 @@ To render the single html content:
 python -m api_doc.app
 ```
 
-# Serve
+## Serve
 
 To server the html content on `localhost:8080`:
 
 ```bash
 python -m api_doc.serve
+```
+
+
+## Save in docs/ repository
+
+```bash
+make doc
+```
+
+Which is the same as running:
+
+```bash
+python -m api_doc.app > docs/index.html
 ```

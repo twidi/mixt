@@ -159,6 +159,23 @@ jobs:
           paths:
             - mixt/dist
 
+  # will check that documentation is up to date
+  check_doc:
+    <<: *python_only_config
+    steps:
+      - *attach_workspace
+      - run:
+          name: Build doc
+          command: |
+            source ~/venv/bin/activate
+            make check-doc
+      - store_artifacts:
+          path: docs/
+      - persist_to_workspace:
+          root: "~/"
+          paths:
+            - mixt/docs
+
 workflows:
   version: 2
 
@@ -190,6 +207,14 @@ workflows:
           requires:
             - install_code
       - build_python_package:
+          requires:
+            - linter_mypy
+            - linter_isort
+            - linter_black
+            - linter_flake8
+            - linter_pylint
+            - run_tests
+      - check_doc:
           requires:
             - linter_mypy
             - linter_isort

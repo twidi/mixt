@@ -181,8 +181,10 @@ class App(Element):
         return \
             <CSSCollector ref={css_ref}>
                 <JSCollector ref={js_ref}>
-                    <html>
+                    <Doctype />
+                    <html lang="en">
                         <Head>
+                            <meta charset="utf-8"/>
                             <meta name="viewport" content="width=device-width, initial-scale=1"/>
                             <title>MIXT API documentation</title>
                             <TypesetStyle />
