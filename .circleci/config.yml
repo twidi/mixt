@@ -74,6 +74,16 @@ jobs:
             source ~/venv/bin/activate
             make mypy
 
+  linter_isort:
+    <<: *python_only_config
+    steps:
+      - *attach_workspace
+      - run:
+          name: Run "isort" linter
+          command: |
+            source ~/venv/bin/activate
+            make check-isort
+
   linter_black:
     <<: *python_only_config
     steps:
@@ -161,6 +171,9 @@ workflows:
       - linter_mypy:
           requires:
             - install_code
+      - linter_isort:
+          requires:
+            - install_code
       - linter_black:
           requires:
             - install_code
@@ -179,6 +192,7 @@ workflows:
       - build_python_package:
           requires:
             - linter_mypy
+            - linter_isort
             - linter_black
             - linter_flake8
             - linter_pylint

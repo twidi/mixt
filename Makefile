@@ -31,23 +31,23 @@ dev-upgrade:  ## Upgrade all default+dev dependencies defined in setup.cfg
 	@pip install -e .
 
 .PHONY: lint
-lint:  ## Run all linters (check-black, mypy, flake8, pylint)
-lint: check-black flake8 pylint mypy
+lint:  ## Run all linters (check-isort, check-black, mypy, flake8, pylint)
+lint: check-isort check-black flake8 pylint mypy
 
 .PHONY: mypy
 mypy:  ## Run the mypy tool
 	@echo "$(BOLD)Running mypy$(RESET)"
 	@mypy src/
 
+.PHONY: check-isort
+check-isort:  ## Run the isort tool in check mode only (won't modify files)
+	@echo "$(BOLD)Checking isort(RESET)"
+	@isort --check-only `find src/ -name '*.py' | grep -v '/codec/' | xargs grep -L '# coding: mixt'` 2>&1
+
 .PHONY: check-black
 check-black:  ## Run the black tool in check mode only (won't modify files)
 	@echo "$(BOLD)Checking black$(RESET)"
 	@black --check `find src/ -name '*.py' | grep -v '/codec/' | xargs grep -L '# coding: mixt'` 2>&1
-
-.PHONY: black
-black:  ## Run the black tool and update files that need to
-	@echo "$(BOLD)Running black$(RESET)"
-	@black `find src/ -name '*.py' | grep -v '/codec/' | xargs grep -L '# coding: mixt'`
 
 .PHONY: flake8
 flake8:  ## Run the flake8 tool
@@ -58,6 +58,20 @@ flake8:  ## Run the flake8 tool
 pylint:  ## Run the pylint tool
 	@echo "$(BOLD)Running pylint$(RESET)"
 	@pylint src
+
+.PHONY: pretty
+pretty:  ## Run all code beautifiers (isort, black)
+pretty: isort black
+
+.PHONY: isort
+isort:  ## Run the isort tool and update files that need to
+	@echo "$(BOLD)Running isort$(RESET)"
+	@isort `find src/ -name '*.py' | grep -v '/codec/' | xargs grep -L '# coding: mixt'`
+
+.PHONY: black
+black:  ## Run the black tool and update files that need to
+	@echo "$(BOLD)Running black$(RESET)"
+	@black `find src/ -name '*.py' | grep -v '/codec/' | xargs grep -L '# coding: mixt'`
 
 .PHONY: tests test
 test: tests

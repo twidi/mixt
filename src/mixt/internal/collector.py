@@ -1,7 +1,7 @@
 """Provide the ``Element`` class to create reusable components."""
 
 
-from typing import cast, Any, Dict, List, Optional, Sequence, Type
+from typing import Any, Dict, List, Optional, Sequence, Type, cast
 
 from ..element import Element
 from ..html import Raw, Script, Style

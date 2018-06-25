@@ -15,7 +15,6 @@ It's done via ``patchy``, a controversial way to monkey-patch, but:
 from typing import Any
 
 import patchy
-
 from pylint.checkers.misc import EncodingChecker
 
 

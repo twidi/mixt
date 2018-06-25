@@ -4,10 +4,10 @@ from typing import Any, Dict, List, Optional, Sequence, cast
 
 from ..exceptions import InvalidChildrenError
 from ..proptypes import Choices, NotProvided
-from .base import (  # noqa: F401  # pylint: disable=unused-import
+from .base import (  # noqa: F401  # isort: skip  # pylint: disable=unused-import
     Base,
     BaseMetaclass,
-    Fragment,  # imported to be used in html like ``<Fragment>``, so  ``html.Fragment``
+    Fragment,
     OneOrManyElements,
     WithClass,
     escape,
