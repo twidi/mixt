@@ -247,7 +247,7 @@ class Base(object, metaclass=BaseMetaclass):
         self.context: OptionalContext = None
 
         ref = kwargs.pop("ref", None)
-        if ref:
+        if ref and ref is not NotProvided:
             ref._set(self)
 
         for name, value in kwargs.items():
