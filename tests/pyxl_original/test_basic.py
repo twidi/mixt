@@ -264,8 +264,9 @@ def test_props_methods():
 
 
 def test_doctype():
-    assert str(<!DOCTYPE html>) == '<!DOCTYPE html>'
-    assert str(<Doctype doctype=html/>) == '<!DOCTYPE html>'
+    assert str(<!DOCTYPE html5>) == '<!DOCTYPE html5>'
+    assert str(<Doctype doctype=html4/>) == '<!DOCTYPE html4>'
+    assert str(<Doctype/>) == '<!DOCTYPE html>'
 
 
 def test_cdata():

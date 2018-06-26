@@ -1,4 +1,22 @@
-"""HTML tags automatically discovered by the mixt parser."""
+"""All available HTML tags, with their props.
+
+We support only actual (and not deprecated) tags in the HTML5 spec, with all their - not
+deprecated - attributes.
+
+All tags in this ``html`` module must be used in lowercase in "mixt" mode. For example
+``html.A`` is used like this: ``<a>``.
+
+To use in "mixt" mode, a file must import ``html`` from ``mixt``.
+
+There is also a shortcut: ``from mixt import h`` to use directly. But still, for "mixt" mode,
+importing ``html`` is mandatory.
+
+All props of type ``bool`` are considered ``False`` by default, in the sense of ``HTML``: the prop
+is not passed to the tag. But using ``el.bool_prop`` or ``el.prop("bool_prop")`` won't work if
+not specifically set. Use ``el.prop("bool_prop", False)`` if you need to access such a prop from
+a parent component.
+
+"""
 
 from typing import Any, Dict, Type, Union, cast
 
@@ -19,12 +37,13 @@ from .internal.html import (  # noqa: F401  # pylint: disable=unused-import
     HtmlElementNoChild,
     IFStack,
     Raw,
+    RawHtml,
 )
-from .proptypes import Choices, Number
+from .proptypes import Choices, Number, Required
 
 
 class _Hyperlink(HtmlElement):
-    """Base for A and Area elements."""
+    """Base for ``A`` and ``Area`` elements."""
 
     class PropTypes:
         download: Union[bool, str]
@@ -100,7 +119,7 @@ class Aside(HtmlElement):
 
 
 class _Media(HtmlElement):
-    """Base for Audio and Video elements."""
+    """Base for ``Audio`` and ``Video`` elements."""
 
     class PropTypes:
         role: Choices = cast(Choices, ["application"])
@@ -385,10 +404,29 @@ class Form(HtmlElement):
         target: str
 
 
-class _H(HtmlElement):
-    """Base for H* elements."""
+class H(HtmlElement):  # noqa: E742  # pylint: disable=invalid-name
+    """Can replace H* tags by passing a ``level`` prop."""
 
-    role: Choices = cast(Choices, ["tab", "presentation"])
+    class PropTypes:
+        role: Choices = cast(Choices, ["tab", "presentation"])
+        level: Required[Choices] = cast(Required[Choices], [1, 2, 3, 4, 5, 6])
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Create the Hx* tag using the ``level`` prop.
+
+        For the parameters, see ``Base.__init__``.
+
+        """
+        super().__init__(**kwargs)
+        self.level = kwargs.pop("level")
+        self.unset_prop("level")
+        self.__tag__ = f"h{self.level}"
+
+
+class _H(HtmlElement):
+    """Base for normal H* elements."""
+
+    pass
 
 
 class H1(_H):
@@ -503,12 +541,14 @@ class Input(HtmlElementNoChild):
     The props defined in this class are the one available for each input types.
     Each type has its own class, ``InputXXX``, defining their own props.
 
+    Notes
+    -----
     An instance of ``Input`` is never constructed: an instance of a subclass is always returned
     to validate the correct props. This is done in the ``__new__`` method.
 
     Attributes
     ----------
-    __types__: dict
+    __types__ : dict
         Contains the class to use for each input types.
 
     """
@@ -628,7 +668,7 @@ class Input(HtmlElementNoChild):
 
         Parameters
         ----------
-        kwargs: Dict[str, Any]
+        kwargs : Dict[str, Any]
             Props that will be passed to the instance to be created.
 
         Returns
@@ -654,7 +694,7 @@ class Input(HtmlElementNoChild):
 
                 Parameters
                 ----------
-                klass: type(Input)
+                klass : type(Input)
                     The class for which to iterate on subclasses.
 
                 """

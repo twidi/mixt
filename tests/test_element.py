@@ -112,6 +112,11 @@ def test_children_filtering():
     assert get_ids(el.children('span', exclude=True)) == ['0', '1', '3', '4']
     assert get_ids(el.children('Child', exclude=True)) == ['0', '1', '2', '3']
 
+    assert get_ids(el.children(Element)) == ['4']
+    assert get_ids(el.children(Child)) == ['4']
+    assert get_ids(el.children(Element, exclude=True)) == ['0', '1', '2', '3']
+    assert get_ids(el.children(Child, exclude=True)) == ['0', '1', '2', '3']
+
 
 def test_pre_post_render():
 
@@ -160,7 +165,9 @@ def test_classes_can_be_changed():
             return <div class="div divremoved" />
 
         def prerender(self, context):
+            assert not self.has_class('prepended')
             self.prepend_class('prepended removed')
+            assert self.has_class('prepended')
 
         def postrender(self, element, context):
             self.append_class('appended')

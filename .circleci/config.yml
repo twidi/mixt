@@ -74,6 +74,16 @@ jobs:
             source ~/venv/bin/activate
             make mypy
 
+  linter_isort:
+    <<: *python_only_config
+    steps:
+      - *attach_workspace
+      - run:
+          name: Run "isort" linter
+          command: |
+            source ~/venv/bin/activate
+            make check-isort
+
   linter_black:
     <<: *python_only_config
     steps:
@@ -144,21 +154,94 @@ jobs:
             make dist
       - store_artifacts:
           path: dist/
+      - save_cache:
+          key: v1-mixt-dist-{{ .Revision }}
+          paths:
+            - ~/mixt/dist
+
+  # will test that the python wheel package is installable and works
+  test_python_package_whl:
+    <<: *python_only_config
+    steps:
+      - checkout
+      - *restore_pip_cache
+      - restore_cache:
+          keys:
+            - v1-mixt-dist-{{ .Revision }}
+      - run:
+          name: Check package
+          command: |
+            ls -la
+            mv dist _dist
+            rm -r src
+            make full-clean
+            python -m venv ~/venv
+            source ~/venv/bin/activate
+            pip install --upgrade pip
+            pip install $(ls -tr _dist/*.whl | tail -n 1)
+            mixt-post-install
+            diff -q <(python -m mixt.examples.simple) <(echo '<div title="Greeting">Hello, World</div>') || (echo 'Unexpected output for "python -m mixt.examples.simple"')
+            pip install $(ls -tr _dist/*.whl | tail -n 1)[test]
+            make tests
+
+  # will test that the python tar.gz package is installable and works
+  test_python_package_targz:
+    <<: *python_only_config
+    steps:
+      - checkout
+      - *restore_pip_cache
+      - restore_cache:
+          keys:
+            - v1-mixt-dist-{{ .Revision }}
+      - run:
+          name: Check package
+          command: |
+            ls -la
+            python -m venv ~/venv
+            source ~/venv/bin/activate
+            pip install --upgrade pip
+            mv dist _dist
+            rm -r src
+            make full-clean
+            python -m venv ~/venv
+            source ~/venv/bin/activate
+            pip install --upgrade pip
+            pip install $(ls -tr _dist/*.tar.gz | tail -n 1)
+            mixt-post-install
+            diff -q <(python -m mixt.examples.simple) <(echo '<div title="Greeting">Hello, World</div>') || (echo 'Unexpected output for "python -m mixt.examples.simple"')
+            pip install $(ls -tr _dist/*.tar.gz | tail -n 1)[test]
+            make tests
+
+  # will check that documentation is up to date
+  check_doc:
+    <<: *python_only_config
+    steps:
+      - *attach_workspace
+      - run:
+          name: Build doc
+          command: |
+            source ~/venv/bin/activate
+            make check-doc
+      - store_artifacts:
+          path: docs/
       - persist_to_workspace:
           root: "~/"
           paths:
-            - mixt/dist
+            - mixt/docs
 
 workflows:
   version: 2
 
-  marsha:
+  mixt:
     jobs:
       - checkout_code
       - install_code:
           requires:
             - checkout_code
       - linter_mypy:
+          requires:
+            - install_code
+      - linter_isort:
           requires:
             - install_code
       - linter_black:
@@ -179,7 +262,22 @@ workflows:
       - build_python_package:
           requires:
             - linter_mypy
+            - linter_isort
             - linter_black
             - linter_flake8
             - linter_pylint
             - run_tests
+      - check_doc:
+          requires:
+            - linter_mypy
+            - linter_isort
+            - linter_black
+            - linter_flake8
+            - linter_pylint
+            - run_tests
+      - test_python_package_whl:
+          requires:
+            - build_python_package
+      - test_python_package_targz:
+          requires:
+            - build_python_package

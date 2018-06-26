@@ -139,7 +139,13 @@ After having done some code:
 
 If you touch things in the ``codec`` directory, you'll have to run ``make dev`` (or at least ``make full-clean``) to purge the ``pyc`` python files.
 
-Note that our CI will check that every commit passes the ``make lint`` and ``make tests``. So don't forget to run these two for each commit.
+Note that our CI will check that every commit passes the ``make lint``, ``make tests`` and ``make check-doc``. So don't forget to run these for each commit.
+
+One way to do it before pushing is:
+
+.. code-block:: shell
+
+    git rebase develop --exec 'git log -n 1; make checks'
 
 
 **********
