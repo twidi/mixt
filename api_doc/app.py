@@ -1,8 +1,9 @@
 # coding: mixt
 
+from os import environ
 from typing import Dict, List
 
-from mixt import Element, JSCollector, Ref, exceptions, html, __version__
+from mixt import Element, JSCollector, Ref, exceptions, html, __version__, override_dev_mode
 from mixt.internal import collectors, dev_mode
 from mixt.internal.html import __tags__
 
@@ -245,4 +246,5 @@ def resolve_conf(entries: List[Dict]) -> List[types.DocEntry]:
 
 
 if __name__ == "__main__":
-    print(<App />)
+    with override_dev_mode(dev_mode=not bool(environ.get('MIXT_DISABLE_DEV_MODE'))):
+        print(<App />)
