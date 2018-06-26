@@ -85,6 +85,11 @@ check-doc:  ## Check if documentation is up to date
 	@python -m api_doc.app > docs/index.html.new
 	@diff -q docs/index.html.new docs/index.html > /dev/null && (echo 'Doc is up to date'; rm docs/index.html.new) || (echo 'Doc is not up to date' 1>&2; rm docs/index.html.new)
 
+.PHONY: check checks
+check: checks
+checks:  ## Run all checkers (lint, tests, check-doc)
+checks: lint tests check-doc
+
 .PHONY: doc
 doc:  ## Build the documentation and save it to docs/
 	@echo "$(BOLD)Building documentation$(RESET)"
