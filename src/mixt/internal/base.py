@@ -11,7 +11,7 @@ from .proptypes import BasePropTypes
 
 # pylint: disable=invalid-name
 OptionalContext = Union["BaseContext", None]
-AnElement = Union["Base", str]
+AnElement = Union["Base", str, Callable]
 ManyElements = List[AnElement]
 OneOrManyElements = Union[AnElement, List[AnElement]]
 Props = Dict[str, Any]
