@@ -1,42 +1,58 @@
 # coding: mixt
 
-import re
-from typing import Any, List, Union
+from docutils import nodes
+from docutils.examples import internals
+from typing import List
 
 from mixt import Element, Required, html, h
-from mixt.internal.base import Base, escape, AnElement
 
 from ... import types
 from ..generic import Details
+from . import Code
 
 
-FIND_CODE = re.compile("(`+)(.+?)\\1")
-CODE_DELIM = {"``", "`"}
+CONTAINERS = {
+    nodes.document: h.Fragment,
+    nodes.paragraph: h.P,
+    nodes.bullet_list: h.Ul,
+    nodes.enumerated_list: h.Ol,
+    nodes.list_item: h.Li,
+}
+
+def htmlize_node(node):
+
+    if isinstance(node, str):
+        return node
+
+    node_type = type(node)
+
+    if node_type in CONTAINERS:
+        container = CONTAINERS[node_type]()
+    else:
+
+        if node_type is nodes.title_reference:
+            return h.Code(_class="reference")(node.astext())
+
+        if node_type is nodes.literal:
+            return h.Code()(node.astext())
+
+        if node_type is nodes.literal_block:
+            return Code(code=types.Code(code=node.astext()))
+
+        return node.astext()
+
+    children = [htmlize_node(child) for child in node.children]
+    return container(children) if children else None
 
 
-def htmlize_line(text: str) -> List[Union[str, Base]]:
-    parts = FIND_CODE.split(text)
-    result = []
-    next_is_code = False
-    for part in parts:
-        if next_is_code:
-            result.append(h.Code()(part))
-            next_is_code = False
-            continue
-        if part in CODE_DELIM:
-            next_is_code = True
-            continue
-        result.append(part)
-
-    return result
+def htmlize_summary(lines: List[str]):
+    text = "\n".join(lines).strip()
+    return htmlize_node(internals(text)[0]) if text else None
 
 
-def add_separator(input: List, separator: Any):
-    """Return the `input` list with `separator` inserted between each entry."""
-    output = input[:]
-    for counter in range(0, len(input) - 1):
-        output.insert(counter * 2 + 1, separator)
-    return output
+def htmlize_details(parts: List[List[str]]):
+    text = "\n\n".join(["\n".join(para) for para in parts]).strip()
+    return htmlize_node(internals(text)[0]) if text else None
 
 
 class DocString(Element):
@@ -73,15 +89,10 @@ details.docstring > div.content > p:first-child {
         details = None
 
         if not self.hide_summary:
-            summary = h.P()(add_separator(
-                [htmlize_line(line) for line in doc.summary], h.Br()
-            ))
+            summary = htmlize_summary(doc.summary)
 
         if not self.hide_details:
-            details = [
-                h.P()(add_separator([htmlize_line(line) for line in detail], h.Br()))
-                for detail in doc.details
-            ]
+            details = htmlize_details(doc.details)
 
         if summary and details:
             return <Details open={self.open}>

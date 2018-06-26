@@ -1278,7 +1278,7 @@ class WithClass(Base):
         return self.get_class().split()
 
     def add_class(self, klass: str, prepend: bool = False) -> str:
-        """Add the given `class`(es) to the actual list of classes.
+        """Add the given class(es) (`klass`) to the actual list of classes.
 
         Parameters
         ----------
@@ -1328,7 +1328,7 @@ class WithClass(Base):
         return self.set_prop("class", " ".join(classes))
 
     def prepend_class(self, klass: str) -> str:
-        """Add the given `class`(es) to the beginning of the actual list of classes.
+        """Add the given class(es) (`klass`) to the beginning of the actual list of classes.
 
         Parameters
         ----------
@@ -1358,7 +1358,7 @@ class WithClass(Base):
         return self.add_class(klass, prepend=True)
 
     def append_class(self, klass: str) -> str:
-        """Add the given `class`(es) to the end of the actual list of classes.
+        """Add the given class(es) (`klass`) to the end of the actual list of classes.
 
         Parameters
         ----------
@@ -1388,7 +1388,7 @@ class WithClass(Base):
         return self.add_class(klass, prepend=False)
 
     def remove_class(self, klass: str) -> None:
-        """Remove the given `class`(es) from the actual list of classes.
+        """Remove the given class(es) (`klass`) from the actual list of classes.
 
         Parameters
         ----------

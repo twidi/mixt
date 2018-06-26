@@ -1,6 +1,7 @@
 # coding: mixt
 
 from itertools import chain
+from typing import Any, List
 
 from mixt import html, h
 from mixt.internal.html import __tags__, HtmlBaseElement
@@ -9,8 +10,15 @@ from ...code_utils import load_docstring, resolve_proptypes
 from ... import types
 from ..doc import DocPart, DocHeader
 from ..models import Class, DocString
-from ..models.docstring import add_separator
 from .base import _Manual
+
+
+def add_separator(input: List, separator: Any):
+    """Return the `input` list with `separator` inserted between each entry."""
+    output = input[:]
+    for counter in range(0, len(input) - 1):
+        output.insert(counter * 2 + 1, separator)
+    return output
 
 
 def get_proptypes(tag):

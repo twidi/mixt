@@ -229,8 +229,9 @@ def enhance_multilines_doc(doc, name):
             groups[-1].append(line)
         else:
             if not groups[-1]:
-                groups[-1].append("")
-            groups[-1][-1] += f" {line}"
+                groups[-1].append(line)
+            else:
+                groups[-1][-1] += f" {line}"
 
     if len(groups) > 1 and not groups[-1]:
         groups.pop()
@@ -358,7 +359,6 @@ def load_docstring(obj):
 
         if doc.get("Examples"):
             doc["Examples"] = "\n".join(doc["Examples"])
-
 
         load_docstring.cache[obj] = doc
 
