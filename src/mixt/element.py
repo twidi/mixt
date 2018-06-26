@@ -131,9 +131,10 @@ class Element(WithClass):
             Empty by default. Used to filter the children.
 
             If it's a string to specify how to filter the children:
-              - If it starts with a dot ``.``, we select children having this class.
-              - If it starts with a sharp ``#``, we select children having this id.
-              - Else we select children having this tag name.
+
+            - If it starts with a dot ``.``, we select children having this class.
+            - If it starts with a sharp ``#``, we select children having this id.
+            - Else we select children having this tag name.
 
             If it's a class, only instances of this class (or subclass) are returned
         exclude : bool
@@ -168,15 +169,15 @@ class Element(WithClass):
 
             # filter by class
             if selector[0] == ".":
-                select = lambda x: compare_str in x.classes
+                select = lambda x: isinstance(x, WithClass) and compare_str in x.classes
 
             # filter by id
             elif selector[0] == "#":
-                select = lambda x: compare_str == x.get_id()
+                select = lambda x: hasattr(x, 'get_id') and compare_str == x.get_id()
 
             # filter by tag name
             else:
-                select = lambda x: selector == x.__tag__
+                select = lambda x: hasattr(x, '__tag__') and selector == x.__tag__
 
         elif issubclass(selector, Base):
             select = lambda x: isinstance(x, selector)  # type: ignore

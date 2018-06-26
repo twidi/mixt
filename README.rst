@@ -145,7 +145,7 @@ One way to do it before pushing is:
 
 .. code-block:: shell
 
-    git rebase develop --exec 'make lint && make tests && make check-doc'
+    git rebase develop --exec 'git log -n 1; make checks'
 
 
 **********

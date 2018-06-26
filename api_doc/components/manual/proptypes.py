@@ -56,7 +56,7 @@ class PropTypes(_Manual):
 ...     class PropTypes:
 ...         optional_prop: str
 ...         required_prop: Required[str]
-"""
+""", language="python"
                         )
                     )
                 } open_doc_details />
@@ -78,7 +78,7 @@ class PropTypes(_Manual):
 >>> class Component(Element):
 ...     class PropTypes:
 ...         size: Choices = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
-"""
+""", language="python"
                         )
                     )
                 } open_doc_details />
@@ -101,7 +101,7 @@ class PropTypes(_Manual):
 
 >>> <Component />.size
 'XS'
-"""
+""", language="python"
                         )
                     )
                 } open_doc_details />
@@ -169,7 +169,7 @@ False
 >>> <Component flagged={False} />.flagged
 False
 
-"""
+""", language="python"
                         )
                     )
                 } open_doc_details />
@@ -204,7 +204,7 @@ mixt.exceptions.InvalidPropValueError: <Component>.num: `1` is not a valid value
 '1'
 >>> <Component string={1} />.string
 '1'
-"""
+""", language="python"
                         )
                     )
                 } open_doc_details />
@@ -244,7 +244,7 @@ Traceback (most recent call last):
 mixt.exceptions.InvalidPropValueError: <Component>.string: `None` is not a valid value for this prop (type: <class 'NoneType'>, expected: <class 'str'>)
 >>> <Component string="None" />.string
 'None'
-"""
+""", language="python"
                         )
                     )
                 } open_doc_details />
@@ -291,7 +291,7 @@ value = "NotProvided"
 <Component string={value} />.string
 'NotProvided'
 
-"""
+""", language="python"
                         )
                     )
                 } open_doc_details />

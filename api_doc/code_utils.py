@@ -65,7 +65,7 @@ def resolve_proptypes(proptypes: BasePropTypes, only: Optional[List[str]] = None
             summary=docstring.get("Summary") or "",
             details=docstring.get("Extended Summary") or [],
         ),
-        example=Code(code=docstring["Examples"]) if docstring.get("Examples") else None,
+        example=Code(code=docstring["Examples"], language="python") if docstring.get("Examples") else None,
     )
 
 
@@ -90,7 +90,7 @@ def resolve_class(klass: Type, attrs: List[str], methods: List[str], name: str, 
             summary=docstring.get("Summary") or "",
             details=docstring.get("Extended Summary") or [],
         ),
-        example=Code(code=docstring["Examples"]) if docstring.get("Examples") else None,
+        example=Code(code=docstring["Examples"], language="python") if docstring.get("Examples") else None,
         proptypes=resolve_proptypes(klass.PropTypes, only=only_proptypes) if hasattr(klass, 'PropTypes') else None
     )
 
@@ -116,7 +116,7 @@ def resolve_module(module: Type, attrs: List[str], functions: List[str], classes
             summary=docstring.get("Summary") or "",
             details=docstring.get("Extended Summary") or [],
         ),
-        example=Code(code=docstring["Examples"]) if docstring.get("Examples") else None,
+        example=Code(code=docstring["Examples"], language="python") if docstring.get("Examples") else None,
         classes=[
             resolve_class(
                 klass=getattr(module, class_name),
@@ -147,12 +147,12 @@ def resolve_attribute(klass: Type, name: str, doc: List) -> NamedValue:
 def resolve_function(name: str, func: FunctionType, kind: str = 'function') -> Function:
     docstring = load_docstring(func)
     arg_types, return_types = get_function_types(func)
-    default_args = get_default_args(func) if arg_types else {}
+    args_info = get_args_info(func) if arg_types else {}
 
     return Function(
         name=name,
         args=[
-            resolve_function_argument(name, arg_type, docstring, default_args)
+            resolve_function_argument(name, arg_type, docstring, args_info)
             for name, arg_type in arg_types.items()
         ],
         ret=resolve_function_return(return_types, docstring),
@@ -161,7 +161,7 @@ def resolve_function(name: str, func: FunctionType, kind: str = 'function') -> F
             details=docstring.get("Extended Summary") or [],
         ),
         kind=kind,
-        example=Code(code=docstring["Examples"]) if docstring.get("Examples") else None,
+        example=Code(code=docstring["Examples"], language="python") if docstring.get("Examples") else None,
         raises=[
             NamedValue(
                 name=name,
@@ -176,18 +176,22 @@ def resolve_function(name: str, func: FunctionType, kind: str = 'function') -> F
     )
 
 
-def resolve_function_argument(name, arg_type, func_docstring, default_args):
-    doc = ((func_docstring.get("Parameters") or {}).get(name) or {}).get("doc") or [
-        [],
-        [],
-    ]
+def resolve_function_argument(name, arg_type, func_docstring, args_info):
+    real_name = (args_info.get(name) or {}).get('name') or name
+
+    params_doc = func_docstring.get("Parameters") or {}
+    doc = [[], []]
+    if params_doc.get(name):
+        doc = params_doc[name].get("doc") or doc
+    elif params_doc.get(real_name):
+        doc = params_doc[real_name].get("doc") or doc
 
     kwargs = {}
-    if name in default_args:
-        kwargs['default'] = default_args[name]
+    if (args_info.get(name) or {}).get('default', inspect.Parameter.empty) is not inspect.Parameter.empty:
+        kwargs['default'] = args_info[name]['default']
 
     return NamedValue(
-        name=name,
+        name=real_name,
         type=arg_type,
         doc=SimpleDocString(summary=doc[0], details=doc[1]),
         **kwargs
@@ -225,8 +229,9 @@ def enhance_multilines_doc(doc, name):
             groups[-1].append(line)
         else:
             if not groups[-1]:
-                groups[-1].append("")
-            groups[-1][-1] += f" {line}"
+                groups[-1].append(line)
+            else:
+                groups[-1][-1] += f" {line}"
 
     if len(groups) > 1 and not groups[-1]:
         groups.pop()
@@ -355,7 +360,6 @@ def load_docstring(obj):
         if doc.get("Examples"):
             doc["Examples"] = "\n".join(doc["Examples"])
 
-
         load_docstring.cache[obj] = doc
 
     return load_docstring.cache[obj]
@@ -437,11 +441,15 @@ def method_type(klass, name):
     return None
 
 
-def get_default_args(func):
+def get_args_info(func):
     signature = inspect.signature(func)
     return {
-        k: v.default
+        k: {
+            'default': v.default,
+            'name': f"*{k}" if v.kind is inspect._ParameterKind.VAR_POSITIONAL
+                    else f"**{k}" if v.kind is inspect._ParameterKind.VAR_KEYWORD
+                    else k
+        }
         for k, v in signature.parameters.items()
-        if v.default is not inspect.Parameter.empty
     }
 

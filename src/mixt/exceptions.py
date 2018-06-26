@@ -82,7 +82,7 @@ class PropError(ElementError):
 class PropTypeError(PropError):
     """Exception related to prop-types definition.
 
-    Base: ```PropError`.
+    Base: ``PropError``.
     """
 
     pass

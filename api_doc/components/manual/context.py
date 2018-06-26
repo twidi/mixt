@@ -89,7 +89,7 @@ class Context(_Manual):
 ...     </AuthenticatedContext>
 ... )
 <div>Hello. You need to idenfify yourself.</div>
-"""
+""", language="python"
                 )} />
             </DocPart>
 

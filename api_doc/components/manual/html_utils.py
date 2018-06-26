@@ -129,7 +129,7 @@ class HtmlUtils(_Manual):
 ...             {part_if_true}
 ...             {part_if_false}
 ...         </div>
-"""
+""", language="python"
                     )} />
                 </DocPart>
             </DocPart>
@@ -153,7 +153,7 @@ class HtmlUtils(_Manual):
 
 >>> print(<Component />)
 <div>Foo</div>
-"""
+""", language="python"
                     )} />
                 </DocPart>
             </DocPart>
