@@ -65,7 +65,7 @@ def resolve_proptypes(proptypes: BasePropTypes, only: Optional[List[str]] = None
             summary=docstring.get("Summary") or "",
             details=docstring.get("Extended Summary") or [],
         ),
-        example=Code(code=docstring["Examples"]) if docstring.get("Examples") else None,
+        example=Code(code=docstring["Examples"], language="python") if docstring.get("Examples") else None,
     )
 
 
@@ -90,7 +90,7 @@ def resolve_class(klass: Type, attrs: List[str], methods: List[str], name: str, 
             summary=docstring.get("Summary") or "",
             details=docstring.get("Extended Summary") or [],
         ),
-        example=Code(code=docstring["Examples"]) if docstring.get("Examples") else None,
+        example=Code(code=docstring["Examples"], language="python") if docstring.get("Examples") else None,
         proptypes=resolve_proptypes(klass.PropTypes, only=only_proptypes) if hasattr(klass, 'PropTypes') else None
     )
 
@@ -116,7 +116,7 @@ def resolve_module(module: Type, attrs: List[str], functions: List[str], classes
             summary=docstring.get("Summary") or "",
             details=docstring.get("Extended Summary") or [],
         ),
-        example=Code(code=docstring["Examples"]) if docstring.get("Examples") else None,
+        example=Code(code=docstring["Examples"], language="python") if docstring.get("Examples") else None,
         classes=[
             resolve_class(
                 klass=getattr(module, class_name),
@@ -161,7 +161,7 @@ def resolve_function(name: str, func: FunctionType, kind: str = 'function') -> F
             details=docstring.get("Extended Summary") or [],
         ),
         kind=kind,
-        example=Code(code=docstring["Examples"]) if docstring.get("Examples") else None,
+        example=Code(code=docstring["Examples"], language="python") if docstring.get("Examples") else None,
         raises=[
             NamedValue(
                 name=name,

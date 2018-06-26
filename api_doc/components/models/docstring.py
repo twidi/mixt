@@ -37,7 +37,11 @@ def htmlize_node(node):
             return h.Code()(node.astext())
 
         if node_type is nodes.literal_block:
-            return Code(code=types.Code(code=node.astext()))
+            try:
+                language = node.attributes['classes'][1]  # 0 is always "code" for code-blocks
+            except IndexError:
+                language = "text"
+            return Code(code=types.Code(code=node.astext(), language=language))
 
         return node.astext()
 

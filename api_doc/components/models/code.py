@@ -1,6 +1,6 @@
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
-from pygments.lexers import PythonLexer
+from pygments.lexers import PythonLexer, get_lexer_by_name
 
 from mixt import Element, Required, html as h
 
@@ -34,6 +34,7 @@ class Code(Element):
         # fmt: on
 
     def render(self, context):
+        lexer = get_lexer_by_name(self.code.language or "text", stripall=True)
         return h.Raw(
-            highlight(self.code.code, PythonLexer(), HtmlFormatter(cssclass="code"))
+            highlight(self.code.code, lexer, HtmlFormatter(cssclass="code"))
         )

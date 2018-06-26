@@ -31,8 +31,9 @@ class ModuleDocString(ClassDocString):
 
 
 class Code:
-    def __init__(self, code: str) -> None:
+    def __init__(self, code: str, language: str = "text") -> None:
         self.code = code
+        self.language = language
 
 
 class UnnamedValue:
