@@ -202,23 +202,21 @@ class Collector(Element, metaclass=CollectorMetaclass):
 
         return self._str_list_to_string(str_list)
 
-    def _to_list(self, acc: List) -> None:
-        """Fill the list `acc` with strings that will be concatenated to produce the html string.
+    def render(self, context: OptionalContext) -> Optional[OneOrManyElements]:
+        """Return elements to be rendered as html.
 
-        Simply prepend/append ``self.render_collected`` as a callable depening on the
+        Simply prepend/append ``self.render_collected`` as a callable depending on the
         ``render_position`` prop.
 
-        Parameters
-        ----------
-        acc : List
-            The accumulator list where to append the parts.
+        For the parameters, see ``Element.render``.
 
         """
+        result = [super().render(context)]
         if self.render_position == "before":
-            acc.append(self.render_collected)
-        super()._to_list(acc)
+            result.insert(0, self.render_collected)
         if self.render_position == "after":
-            acc.append(self.render_collected)
+            result.append(self.render_collected)
+        return result  # type: ignore
 
 
 class CSSCollector(Collector):

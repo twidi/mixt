@@ -2,7 +2,7 @@
 
 """Ensure that parents are saved correctly."""
 
-from mixt import Element, html
+from mixt import Element, NotProvided, Ref, html
 from mixt.internal.collectors import Collector, CSSCollector, JSCollector
 
 
@@ -152,3 +152,20 @@ alert(1);
 <html><head><script type="text/javascript">
 alert(1);
 </script></head><body><div><p>Hello</p></div></body></html>"""
+
+
+def test_no_children():
+    def get(position=NotProvided, ref=NotProvided):
+        return <Collector render_position={position} ref={ref}>
+            <Collector.Collect>
+                foo
+            </Collector.Collect>
+        </Collector>
+
+    assert str(get(position="before")) == "foo"
+    assert str(get(position="after")) == "foo"
+
+    ref =  Ref()
+    assert str(<Fragment>{get(ref=ref)}{ref.current.render_collected}</Fragment>) == "foo"
+    ref =  Ref()
+    assert str(<Fragment>{lambda: ref.current.render_collected()}{get(ref=ref)}</Fragment>) == "foo"
