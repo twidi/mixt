@@ -83,7 +83,7 @@ tests:  ## Run test tests
 check-doc:  ## Check if documentation is up to date
 	@echo "$(BOLD)Checking documentation$(RESET)"
 	@python -m api_doc.app > docs/index.html.new
-	@diff -q docs/index.html.new docs/index.html > /dev/null && (echo 'Doc is up to date'; rm docs/index.html.new) || (echo 'Doc is not up to date' 1>&2; rm docs/index.html.new)
+	@diff -q docs/index.html.new docs/index.html > /dev/null && (echo 'Doc is up to date'; rm docs/index.html.new) || (echo 'Doc is not up to date' 1>&2; rm docs/index.html.new; exit 1)
 
 .PHONY: check checks
 check: checks
