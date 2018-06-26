@@ -2214,4 +2214,4 @@ Hurray we made it! All the main features of ``mixt`` explained. You can now use 
 API
 ***
 
-*This section is not yet written.*
+The API doc is visible at https://twidi.github.io/mixt/
