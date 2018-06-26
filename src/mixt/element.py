@@ -131,9 +131,10 @@ class Element(WithClass):
             Empty by default. Used to filter the children.
 
             If it's a string to specify how to filter the children:
-              - If it starts with a dot ``.``, we select children having this class.
-              - If it starts with a sharp ``#``, we select children having this id.
-              - Else we select children having this tag name.
+
+            - If it starts with a dot ``.``, we select children having this class.
+            - If it starts with a sharp ``#``, we select children having this id.
+            - Else we select children having this tag name.
 
             If it's a class, only instances of this class (or subclass) are returned
         exclude : bool

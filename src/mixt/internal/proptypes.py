@@ -33,6 +33,7 @@ class BasePropTypes:
     In particular, it will handle python props to html attributes and vice-versa:
 
     From python to html:
+
     - a starting `_` will be removed in final html attribute
     - a single `_` will be changed to `-`
     - a double `__` will be changed to `:`
@@ -222,12 +223,17 @@ class BasePropTypes:
         Raises
         ------
         PropTypeChoicesError
+
             - If a prop is a ``Choices`` with no value or empty list.
             - If a prop is a ``Choices`` with something else than a list.
+
         PropTypeRequiredError
+
             - If a prop is a ``DefaultChoices`` and is marked as ``Required``.
             - For all other props marked as ``Required`` if there is a value.
+
         InvalidPropValueError
+
             - If the default value is not valid for the prop type.
 
         """
