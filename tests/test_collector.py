@@ -301,3 +301,83 @@ C1Local2Default
 """
 
 
+def test_reuse():
+
+    class Component1(Element):
+
+        @classmethod
+        def render_css_global(cls, context):
+            return "Global."
+
+        def render_css(self, context):
+            return "Local%(id)s." % {'id': self.id}
+
+    def run_comp1(**kwargs):
+        main_collector, ref1, ref2 = CSSCollector(), Ref(), Ref()
+        str(<CSSCollector ref={ref1} reuse={main_collector} {**kwargs}><Component1 id=1 /></CSSCollector>)
+        str(<CSSCollector ref={ref2} reuse={main_collector} {**kwargs}><Component1 id=2 /></CSSCollector>)
+        return main_collector, ref1, ref2
+
+
+    main_collector, ref1, ref2 = run_comp1()
+    assert ref1.current.reuse_global is True
+    assert ref1.current.reuse_non_global is True
+    assert main_collector.render_collected(with_tag=False) == "Global.Local1.Local2."
+    assert ref1.current.render_collected(with_tag=False) == ""
+    assert ref2.current.render_collected(with_tag=False) == ""
+
+    main_collector, ref1, ref2 = run_comp1(reuse_non_global=False)
+    assert ref1.current.reuse_global is True
+    assert ref1.current.reuse_non_global is False
+    assert main_collector.render_collected(with_tag=False) == "Global."
+    assert ref1.current.render_collected(with_tag=False) == "Local1."
+    assert ref2.current.render_collected(with_tag=False) == "Local2."
+
+    main_collector, ref1, ref2 = run_comp1(reuse_global=False)
+    assert ref1.current.reuse_global is False
+    assert ref1.current.reuse_non_global is True
+    assert main_collector.render_collected(with_tag=False) == "Local1.Local2."
+    assert ref1.current.render_collected(with_tag=False) == "Global."
+    assert ref2.current.render_collected(with_tag=False) == "Global."
+
+    class Component2(Element):
+
+        @classmethod
+        def render_css_global(cls, context):
+            return {
+                "foo": "GlobalFoo.",
+                "bar": "GlobalBar.",
+            }
+
+        def render_css(self, context):
+            return {
+                "foo": "Local%(id)sFoo." % {'id': self.id}
+            }
+
+    def run_comp2(**kwargs):
+        main_collector, ref1, ref2 = CSSCollector(), Ref(), Ref()
+        str(<CSSCollector ref={ref1} reuse={main_collector} {**kwargs}><Component2 id=1 /></CSSCollector>)
+        str(<CSSCollector ref={ref2} reuse={main_collector} {**kwargs}><Component2 id=2 /></CSSCollector>)
+        return main_collector, ref1, ref2
+
+    main_collector, ref1, ref2 = run_comp2(reuse_non_global=False)
+    assert ref1.current.reuse_namespaces is None
+    assert main_collector.render_collected(with_tag=False) == "GlobalFoo.GlobalBar."
+    assert ref1.current.render_collected(with_tag=False) == "Local1Foo."
+    assert ref2.current.render_collected(with_tag=False) == "Local2Foo."
+
+    main_collector, ref1, ref2 = run_comp2(reuse_namespaces=["foo", "default"])
+    assert ref1.current.reuse_namespaces == {"foo", "default"}
+    assert main_collector.render_collected(with_tag=False) == "GlobalFoo.Local1Foo.Local2Foo."
+    assert ref1.current.render_collected(with_tag=False) == "GlobalBar."
+    assert ref2.current.render_collected(with_tag=False) == "GlobalBar."
+
+    main_collector, ref1, ref2 = run_comp2(reuse_namespaces=["foo", "default"], reuse_non_global=False)
+    assert main_collector.render_collected(with_tag=False) == "GlobalFoo."
+    assert ref1.current.render_collected(with_tag=False) == "GlobalBar.Local1Foo."
+    assert ref2.current.render_collected(with_tag=False) == "GlobalBar.Local2Foo."
+
+    main_collector, ref1, ref2 = run_comp2(reuse_namespaces=["foo", "default"], reuse_global=False)
+    assert main_collector.render_collected(with_tag=False) == "Local1Foo.Local2Foo."
+    assert ref1.current.render_collected(with_tag=False) == "GlobalFoo.GlobalBar."
+    assert ref2.current.render_collected(with_tag=False) == "GlobalFoo.GlobalBar."
