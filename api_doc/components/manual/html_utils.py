@@ -15,12 +15,13 @@ class HtmlUtils(_Manual):
     def render_css_global(cls, context):
         # language=CSS
         return """
+/* <components.manual.html_utils.HtmlUtils> */
 .HtmlUtils .function-function > summary > .h:after { 
     %(TAG)s
     %(HL)s
     content: "function";
 }
-
+/* </components.manual.html_utils.HtmlUtils> */
         """
 
     def render(self, context):

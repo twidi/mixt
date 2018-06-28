@@ -1,11 +1,9 @@
 # coding: mixt
 
-from os import environ
 from typing import Dict, List
 
-from mixt import Element, JSCollector, Ref, exceptions, html, __version__, override_dev_mode
+from mixt import Element, JSCollector, Ref, Required, exceptions, html, __version__
 from mixt.internal import collectors, dev_mode
-from mixt.internal.html import __tags__
 
 from .components import CSSCollector, Intro, MainMenuCollector, VendoredScripts, TypesetStyle
 from .components import manual
@@ -14,67 +12,72 @@ from .code_utils import resolve_class, resolve_module
 from . import types
 
 
-
-CONF = [
+PAGES = [
     {
-        'type': "manual",
-        'component': manual.PropTypes
-    },
-    {
-        'type': "class",
-        'class': Element,
-        'attributes': ['__tag__', '__display_name__'],
-        'methods': [
-            'prop', 'prop_name', 'has_prop', 'set_prop', 'unset_prop', 'prop_default',
-            'is_prop_default', 'prop_type', 'is_prop_required', 'set_props', 'props', 'to_string',
-            'children', 'append', 'prepend', 'remove', 'add_class', 'append_class', 'prepend_class',
-            'remove_class', 'has_class', 'classes', 'render', 'prerender', 'postrender',
-            'postrender_child_element', 'add_ref',
-        ],
-    },
-    {
-        'type': "class",
-        'class': Ref,
-        'methods': ['current'],
-    },
-    {
-        'type': "module",
-        'module': dev_mode,
-        'name': 'dev_mode',
-        'functions': [
-            'set_dev_mode', 'unset_dev_mode', 'override_dev_mode', 'in_dev_mode'
+        'title': 'API',
+        'slug': 'index',
+        'conf': [
+            {
+                'type': "manual",
+                'component': manual.PropTypes
+            },
+            {
+                'type': "class",
+                'class': Element,
+                'attributes': ['__tag__', '__display_name__'],
+                'methods': [
+                    'prop', 'prop_name', 'has_prop', 'set_prop', 'unset_prop', 'prop_default',
+                    'is_prop_default', 'prop_type', 'is_prop_required', 'set_props', 'props', 'to_string',
+                    'children', 'append', 'prepend', 'remove', 'add_class', 'append_class', 'prepend_class',
+                    'remove_class', 'has_class', 'classes', 'render', 'prerender', 'postrender',
+                    'postrender_child_element', 'add_ref',
+                ],
+            },
+            {
+                'type': "class",
+                'class': Ref,
+                'methods': ['current'],
+            },
+            {
+                'type': "module",
+                'module': dev_mode,
+                'name': 'dev_mode',
+                'functions': [
+                    'set_dev_mode', 'unset_dev_mode', 'override_dev_mode', 'in_dev_mode'
+                ]
+            },
+            {
+                'type': "manual",
+                'component': manual.Context
+            },
+            {
+                'type': "module",
+                'module': collectors,
+                'name': 'collectors',
+                'classes': ['CSSCollector', 'JSCollector'],
+            },
+            {
+                'type': "manual",
+                'component': manual.HtmlTags,
+            },
+            {
+                'type': "manual",
+                'component': manual.HtmlUtils,
+            },
+            {
+                'type': "module",
+                'module': exceptions,
+                'name': 'exceptions',
+                'classes': [
+                    'MixtException', 'ElementError', 'PropError', 'PropTypeError', 'PropTypeChoicesError',
+                    'PropTypeRequiredError', 'InvalidPropNameError', 'InvalidPropValueError',
+                    'InvalidPropChoiceError', 'InvalidPropBoolError', 'RequiredPropError',
+                    'UnsetPropError', 'InvalidChildrenError', 'GeneralParserError',
+                    'BadCharError', 'ParserError'
+                ],
+            },
         ]
-    },
-    {
-        'type': "manual",
-        'component': manual.Context
-    },
-    {
-        'type': "module",
-        'module': collectors,
-        'name': 'collectors',
-        'classes': ['CSSCollector', 'JSCollector'],
-    },
-    {
-        'type': "manual",
-        'component': manual.HtmlTags,
-    },
-    {
-        'type': "manual",
-        'component': manual.HtmlUtils,
-    },
-    {
-        'type': "module",
-        'module': exceptions,
-        'name': 'exceptions',
-        'classes': [
-            'MixtException', 'ElementError', 'PropError', 'PropTypeError', 'PropTypeChoicesError',
-            'PropTypeRequiredError', 'InvalidPropNameError', 'InvalidPropValueError',
-            'InvalidPropChoiceError', 'InvalidPropBoolError', 'RequiredPropError',
-            'UnsetPropError', 'InvalidChildrenError', 'GeneralParserError',
-            'BadCharError', 'ParserError'
-        ],
-    },
+    }
 ]
 
 
@@ -172,7 +175,14 @@ details:not(.doc-part) {
 /* </app.Head> */
         """
 
-class App(Element):
+class Page(Element):
+
+    class PropTypes:
+        title: Required[str]
+        slug: Required[str]
+        conf: Required[List[Dict]]
+        global_css_collector: Required[CSSCollector]
+        global_js_collector: Required[JSCollector]
 
     def render(self, context):
         css_ref = self.add_ref()
@@ -180,15 +190,16 @@ class App(Element):
         menu_ref = self.add_ref()
 
         return \
-            <CSSCollector ref={css_ref}>
-                <JSCollector ref={js_ref}>
+            <CSSCollector ref={css_ref} reuse={self.global_css_collector} reuse_non_global=False>
+                <JSCollector ref={js_ref} reuse={self.global_js_collector} reuse_non_global=False>
                     <Doctype />
                     <html lang="en">
                         <Head>
                             <meta charset="utf-8"/>
                             <meta name="viewport" content="width=device-width, initial-scale=1"/>
-                            <title>MIXT API documentation</title>
-                            <TypesetStyle />
+                            <title>{self.title} - MIXT documentation</title>
+                            <link rel="stylesheet" type="text/css" href="typeset.css" />
+                            <link rel="stylesheet" type="text/css" href="global.css" />
                             {lambda: css_ref.current.render_collected()}
                         </Head>
                         <body>
@@ -200,12 +211,13 @@ class App(Element):
                                 {[
                                     component_class(obj=doc_entry)
                                     for component_class, doc_entry
-                                    in resolve_conf(CONF)
+                                    in resolve_conf(self.conf)
                                 ]}
                             </div>
                             </MainMenuCollector>
                             </main>
-                    <VendoredScripts />
+                    <script type="text/javascript" src="vendored.js"></script>
+                    <script type="text/javascript" src="global.js"></script>
                     {lambda: js_ref.current.render_collected()}
                 </body>
             </html>
@@ -245,6 +257,53 @@ def resolve_conf(entries: List[Dict]) -> List[types.DocEntry]:
     return result
 
 
-if __name__ == "__main__":
-    with override_dev_mode(dev_mode=not bool(environ.get('MIXT_DISABLE_DEV_MODE'))):
-        print(<App />)
+def files_to_render():
+
+    global_js_collector = JSCollector()
+    global_css_collector = CSSCollector()
+
+    files = []
+
+    for page in PAGES:
+        files.append([
+            f"{page['slug']}.html",
+            page['title'],
+            Page,
+            {
+                'title': page['title'],
+                'slug': page['slug'],
+                'conf': page['conf'],
+                'global_js_collector': global_js_collector,
+                'global_css_collector': global_css_collector,
+            }
+        ])
+
+    files.append([
+        "typeset.css",
+        None,
+        TypesetStyle,
+        {'with_tag': False}
+    ])
+
+    files.append([
+        "global.css",
+        None,
+        global_css_collector.render_collected,
+        {'with_tag': False}
+    ])
+
+    files.append([
+        "vendored.js",
+        None,
+        VendoredScripts,
+        {'with_tag': False}
+    ])
+
+    files.append([
+        "global.js",
+        None,
+        global_js_collector.render_collected,
+        {'with_tag': False}
+    ])
+
+    return files

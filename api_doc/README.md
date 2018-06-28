@@ -10,11 +10,20 @@ pip install mixt[doc]
 
 ## Render
 
-To render the single html content:
+To render the html/css/js files in a directory
 
 ```bash
-python -m api_doc.app
+python -m api_doc.export directory
 ```
+
+The final directory where the doc have to be exported is ``docs``.
+
+It can be done with:
+
+```bash
+make doc
+```
+
 
 ## Serve
 
@@ -22,17 +31,4 @@ To server the html content on `localhost:8080`:
 
 ```bash
 python -m api_doc.serve
-```
-
-
-## Save in docs/ repository
-
-```bash
-make doc
-```
-
-Which is the same as running:
-
-```bash
-python -m api_doc.app > docs/index.html
 ```

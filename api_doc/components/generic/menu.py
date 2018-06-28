@@ -116,7 +116,8 @@ class MenuCollector(Element):
             self.__last__ = self.__last__.add(child)
 
     def render_menu(self, id, _class=None):
-        return <Menu id={id} class={_class or ''} menu={self.__root__} />
+        if self.__root__.children:
+            return <Menu id={id} class={_class or ''} menu={self.__root__} />
 
     @classmethod
     def render_js_global(cls, context):
