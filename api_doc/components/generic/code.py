@@ -19,7 +19,7 @@ class SourceCode(Element):
 /* <components.generic.code.SourceCode> */
         """ + HtmlFormatter().get_style_defs(".code") + """
 .code {
-    display: inline-block;
+    display: block;
     background: transparent;
     margin-top: 5px;
 }
@@ -27,6 +27,7 @@ class SourceCode(Element):
     display: inline-block;
     margin: 0;
     overflow: auto;
+    white-space: pre;
 }
 /* </components.generic.code.SourceCode> */
         """

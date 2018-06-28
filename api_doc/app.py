@@ -1,11 +1,11 @@
 # coding: mixt
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from mixt import Element, JSCollector, Ref, Required, exceptions, html, __version__
 from mixt.internal import collectors, dev_mode
 
-from .components import CSSCollector, Intro, MainMenuCollector, VendoredScripts, TypesetStyle
+from .components import CSSCollector, H, MainMenuCollector, VendoredScripts, TypesetStyle
 from .components import manual
 from .components.models import Class, Module
 from .code_utils import resolve_class, resolve_module
@@ -14,8 +14,29 @@ from . import types
 
 PAGES = [
     {
-        'title': 'API',
+        'title': 'Intro',
+        'h_title': "Welcome to MIXT documentation",
         'slug': 'index',
+        'conf': [
+            {
+                'type': "manual",
+                'component': manual.Intro
+            },
+        ]
+    },
+    {
+        'title': 'User guide',
+        'slug': 'user-guide',
+        'conf': [
+            {
+                'type': "manual",
+                'component': manual.UserGuide
+            },
+        ]
+    },
+    {
+        'title': 'API',
+        'slug': 'api',
         'conf': [
             {
                 'type': "manual",
@@ -77,7 +98,7 @@ PAGES = [
                 ],
             },
         ]
-    }
+    },
 ]
 
 
@@ -172,6 +193,19 @@ body {
 details:not(.doc-part) {
     padding-left: 5px;
 }
+main > h1 {
+    line-height: 1.3;
+    padding: 0.5em 0;
+    background: %(BG9)s;
+    color: white;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 1em;
+}
+main > h1 > a {
+    color: inherit;
+}
+
 /* </app.Head> */
         """
 
@@ -179,6 +213,7 @@ class Page(Element):
 
     class PropTypes:
         title: Required[str]
+        h_title: Optional[str]
         slug: Required[str]
         conf: Required[List[Dict]]
         global_css_collector: Required[CSSCollector]
@@ -197,7 +232,7 @@ class Page(Element):
                         <Head>
                             <meta charset="utf-8"/>
                             <meta name="viewport" content="width=device-width, initial-scale=1"/>
-                            <title>{self.title} - MIXT documentation</title>
+                            <title>{self.title} - MIXT documentation (version {__version__})</title>
                             <link rel="stylesheet" type="text/css" href="typeset.css" />
                             <link rel="stylesheet" type="text/css" href="global.css" />
                             {lambda: css_ref.current.render_collected()}
@@ -205,7 +240,14 @@ class Page(Element):
                         <body>
                             {lambda: menu_ref.current.render_menu()}
                             <main>
-                            <Intro version={__version__}/>
+                            <H level=1>
+                                <if cond={self.prop('h_title', None)}>
+                                    {self.h_title}
+                                </if>
+                                <else>
+                                    <a href="/" title="Back to documentation index">MIXT documentation</a>: {self.title}
+                                </else>
+                            </H>
                             <MainMenuCollector ref={menu_ref}>
                             <div class="doc">
                                 {[
@@ -271,6 +313,7 @@ def files_to_render():
             Page,
             {
                 'title': page['title'],
+                'h_title': page.get('h_title'),
                 'slug': page['slug'],
                 'conf': page['conf'],
                 'global_js_collector': global_js_collector,

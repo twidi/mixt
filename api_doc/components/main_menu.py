@@ -29,6 +29,7 @@ class MainMenuCollector(MenuCollector):
     text-decoration: none;
     line-height: 1.8;
     display: inline-block;
+    white-space: nowrap;
 }
 
 .menu-class:after, 
