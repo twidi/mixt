@@ -1,61 +1,22 @@
 # coding: mixt
 
-from docutils import nodes
 from docutils.examples import internals
 from typing import List
 
-from mixt import Element, Required, html, h
+from mixt import Element, Required, html
 
 from ... import types
-from ..generic import Details, SourceCode
-
-
-CONTAINERS = {
-    nodes.document: h.Fragment,
-    nodes.paragraph: h.P,
-    nodes.bullet_list: h.Ul,
-    nodes.enumerated_list: h.Ol,
-    nodes.list_item: h.Li,
-}
-
-def htmlize_node(node):
-
-    if isinstance(node, str):
-        return node
-
-    node_type = type(node)
-
-    if node_type in CONTAINERS:
-        container = CONTAINERS[node_type]()
-    else:
-
-        if node_type is nodes.title_reference:
-            return h.Code(_class="reference")(node.astext())
-
-        if node_type is nodes.literal:
-            return h.Code()(node.astext())
-
-        if node_type is nodes.literal_block:
-            try:
-                language = node.attributes['classes'][1]  # 0 is always "code" for code-blocks
-            except IndexError:
-                language = "text"
-            return SourceCode(language=language)(node.astext())
-
-        return node.astext()
-
-    children = [htmlize_node(child) for child in node.children]
-    return container(children) if children else None
+from ..generic import Details, htmlize_rst
 
 
 def htmlize_summary(lines: List[str]):
     text = "\n".join(lines).strip()
-    return htmlize_node(internals(text)[0]) if text else None
+    return htmlize_rst(text)
 
 
 def htmlize_details(parts: List[List[str]]):
     text = "\n\n".join(["\n".join(para) for para in parts]).strip()
-    return htmlize_node(internals(text)[0]) if text else None
+    return htmlize_rst(text)
 
 
 class DocString(Element):
