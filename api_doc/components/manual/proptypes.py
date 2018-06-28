@@ -1,10 +1,11 @@
 # coding: mixt
 
-from mixt import Element, html
+from mixt import Element, html, h
 
 from ... import types
 from ..doc import DocPart, DocHeader
-from ..models import Code, NamedValue
+from ..generic import Rst
+from ..models import NamedValue
 from .base import _Manual
 
 
@@ -16,24 +17,23 @@ class PropTypes(_Manual):
         return <DocPart kind="PropTypes" id_prefix={id_prefix} level={self.h_level}>
             <DocHeader menu="PropTypes">PropTypes</DocHeader>
 
-            <p><strong>
-                <code>PropTypes</code> are at the heart of Mixt. The aim si to specify precisely
-                what kind of data a component is allowed to receive.
-            </strong></p>
+            <Rst>{h.Raw(
+# language=RST
+"""
+**PropTypes are at the heart of Mixt. The aim si to specify precisely
+what kind of data a component is allowed to receive.**
 
-            <p>It is then "strongly typed" (sort of). And of course largely inspired by React.</p>
+It is then "strongly typed" (sort of). And of course largely inspired by React.
 
-            <p>
-                It works by defining a class named <code>PropTypes</code> inside your components. (see full
-                example below).
-            </p>
+It works by defining a class named ``PropTypes`` inside your components. (see full
+example below).
 
-            <p>
-                Then, you must define the type
-                (using the <a href="https://docs.python.org/3.6/library/typing.html">python typing syntax</a>),
-                and, if you want, a default value. The format is <code>prop_name: type</code> or
-                <code>prop_name: type = default</code>.
-            </p>
+Then, you must define the type
+(using the `python typing syntax <https://docs.python.org/3.6/library/typing.html>`_),
+and, if you want, a default value. The format is ``prop_name: type`` or
+``prop_name: type = default``.
+"""
+            )}</Rst>
 
             <DocPart kind="PropTypes" subkind="types" id_prefix={id_prefix} level={self.h_level+1} open>
                 <DocHeader menu="Special types">Special types</DocHeader>

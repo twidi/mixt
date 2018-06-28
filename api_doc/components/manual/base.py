@@ -12,6 +12,10 @@ class _Manual(Element):
         # language=CSS
         return """
 /* <components.manual.base._Manual> */
+.doc > .manual:first-child:last-child {
+    padding: 5px 0 5px 1em;
+    border-radius: 7px 0 0 7px;
+}
 .manual > .content > p:first-child {
     margin-top: 1em;
 }

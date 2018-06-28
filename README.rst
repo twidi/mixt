@@ -70,6 +70,10 @@ Yes it is inspired by React (in fact, mainly JSX) and we borrow some of the conc
 - class components or simple function components
 - high order components
 
+And we added:
+
+- css/js collectors
+
 
 ************
 Installation
@@ -161,8 +165,8 @@ Run it with:
     python -m mixt.examples.user_guide
 
 
-Introduction
-============
+Start
+=====
 
 Let's create a... todo list, yeah!
 
@@ -2214,4 +2218,4 @@ Hurray we made it! All the main features of ``mixt`` explained. You can now use 
 API
 ***
 
-The API doc is visible at https://twidi.github.io/mixt/
+As a next step, you may want to read `the API documentation <https://twidi.github.io/mixt/api.html>`_.

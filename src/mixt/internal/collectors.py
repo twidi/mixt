@@ -333,7 +333,7 @@ Usage (we'll use ``CSSCollector`` in these examples but it works the same with `
 
            # each file will have its own non-global styles
            >>> save_to_file(str(render("page 1")), 'page1.html')
-           >>> save_to_file(str(render("page 2")), 'page1.html')
+           >>> save_to_file(str(render("page 2")), 'page2.html')
 
            # we'll have the global styles for every components used on each page
            # useful if one component used on page 2 but not on page 1 for example

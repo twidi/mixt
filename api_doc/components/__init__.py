@@ -2,5 +2,5 @@
 
 from .style import TypesetStyle, CSSCollector
 from .script import VendoredScripts
-from .intro import Intro
+from .generic import H
 from .main_menu import MainMenuCollector

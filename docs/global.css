@@ -1,0 +1,669 @@
+
+/* <app.Head> */
+#main-menu {
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow: auto;
+    z-index: 1;
+    height: 100%;
+}
+
+@media (max-width: 40rem) {
+    #main-menu {
+        width: 2rem;
+    }
+    #main-menu > ul {
+        display: none;
+    }
+    #main-menu:not(.focus-within) > p {
+        transform: rotate(-90deg) translateX(-6rem) translateY(-5px);
+        white-space: nowrap;
+    }
+    #main-menu.focus-within {
+        width: auto;
+        max-width: 90%;
+    }
+    #main-menu.focus-within > ul {
+        display: block;
+    }
+    #main-menu.focus-within:before {
+        content: "";
+    }
+    main {
+        margin-left: 2rem;
+    }
+}
+
+@media not all and (max-width: 40rem) {
+    #main-menu {
+        width: 10rem;
+    }
+    #main-menu:hover {
+        width: auto;
+        min-width: 10rem;
+        max-width: 90%;
+    }
+    main {
+        margin-left: 10rem;
+    }
+}
+code {
+    font-weight: normal;
+}
+
+hr { 
+  border: 0; 
+  height: 1px; 
+  background-image: -webkit-linear-gradient(left, #f7fcf0, #084081, #f7fcf0);
+  background-image: -moz-linear-gradient(left, #f7fcf0, #084081, #f7fcf0);
+  background-image: -ms-linear-gradient(left, #f7fcf0, #084081, #f7fcf0);
+  background-image: -o-linear-gradient(left, #f7fcf0, #084081, #f7fcf0); 
+}
+body {
+    background: #f7fcf0;
+    margin: 0;
+}
+.doc {
+    margin-left: calc(1em + 9px);
+    padding-right: 20px;
+    margin-bottom: 1em;
+}
+@media (max-width: 40rem) {
+    .doc {
+        margin-left: calc(0.2em + 9px);
+        padding-right: 0;
+    }
+}
+.doc p, .doc .h   {
+    padding-right: 5px;
+}
+.doc .h   {
+    display: inline
+}
+details:not(.doc-part) {
+    padding-left: 5px;
+}
+main > h1 {
+    line-height: 1.3;
+    padding: 0.5em 0;
+    background: #084081;
+    color: white;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 1em;
+}
+main > h1 > a {
+    color: inherit;
+}
+
+/* </app.Head> */
+        
+/* <components.generic.menu.H> */
+.h + .permalink {    
+    visibility: hidden;
+    padding-left: 0.5em;
+    vertical-align: middle;
+    line-height: 0.8;
+    color: #333;
+    opacity: 0.75;
+}
+.h + .permalink:hover, .h + .permalink:focus, 
+.h:hover + .permalink, .h:focus + .permalink, .h.focus-within + .permalink {
+    visibility: visible;
+}
+div:hover > .h + .permalink, 
+div:focus > .h + .permalink, 
+div.focus-within > .h + .permalink {
+    visibility: visible;
+}
+
+details:hover > summary > .h + .permalink, 
+details:focus > summary > .h + .permalink, 
+details.focus-within > summary > .h + .permalink {
+    visibility: visible;
+}
+/* </components.generic.menu.H> */
+        
+/* <components.main_menu.MainMenuCollector> */
+#main-menu {
+    background: #084081;
+    color: white;
+}
+#main-menu > p {
+    margin-left: 10px;
+}
+#main-menu ul {
+    list-style: none;
+    margin-left: 1em;
+}
+#main-menu > ul {
+    margin: 10px;
+    padding-right: 15px;
+}
+
+#main-menu a {
+    color: inherit;
+    text-decoration: none;
+    line-height: 1.8;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.menu-class:after, 
+.menu-module:after, 
+.menu-function-staticmethod:after, 
+.menu-function-property:after,
+.menu-function-classmethod:after { 
+    
+            font-weight: normal;
+            font-size: smaller;
+            margin-left: 1em;
+            padding: 1px 5px 2px;
+            border-radius: 6px;
+            position: relative;
+            top: -1px;
+        
+    
+            background: #084081;
+            color: white;
+        
+}
+li:not(:hover) > .menu-class:after,
+li:not(:hover) > details > summary:not(.current) > .menu-class:after,
+li:not(:hover) > details > summary:not(.current) > .menu-module:after,
+li:not(:hover) > details > summary:not(.current) > .menu-function-staticmethod:after, 
+li:not(:hover) > details > summary:not(.current) > .menu-function-property:after,
+li:not(:hover) > details > summary:not(.current) > .menu-function-classmethod:after {
+    
+            background: white;
+            color: #084081;
+        
+}
+
+.menu-class:after { 
+    content: "class";
+}
+.menu-module:after { 
+    content: "module";
+}
+li:not(:hover) > details > summary:not(.current) > .menu-function-staticmethod:after, 
+li:not(:hover) > details > summary:not(.current) > .menu-function-property:after,
+li:not(:hover) > details > summary:not(.current) > .menu-function-classmethod:after {
+    
+            background: white;
+            color: #084081;
+        
+}
+
+#main-menu li:hover > details > summary,
+#main-menu li:hover > a,
+#main-menu .current {
+    color: #084081;
+}
+#main-menu li:hover > details > summary::before,
+#main-menu li:hover > a::before,
+#main-menu .current::before {
+    content: " ";
+    background: white;
+    position: absolute;
+    height: 1.8em;
+    z-index: -1;
+    left: 0;
+    right: 0;
+}
+
+
+.menu-function-staticmethod:after {
+    content: "staticmethod";
+}
+.menu-function-property:after {
+    content: "property";
+}
+.menu-function-classmethod:after {
+    content: "classmethod";
+}
+
+/* </components.main_menu.MainMenuCollector> */
+        
+/* <components.manual.base._Manual> */
+.doc > .manual:first-child:last-child {
+    padding: 5px 0 5px 1em;
+    border-radius: 7px 0 0 7px;
+}
+.manual > .content > p:first-child {
+    margin-top: 1em;
+}
+.manual > .content > p:first-child strong {
+    line-height: 1.3;
+}
+
+.manual:hover,
+.manual:target,
+.manual.focus-within {
+    background: #e0f3db;
+}
+.manual .doc-part:hover,
+.manual .doc-part:focus,
+.manual .doc-part.focus-within {
+    background: #ccebc5;
+}
+.manual .doc-part .doc-part:hover,
+.manual .doc-part .doc-part:focus,
+.manual .doc-part .doc-part.focus-within {
+    background: #a8ddb5;
+}
+.manual .doc-part .doc-part .doc-part:hover,
+.manual .doc-part .doc-part .doc-part:focus,
+.manual .doc-part .doc-part .doc-part.focus-within {
+    background: #7bccc4;
+}
+.manual .doc-part .doc-part .doc-part .doc-part:hover,
+.manual .doc-part .doc-part .doc-part .doc-part:focus,
+.manual .doc-part .doc-part .doc-part .doc-part.focus-within {
+    background: #4eb3d3;
+}
+/* </components.manual.base._Manual> */
+        
+/* <components.doc.DocPart> */
+.doc-part {
+    padding: 5px 0 5px 5px;
+    border-radius: 7px 0 0 7px;
+    -moz-outline-radius: 7px 0 0 7px;
+    -webkit-outline-radius: 7px 0 0 7px;
+    outline-radius: 7px 0 0 7px;
+}
+.doc-part[open] > summary > .h {
+    text-decoration: underline;
+}
+/* </components.doc.DocPart> */
+        
+/* <components.generic.details.Details> */
+
+details .h {
+    margin-top: 0;
+    padding: 3px 0;
+}
+details[open] .h {
+    margin-bottom: 1em;
+}
+details:not([open]) .h {
+    margin-bottom: 0;
+}
+summary {
+    cursor: pointer;
+    white-space: nowrap;
+}
+summary .h {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1.3;
+    white-space: normal;
+}
+.h + details {
+    margin-top: 1em;
+}     
+details + details, summary + details {
+    margin-top: 1em;
+}
+details > :not(summary) {
+    margin-left: 1em;
+}
+@media (max-width: 40rem) {
+    details > :not(summary) {
+        margin-left: 0.2em;
+    }
+}
+
+details > div.content > :first-child, 
+details > div.content > :first-child > :first-child, 
+details > div.content > :first-child > :first-child > :first-child,
+details > div.content > :first-child > :first-child > :first-child > :first-child,
+details > div.content > :first-child > :first-child > :first-child > :first-child > :first-child,
+details > div.content > :first-child > :first-child > :first-child > :first-child > :first-child > :first-child {
+    margin-top: 0;
+}
+
+details .h:last-child,
+details > div.content > p:last-child {
+    margin-bottom: 0;
+}
+
+details > div.content {
+    border-left: solid rgba(0, 0, 0, 0.1) 1px;
+    margin-left: 4px;
+    padding: 5px 0 5px 1em;
+}
+@media (max-width: 40rem) {
+    details > div.content {
+        margin-left: 3px;
+        padding-left: 0.2em;
+    }
+}
+details:hover > div.content,
+details:focus > div.content,
+details.focus-within > div.content {
+    border-left: solid transparent 1px;
+}
+/* </components.generic.details.Details> */
+        
+/* <components.generic.code.SourceCode> */
+        .code .hll { background-color: #ffffcc }
+.code  { background: #f8f8f8; }
+.code .c { color: #408080; font-style: italic } /* Comment */
+.code .err { border: 1px solid #FF0000 } /* Error */
+.code .k { color: #008000; font-weight: bold } /* Keyword */
+.code .o { color: #666666 } /* Operator */
+.code .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
+.code .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.code .cp { color: #BC7A00 } /* Comment.Preproc */
+.code .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
+.code .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.code .cs { color: #408080; font-style: italic } /* Comment.Special */
+.code .gd { color: #A00000 } /* Generic.Deleted */
+.code .ge { font-style: italic } /* Generic.Emph */
+.code .gr { color: #FF0000 } /* Generic.Error */
+.code .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.code .gi { color: #00A000 } /* Generic.Inserted */
+.code .go { color: #888888 } /* Generic.Output */
+.code .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.code .gs { font-weight: bold } /* Generic.Strong */
+.code .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.code .gt { color: #0044DD } /* Generic.Traceback */
+.code .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.code .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.code .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.code .kp { color: #008000 } /* Keyword.Pseudo */
+.code .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.code .kt { color: #B00040 } /* Keyword.Type */
+.code .m { color: #666666 } /* Literal.Number */
+.code .s { color: #BA2121 } /* Literal.String */
+.code .na { color: #7D9029 } /* Name.Attribute */
+.code .nb { color: #008000 } /* Name.Builtin */
+.code .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.code .no { color: #880000 } /* Name.Constant */
+.code .nd { color: #AA22FF } /* Name.Decorator */
+.code .ni { color: #999999; font-weight: bold } /* Name.Entity */
+.code .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.code .nf { color: #0000FF } /* Name.Function */
+.code .nl { color: #A0A000 } /* Name.Label */
+.code .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.code .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.code .nv { color: #19177C } /* Name.Variable */
+.code .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.code .w { color: #bbbbbb } /* Text.Whitespace */
+.code .mb { color: #666666 } /* Literal.Number.Bin */
+.code .mf { color: #666666 } /* Literal.Number.Float */
+.code .mh { color: #666666 } /* Literal.Number.Hex */
+.code .mi { color: #666666 } /* Literal.Number.Integer */
+.code .mo { color: #666666 } /* Literal.Number.Oct */
+.code .sa { color: #BA2121 } /* Literal.String.Affix */
+.code .sb { color: #BA2121 } /* Literal.String.Backtick */
+.code .sc { color: #BA2121 } /* Literal.String.Char */
+.code .dl { color: #BA2121 } /* Literal.String.Delimiter */
+.code .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.code .s2 { color: #BA2121 } /* Literal.String.Double */
+.code .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.code .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.code .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.code .sx { color: #008000 } /* Literal.String.Other */
+.code .sr { color: #BB6688 } /* Literal.String.Regex */
+.code .s1 { color: #BA2121 } /* Literal.String.Single */
+.code .ss { color: #19177C } /* Literal.String.Symbol */
+.code .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.code .fm { color: #0000FF } /* Name.Function.Magic */
+.code .vc { color: #19177C } /* Name.Variable.Class */
+.code .vg { color: #19177C } /* Name.Variable.Global */
+.code .vi { color: #19177C } /* Name.Variable.Instance */
+.code .vm { color: #19177C } /* Name.Variable.Magic */
+.code .il { color: #666666 } /* Literal.Number.Integer.Long */
+.code {
+    display: block;
+    background: transparent;
+    margin-top: 5px;
+}
+.code > pre {
+    display: inline-block;
+    margin: 0;
+    overflow: auto;
+    white-space: pre;
+}
+/* </components.generic.code.SourceCode> */
+        
+/* <components.models.value._Value> */
+.value:not(:last-child) p:last-child {
+    margin-bottom: 0;
+}
+.value:not(:first-child) {
+    margin-top: 1em;
+}
+.value .docstring {
+    margin-left: 1em;
+}
+/* </components.models.value._Value> */
+        
+/* <components.models.docstring> */
+details.docstring {
+    margin-top: 1em;
+}
+details.docstring > summary > p {
+    margin-top: 0;
+    white-space: normal;
+    display: inline;
+}
+details.docstring > div.content > p:first-child {
+    margin-top: 1em;
+}
+/* </components.models.docstring> */
+        
+/* <components.models.base_container._BaseContainer.Class> */
+.class > summary > .h:after { 
+    
+            font-weight: normal;
+            font-size: smaller;
+            margin-left: 1em;
+            padding: 1px 5px 2px;
+            border-radius: 6px;
+            position: relative;
+            top: -1px;
+        
+    
+            background: #084081;
+            color: white;
+        
+    content: "class";
+}
+
+.class:hover,
+.class:target,
+.class.focus-within {
+    background: #e0f3db;
+}
+.class-doc-part:hover,
+.class-doc-part:focus,
+.class-doc-part.focus-within {
+    background: #ccebc5;
+}
+.class-attributes .value:hover,
+.class-attributes .value:focus, 
+.class-attributes .value.focus-within, 
+.class-methods .function:hover,
+.class-methods .function:focus,
+.class-methods .function.focus-within {
+    background: #a8ddb5;
+}
+.class-methods .function-doc-part:hover,
+.class-methods .function-doc-part:focus,
+.class-methods .function-doc-part:focus-within {
+    background: #7bccc4;
+}
+.class-methods .value:hover,
+.class-methods .value:focus,
+.class-methods .value.focus-within {
+    background: #4eb3d3;
+}
+/* </components.models.base_container._BaseContainer.Class> */
+        
+/* <components.models.proptypes.PropTypes> */
+.prop_types:hover,
+.prop_types:target,
+.prop_types.focus-within {
+    background: #ccebc5;
+}
+.prop_types-doc-part:hover,
+.prop_types-doc-part:focus,
+.prop_types-doc-part.focus-within,
+.prop_types-props .value:hover,
+.prop_types-props .value:focus, 
+.prop_types-props .value.focus-within {
+    background: #a8ddb5;
+}
+.prop_types-props.doc-part .value:hover,
+.prop_types-props.doc-part .value:focus, 
+.prop_types-props.doc-part .value.focus-within {
+    background: #7bccc4;
+}
+/* </components.models.proptypes.PropTypes> */
+        
+/* <components.models.function.Function> */
+.function-kind {
+    display: none;
+}
+.function-staticmethod > summary > .h:after, 
+.function-property > summary > .h:after,
+.function-classmethod > summary > .h:after { 
+    
+            font-weight: normal;
+            font-size: smaller;
+            margin-left: 1em;
+            padding: 1px 5px 2px;
+            border-radius: 6px;
+            position: relative;
+            top: -1px;
+        
+    
+            background: #084081;
+            color: white;
+        
+}
+
+.function-staticmethod > summary > .h:after {
+    content: "staticmethod";
+}
+.function-property > summary > .h:after {
+    content: "property";
+}
+.function-classmethod > summary > .h:after {
+    content: "classmethod";
+}
+.function > .content > details:not(.doc-part) > summary {
+    opacity: 0.25
+}
+.function:hover > .content > details:not(.doc-part):not([open]) > summary {
+    opacity: 1
+}
+
+@media (max-width: 40rem) {
+    .function-arg {
+        display: block;
+        margin-left: 1em;
+    }
+}
+/* </components.models.function.Function> */
+        
+/* <components.models.base_container._BaseContainer.Module> */
+.module > summary > .h:after { 
+    
+            font-weight: normal;
+            font-size: smaller;
+            margin-left: 1em;
+            padding: 1px 5px 2px;
+            border-radius: 6px;
+            position: relative;
+            top: -1px;
+        
+    
+            background: #084081;
+            color: white;
+        
+    content: "module";
+}
+
+.module:hover,
+.module:target,
+.module.focus-within {
+    background: #e0f3db;
+}
+.module-doc-part:hover,
+.module-doc-part:focus,
+.module-doc-part.focus-within {
+    background: #ccebc5;
+}
+.module-attributes .value:hover,
+.module-attributes .value:focus, 
+.module-attributes .value.focus-within, 
+.module-functions .function:hover,
+.module-functions .function:focus,
+.module-functions .function.focus-within {
+    background: #a8ddb5;
+}
+.module-functions .function-doc-part:hover,
+.module-functions .function-doc-part:focus,
+.module-functions .function-doc-part:focus-within {
+    background: #7bccc4;
+}
+.module-functions .value:hover,
+.module-functions .value:focus,
+.module-functions .value.focus-within {
+    background: #4eb3d3;
+}
+/* </components.models.base_container._BaseContainer.Module> */
+        
+/* <components.models.module.Module> */
+.module .class:hover,
+.module .class:target,
+.module .class.focus-within {
+    background: #a8ddb5;
+}
+.module .class-doc-part:hover,
+.module .class-doc-part:focus,
+.module .class-doc-part.focus-within,
+.module .prop_types:hover,
+.module .prop_types:target,
+.module .prop_types.focus-within {
+    background: #7bccc4;
+}
+.module .prop_types-doc-part:hover,
+.module .prop_types-doc-part:focus,
+.module .prop_types-doc-part.focus-within,
+.module .prop_types-props .value:hover,
+.module .prop_types-props .value:focus, 
+.module .prop_types-props .value.focus-within {
+    background: #4eb3d3;
+}
+.module .prop_types-props.doc-part .value:hover,
+.module .prop_types-props.doc-part .value:focus, 
+.module .prop_types-props.doc-part .value.focus-within {
+    background: #2b8cbe;
+}
+/* </components.models.module.Module> */
+        
+/* <components.manual.html_utils.HtmlUtils> */
+.HtmlUtils .function-function > summary > .h:after { 
+    
+            font-weight: normal;
+            font-size: smaller;
+            margin-left: 1em;
+            padding: 1px 5px 2px;
+            border-radius: 6px;
+            position: relative;
+            top: -1px;
+        
+    
+            background: #084081;
+            color: white;
+        
+    content: "function";
+}
+/* </components.manual.html_utils.HtmlUtils> */
+        
