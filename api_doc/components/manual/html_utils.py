@@ -1,11 +1,11 @@
 # coding: mixt
 
-from mixt import html
+from mixt import html, h
 
-from ... import types
 from ...code_utils import resolve_class, resolve_function
 from ..doc import DocPart, DocHeader
-from ..models import Class, Code, Function
+from ..generic import SourceCode
+from ..models import Class, Function
 from .base import _Manual
 
 
@@ -77,7 +77,7 @@ class HtmlUtils(_Manual):
 
                 <DocPart kind="HtmlUtils" subkind="if-else-example" id_prefix="{id_prefix}" level={self.h_level+2} open>
                     <DocHeader menu="Example">Example</DocHeader>
-                    <Code code={types.Code(
+                    <SourceCode language="python">{h.Raw(
 # language=Python
 """
 >>> class Component(Element):
@@ -129,8 +129,8 @@ class HtmlUtils(_Manual):
 ...             {part_if_true}
 ...             {part_if_false}
 ...         </div>
-""", language="python"
-                    )} />
+"""
+                    )}</SourceCode>
                 </DocPart>
             </DocPart>
 
@@ -141,7 +141,7 @@ class HtmlUtils(_Manual):
 
                 <DocPart kind="HtmlUtils" subkind="if-else-example" id_prefix="{id_prefix}" level={self.h_level+2} open>
                     <DocHeader menu="Example">Example</DocHeader>
-                    <Code code={types.Code(
+                    <SourceCode language="python">{h.Raw(
 # language=Python
 """
 >>> class Component(Element):
@@ -153,8 +153,8 @@ class HtmlUtils(_Manual):
 
 >>> print(<Component />)
 <div>Foo</div>
-""", language="python"
-                    )} />
+""",
+                    )}</SourceCode>
                 </DocPart>
             </DocPart>
 

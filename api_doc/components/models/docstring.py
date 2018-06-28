@@ -7,8 +7,7 @@ from typing import List
 from mixt import Element, Required, html, h
 
 from ... import types
-from ..generic import Details
-from . import Code
+from ..generic import Details, SourceCode
 
 
 CONTAINERS = {
@@ -41,7 +40,7 @@ def htmlize_node(node):
                 language = node.attributes['classes'][1]  # 0 is always "code" for code-blocks
             except IndexError:
                 language = "text"
-            return Code(code=types.Code(code=node.astext(), language=language))
+            return SourceCode(language=language)(node.astext())
 
         return node.astext()
 

@@ -1,10 +1,9 @@
 # coding: mixt
 
-from mixt import html
+from mixt import html, h
 
-from ... import types
 from ..doc import DocPart, DocHeader
-from ..models import Code
+from ..generic import SourceCode
 from .base import _Manual
 
 
@@ -51,7 +50,7 @@ class Context(_Manual):
 
             <DocPart kind="Context" subkind="example" id_prefix={id_prefix} level={self.h_level+1} open>
                 <DocHeader menu="Example">Example</DocHeader>
-                <Code code={types.Code(
+                <SourceCode language="python">{h.Raw(
 # language=Python
 """
 >>> from mixt import BaseContext, Element, NotProvided, html
@@ -89,8 +88,8 @@ class Context(_Manual):
 ...     </AuthenticatedContext>
 ... )
 <div>Hello. You need to idenfify yourself.</div>
-""", language="python"
-                )} />
+"""
+                )}</SourceCode>
             </DocPart>
 
         </DocPart>
