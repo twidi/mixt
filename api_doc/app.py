@@ -245,7 +245,7 @@ class Page(Element):
                                     {self.h_title}
                                 </if>
                                 <else>
-                                    <a href="/" title="Back to documentation index">MIXT documentation</a>: {self.title}
+                                    <a href="index.html" title="Back to documentation index">MIXT documentation</a>: {self.title}
                                 </else>
                             </H>
                             <MainMenuCollector ref={menu_ref}>
