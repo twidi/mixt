@@ -428,7 +428,7 @@ def get_class_that_defined_method(method):
 
 
 def method_type(klass, name):
-    from .insect_mate import is_class_method, is_property_method, is_regular_method, is_static_method
+    from .inspect_mate import is_class_method, is_property_method, is_regular_method, is_static_method
     if is_regular_method(klass, name):
         return 'method'
     if is_class_method(klass, name):
