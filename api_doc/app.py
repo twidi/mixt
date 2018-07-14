@@ -9,7 +9,7 @@ from .components import CSSCollector, H, MainMenuCollector, VendoredScripts, Typ
 from .components import manual
 from .components.models import Class, Module
 from .code_utils import resolve_class, resolve_module
-from . import types
+from . import datatypes
 
 
 PAGES = [
@@ -267,7 +267,7 @@ class Page(Element):
         </CSSCollector>
 
 
-def resolve_conf(entries: List[Dict]) -> List[types.DocEntry]:
+def resolve_conf(entries: List[Dict]) -> List[datatypes.DocEntry]:
     result = []
     for entry in entries:
         if entry['type'] == 'class':

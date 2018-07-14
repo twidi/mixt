@@ -2,7 +2,7 @@
 
 from mixt import Element, Required, html
 
-from ... import types
+from ... import datatypes
 from ..doc import DocPart, DocHeader
 from . import Code, DocString, NamedValue
 
@@ -12,7 +12,7 @@ class PropTypes(Element):
     class PropTypes:
         id_prefix: str = ''
         h_level: int = 3
-        obj: Required[types.PropTypes]
+        obj: Required[datatypes.PropTypes]
 
     @classmethod
     def render_css_global(cls, context):

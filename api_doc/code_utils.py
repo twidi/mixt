@@ -9,7 +9,7 @@ from numpydoc.docscrape import NumpyDocString
 from mixt import Choices, DefaultChoices, NotProvided
 from mixt.internal.proptypes import BasePropTypes
 
-from .types import (
+from .datatypes import (
     Class,
     ClassDocString,
     Code,

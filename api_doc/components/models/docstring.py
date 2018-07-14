@@ -5,7 +5,7 @@ from typing import List
 
 from mixt import Element, Required, html
 
-from ... import types
+from ... import datatypes
 from ..generic import Details, htmlize_rst
 
 
@@ -22,7 +22,7 @@ def htmlize_details(parts: List[List[str]]):
 class DocString(Element):
     class PropTypes:
         _class: str = "docstring"
-        doc: Required[types.SimpleDocString]
+        doc: Required[datatypes.SimpleDocString]
         hide_summary: bool = False
         hide_details: bool = False
         open: bool = False

@@ -4,7 +4,7 @@ from typing import Optional
 
 from mixt import Element, Required, html
 
-from ... import types
+from ... import datatypes
 from ..doc import DocHeader, DocPart
 from ..generic import H
 from . import Code, DocString
@@ -14,7 +14,7 @@ class _Value(Element):
     class PropTypes:
         id_prefix: str = ""
         h_level: int = 3
-        value: Required[types.UnnamedValue]
+        value: Required[datatypes.UnnamedValue]
         open_doc_details: bool = False
         open_example: bool = False
 
@@ -80,7 +80,7 @@ class UnnamedValue(_Value):
 class NamedValue(_Value):
     class PropTypes:
         _class: str = "doc-part value value-named"
-        value: Required[types.NamedValue]
+        value: Required[datatypes.NamedValue]
 
     def render(self, context):
         value = self.value

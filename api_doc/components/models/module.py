@@ -2,7 +2,7 @@
 
 from mixt import Required, html
 
-from ... import types
+from ... import datatypes
 
 from ..doc import DocPart, DocHeader
 from .base_container import _BaseContainer
@@ -16,7 +16,7 @@ class Module(_BaseContainer):
 
     class PropTypes:
         _class: str = "doc-part module"
-        obj: Required[types.Module]
+        obj: Required[datatypes.Module]
 
     @classmethod
     def render_css_global(cls, context):

@@ -2,7 +2,7 @@
 
 from mixt import Element, NotProvided, Required, html
 
-from ... import types
+from ... import datatypes
 
 from ..doc import DocPart, DocHeader
 from ..generic import Details
@@ -14,7 +14,7 @@ class Function(Element):
     class PropTypes:
         id_prefix: str = ''
         h_level: int = 2
-        obj: Required[types.Function]
+        obj: Required[datatypes.Function]
         open: bool = True
         open_details: bool = False
 
