@@ -1,6 +1,7 @@
 # coding: mixt
 
 from mixt import DefaultChoices, Element, html
+from mixt.contrib.css import css_vars, render_css, Modes
 
 from ..doc import DocPart, DocHeader
 
@@ -20,54 +21,63 @@ class _BaseContainer(Element):
         open_doc_details: bool = True
         children_position: DefaultChoices = ['end', 'start']
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        colors = context.styles.colors
+
+        _kind = cls.__kind__
+        _functions_kind = cls.__functions_kind__
+        _target = "&:hover, &:target, &.focus-within"
+        _focus = "&:hover, &:focus, &.focus-within"
+
+        return {
+            f".{_kind}": {
+                "> summary > .h:after": merge(
+                    context.styles.snippets['TAG'],
+                    context.styles.snippets['HL'],
+                    {
+                        content: str(_kind),
+                    }
+                ),
+                _target: {
+                    background: colors[2],
+                },
+                "&-doc-part": {
+                    _focus: {
+                        background: colors[3],
+                    }
+                },
+                f"&-attributes .value, &-{_functions_kind} .function": {
+                    _focus: {
+                        background: colors[4],
+                    }
+                },
+                f"&-{_functions_kind} .function-doc-part": {
+                    _focus: {
+                        background: colors[5],
+                    }
+                },
+                f"&-{_functions_kind} .value": {
+                    _focus: {
+                        background: colors[6],
+                    }
+                },
+            },
+        }
+
     @classmethod
     def render_css_global(cls, context):
         if cls is _BaseContainer:
             return ""
 
-        # language=CSS
-        return """
-/* <components.models.base_container._BaseContainer.%(name)s> */
-.%(kind)s > summary > .h:after { 
-    %%(TAG)s
-    %%(HL)s
-    content: "%(kind)s";
-}
-
-.%(kind)s:hover,
-.%(kind)s:target,
-.%(kind)s.focus-within {
-    background: %%(BG2)s;
-}
-.%(kind)s-doc-part:hover,
-.%(kind)s-doc-part:focus,
-.%(kind)s-doc-part.focus-within {
-    background: %%(BG3)s;
-}
-.%(kind)s-attributes .value:hover,
-.%(kind)s-attributes .value:focus, 
-.%(kind)s-attributes .value.focus-within, 
-.%(kind)s-%(functions_kind)s .function:hover,
-.%(kind)s-%(functions_kind)s .function:focus,
-.%(kind)s-%(functions_kind)s .function.focus-within {
-    background: %%(BG4)s;
-}
-.%(kind)s-%(functions_kind)s .function-doc-part:hover,
-.%(kind)s-%(functions_kind)s .function-doc-part:focus,
-.%(kind)s-%(functions_kind)s .function-doc-part:focus-within {
-    background: %%(BG5)s;
-}
-.%(kind)s-%(functions_kind)s .value:hover,
-.%(kind)s-%(functions_kind)s .value:focus,
-.%(kind)s-%(functions_kind)s .value.focus-within {
-    background: %%(BG6)s;
-}
-/* </components.models.base_container._BaseContainer.%(name)s> */
-        """ % {
-            'kind': cls.__kind__,
-            'functions_kind': cls.__functions_kind__,
-            'name': cls.__name__,
-        }
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.BaseContainer.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.BaseContainer.{cls.__name__}> */
+"""
 
     def render_content(self, id_prefix, context):
         obj = self.obj

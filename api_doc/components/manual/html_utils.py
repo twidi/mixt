@@ -1,6 +1,7 @@
 # coding: mixt
 
 from mixt import html, h
+from mixt.contrib.css import css_vars, render_css, Modes
 
 from ...code_utils import resolve_class, resolve_function
 from ..doc import DocPart, DocHeader
@@ -11,18 +12,28 @@ from .base import _Manual
 
 class HtmlUtils(_Manual):
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        return {
+            ".HtmlUtils .function-function > summary > .h:after": merge(
+                context.styles.snippets['TAG'],
+                context.styles.snippets['HL'],
+                {
+                    content: str("function"),
+                }
+            )
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-/* <components.manual.html_utils.HtmlUtils> */
-.HtmlUtils .function-function > summary > .h:after { 
-    %(TAG)s
-    %(HL)s
-    content: "function";
-}
-/* </components.manual.html_utils.HtmlUtils> */
-        """
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     def render(self, context):
         id_prefix = f'{self.id_prefix}HtmlUtils'

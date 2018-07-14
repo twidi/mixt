@@ -1,6 +1,7 @@
 # coding: mixt
 
 from mixt import Element, NotProvided, Required, html
+from mixt.contrib.css import css_vars, render_css, Modes
 
 from ... import datatypes
 
@@ -18,45 +19,58 @@ class Function(Element):
         open: bool = True
         open_details: bool = False
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        tagged = tuple(
+            f'.function-{name}'
+            for name in [
+                'staticmethod',
+                'property',
+                'classmethod'
+            ]
+        )
+
+        return merge({
+            ".function-kind": {
+                display: none,
+            },
+            tagged: {
+                " > summary > .h:after": merge(
+                    context.styles.snippets['TAG'],
+                    context.styles.snippets['HL'],
+                ),
+            },
+            ".function": {
+                "> .content > details:not(.doc-part) > summary": {
+                    opacity: 0.25,
+                },
+                "&:hover > .content > details:not(.doc-part):not([open]) > summary": {
+                    opacity: 1,
+                }
+            },
+            media({max-width: context.styles.breakpoint}): {
+                ".function-arg": {
+                    display: block,
+                    margin-left: 1*em,
+                }
+            }
+        }, {
+            f"{t} > summary > .h:after": {
+                content: str(t.split('-')[-1])
+            }
+            for t in tagged
+        })
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-/* <components.models.function.Function> */
-.function-kind {
-    display: none;
-}
-.function-staticmethod > summary > .h:after, 
-.function-property > summary > .h:after,
-.function-classmethod > summary > .h:after { 
-    %(TAG)s
-    %(HL)s
-}
-
-.function-staticmethod > summary > .h:after {
-    content: "staticmethod";
-}
-.function-property > summary > .h:after {
-    content: "property";
-}
-.function-classmethod > summary > .h:after {
-    content: "classmethod";
-}
-.function > .content > details:not(.doc-part) > summary {
-    opacity: 0.25
-}
-.function:hover > .content > details:not(.doc-part):not([open]) > summary {
-    opacity: 1
-}
-
-@media (max-width: %(BREAKPOINT)s) {
-    .function-arg {
-        display: block;
-        margin-left: 1em;
-    }
-}
-/* </components.models.function.Function> */
-        """
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     def render(self, context):
         func = self.obj

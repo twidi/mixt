@@ -1,6 +1,7 @@
 # coding: mixt
 
 from mixt import Required, html
+from mixt.contrib.css import css_vars, render_css, Modes
 
 from ... import datatypes
 
@@ -18,40 +19,56 @@ class Module(_BaseContainer):
         _class: str = "doc-part module"
         obj: Required[datatypes.Module]
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        colors = context.styles.colors
+
+        _target = "&:hover, &:target, &.focus-within"
+        _focus = "&:hover, &:focus, &.focus-within"
+
+        return {
+            ".module": {
+                ".class": {
+                    _target: {
+                        background: colors[4],
+                    },
+                },
+                ".class-doc-part":{
+                    _focus: {
+                        background: colors[5],
+                    }
+                },
+                ".prop-types": {
+                    _target: {
+                        background: colors[5],
+                    },
+                    "&-doc-part": {
+                        _focus: {
+                            background: colors[6],
+                        },
+                    },
+                    "&-props .value": {
+                        _focus: {
+                            background: colors[6],
+                        }
+                    },
+                    "&-props.doc-part .value": {
+                        background: colors[7],
+                    }
+                }
+            }
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        css = """
-/* <components.models.module.Module> */
-.module .class:hover,
-.module .class:target,
-.module .class.focus-within {
-    background: %(BG4)s;
-}
-.module .class-doc-part:hover,
-.module .class-doc-part:focus,
-.module .class-doc-part.focus-within,
-.module .prop_types:hover,
-.module .prop_types:target,
-.module .prop_types.focus-within {
-    background: %(BG5)s;
-}
-.module .prop_types-doc-part:hover,
-.module .prop_types-doc-part:focus,
-.module .prop_types-doc-part.focus-within,
-.module .prop_types-props .value:hover,
-.module .prop_types-props .value:focus, 
-.module .prop_types-props .value.focus-within {
-    background: %(BG6)s;
-}
-.module .prop_types-props.doc-part .value:hover,
-.module .prop_types-props.doc-part .value:focus, 
-.module .prop_types-props.doc-part .value.focus-within {
-    background: %(BG7)s;
-}
-/* </components.models.module.Module> */
-        """
-        return super().render_css_global(context) + css
+        css = render_css((cls.render_pycss_global(context)))
+        return super().render_css_global(context) + f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     def render_content(self, id_prefix, context):
         children_before, content, children_after = super().render_content(id_prefix, context)

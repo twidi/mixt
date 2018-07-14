@@ -1,6 +1,7 @@
 # coding: mixt
 
 from mixt import Element, Required, html
+from mixt.contrib.css import css_vars, render_css, Modes
 
 from ... import datatypes
 from ..doc import DocPart, DocHeader
@@ -14,31 +15,41 @@ class PropTypes(Element):
         h_level: int = 3
         obj: Required[datatypes.PropTypes]
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        colors = context.styles.colors
+
+        _target = "&:hover, &:target, &.focus-within"
+        _focus = "&:hover, &:focus, &.focus-within"
+
+        return {
+            ".prop_types": {
+                _target: {
+                    background: colors[3],
+                },
+                "&-doc-part, &-props .value": {
+                    _focus: {
+                        background: colors[4],
+                    },
+                },
+                "&-props-doc-part .value": {
+                    _focus: {
+                        background: colors[5],
+                    }
+                }
+            }
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-/* <components.models.proptypes.PropTypes> */
-.prop_types:hover,
-.prop_types:target,
-.prop_types.focus-within {
-    background: %(BG3)s;
-}
-.prop_types-doc-part:hover,
-.prop_types-doc-part:focus,
-.prop_types-doc-part.focus-within,
-.prop_types-props .value:hover,
-.prop_types-props .value:focus, 
-.prop_types-props .value.focus-within {
-    background: %(BG4)s;
-}
-.prop_types-props.doc-part .value:hover,
-.prop_types-props.doc-part .value:focus, 
-.prop_types-props.doc-part .value.focus-within {
-    background: %(BG5)s;
-}
-/* </components.models.proptypes.PropTypes> */
-        """
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     def render(self, context):
         proptypes = self.obj

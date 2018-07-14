@@ -1,6 +1,7 @@
 # coding: mixt
 
 from mixt import Element, Required, html
+from mixt.contrib.css import css_vars, render_css, Modes
 
 from .generic import Details, H
 
@@ -13,23 +14,31 @@ class DocPart(Element):
         open: bool = False
         level: Required[int]
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        return {
+            ".doc-part": {
+                padding: (5*px, 0, 5*px, 5*px),
+                border-radius: (7*px, 0, 0, 7*px),
+                -moz-outline-radius: (7*px, 0, 0, 7*px),
+                -webkit-outline-radius: (7*px, 0, 0, 7*px),
+                outline-radius: (7*px, 0, 0, 7*px),
+                "&[open] > summary > .h": {
+                    text-decoration: underline
+                }
+            }
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-/* <components.doc.DocPart> */
-.doc-part {
-    padding: 5px 0 5px 5px;
-    border-radius: 7px 0 0 7px;
-    -moz-outline-radius: 7px 0 0 7px;
-    -webkit-outline-radius: 7px 0 0 7px;
-    outline-radius: 7px 0 0 7px;
-}
-.doc-part[open] > summary > .h {
-    text-decoration: underline;
-}
-/* </components.doc.DocPart> */
-        """
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     @classmethod
     def render_js_global(cls, context):

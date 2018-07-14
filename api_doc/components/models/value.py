@@ -3,6 +3,7 @@
 from typing import Optional
 
 from mixt import Element, Required, html
+from mixt.contrib.css import css_vars, render_css, Modes
 
 from ... import datatypes
 from ..doc import DocHeader, DocPart
@@ -18,22 +19,32 @@ class _Value(Element):
         open_doc_details: bool = False
         open_example: bool = False
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        return {
+            ".value": {
+                "&:not(:last-child) p:last-child": {
+                    margin-bottom: 0,
+                },
+                "&:not(:first-child)": {
+                    margin-top: 1*em,
+                },
+                ".docstring": {
+                    margin-left: 1*em,
+                },
+            }
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-/* <components.models.value._Value> */
-.value:not(:last-child) p:last-child {
-    margin-bottom: 0;
-}
-.value:not(:first-child) {
-    margin-top: 1em;
-}
-.value .docstring {
-    margin-left: 1em;
-}
-/* </components.models.value._Value> */
-        """
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     def render_example(self, context, id_prefix):
         doc_example = None

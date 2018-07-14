@@ -3,6 +3,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import PythonLexer, get_lexer_by_name
 
 from mixt import Element, Required, h
+from mixt.contrib.css import css_vars, render_css, Modes
 from mixt.exceptions import InvalidChildrenError
 
 
@@ -10,28 +11,33 @@ class SourceCode(Element):
     class PropTypes:
         language: str = "text"
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        return {
+            ".code": {
+                display: block,
+                background: transparent,
+                margin-top: 5*px,
+                "> pre": {
+                    display: inline-block,
+                    margin: 0,
+                    overflow: auto,
+                    white-space: pre,
+                }
+            },
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # fmt: off
-
-        # language=CSS
-        return """
-/* <components.generic.code.SourceCode> */
-        """ + HtmlFormatter().get_style_defs(".code") + """
-.code {
-    display: block;
-    background: transparent;
-    margin-top: 5px;
-}
-.code > pre {
-    display: inline-block;
-    margin: 0;
-    overflow: auto;
-    white-space: pre;
-}
-/* </components.generic.code.SourceCode> */
-        """
-        # fmt: on
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{HtmlFormatter().get_style_defs(".code")}
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     def append(self, child_or_children):
         if len(self.__children__):
