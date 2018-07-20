@@ -29,9 +29,9 @@ app = Bottle()
 setup_routing(app)
 
 
-run(
-    app=app,
-    host='0.0.0.0',
-    port=8080,
-    # reloader=True
-)
+if __name__ == "__main__":
+    run(
+        app=app,
+        host='0.0.0.0',
+        port=8080,
+    )

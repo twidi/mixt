@@ -3,13 +3,15 @@
 from typing import Dict, List, Optional
 
 from mixt import Element, JSCollector, Ref, Required, exceptions, html, __version__
+from mixt.contrib.css import css_vars, render_css, Modes
 from mixt.internal import collectors, dev_mode
 
 from .components import CSSCollector, H, MainMenuCollector, VendoredScripts, TypesetStyle
 from .components import manual
 from .components.models import Class, Module
+from .components.style import StyleContext, Styles
 from .code_utils import resolve_class, resolve_module
-from . import types
+from . import datatypes
 
 
 PAGES = [
@@ -99,115 +101,145 @@ PAGES = [
             },
         ]
     },
+    {
+        'title': 'Mixt CSS',
+        'slug': 'contrib-css',
+        'conf': [
+            {
+                'type': "manual",
+                'component': manual.ContribCss,
+            },
+        ]
+    },
 ]
 
 
 class Head(Element):
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        colors = context.styles.colors
+        return {
+            "#main-menu": {
+                position: fixed,
+                left: 0,
+                top: 0,
+                overflow: auto,
+                z-index: 1,
+                height: 100*pc,
+                media({max-width: context.styles.breakpoint}): {
+                    _: {
+                        width: 2*rem,
+                        "> ul": {
+                            display: none
+                        },
+                        '&:not(.focus-within) > p': {
+                            transform: (
+                                rotate(-90*deg),
+                                translateX(-6*rem),
+                                translateY(-5*px)
+                            ),
+                            white-space: nowrap,
+                        },
+                        '&.focus-within': {
+                            width: auto,
+                            max-width: 90*pc,
+                            '> ul': {
+                                display: block,
+                            },
+                            '&:before': {
+                                content: str(""),
+                            }
+                        }
+                    },
+                },
+                media(~_all & {max-width: context.styles.breakpoint}): {
+                    _: {
+                        width: 10*rem,
+                        '&:hover': {
+                            width: auto,
+                            min-width: 10*rem,
+                            max-width: 90*pc,
+                        }
+                    },
+                },
+            },
+            code: {
+                font-weight: normal,
+            },
+            hr: {
+
+                border: 0,
+                height: 1*px,
+                background-image: override(
+                    -webkit-linear-gradient(left, colors[1], colors[9], colors[1]),
+                    -moz-linear-gradient(left, colors[1], colors[9], colors[1]),
+                    -ms-linear-gradient(left, colors[1], colors[9], colors[1]),
+                    -o-linear-gradient(left, colors[1], colors[9], colors[1]),
+                    linear-gradient(left, colors[1], colors[9], colors[1]),
+                ),
+            },
+            body: {
+                background: colors[1],
+                margin: 0,
+            },
+            ".doc": {
+                margin-left: 1*em + 9*px,
+                padding-right: 20*px,
+                margin-bottom: 1*em,
+                media({max-width: context.styles.breakpoint}): {
+                    _: {
+                        margin-left: 0.2*em + 9*px,
+                        padding-right: 0,
+                    }
+                },
+                "& p, & .h": {
+                    padding-right: 5*px,
+                },
+                ".h": {
+                    display: inline,
+                }
+            },
+            "details:not(.doc-part)": {
+                padding-left: 5*px,
+            },
+            main: {
+                ">h1": {
+                    line-height: 1.3,
+                    padding: (0.5*em, 0),
+                    background: colors[9],
+                    color: white,
+                    text-align: center,
+                    margin-top: 0,
+                    margin-bottom: 1*em,
+                    ">a": {
+                        color: inherit,
+                    }
+                },
+                media({max-width: context.styles.breakpoint}): {
+                    _: {
+                        margin-left: 2*rem,
+                    }
+                },
+                media(~_all & {max-width: context.styles.breakpoint}): {
+                    _: {
+                        margin-left: 10*rem,
+                    }
+                }
+            },
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-/* <app.Head> */
-#main-menu {
-    position: fixed;
-    left: 0;
-    top: 0;
-    overflow: auto;
-    z-index: 1;
-    height: 100%%;
-}
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
-@media (max-width: %(BREAKPOINT)s) {
-    #main-menu {
-        width: 2rem;
-    }
-    #main-menu > ul {
-        display: none;
-    }
-    #main-menu:not(.focus-within) > p {
-        transform: rotate(-90deg) translateX(-6rem) translateY(-5px);
-        white-space: nowrap;
-    }
-    #main-menu.focus-within {
-        width: auto;
-        max-width: 90%%;
-    }
-    #main-menu.focus-within > ul {
-        display: block;
-    }
-    #main-menu.focus-within:before {
-        content: "";
-    }
-    main {
-        margin-left: 2rem;
-    }
-}
-
-@media not all and (max-width: %(BREAKPOINT)s) {
-    #main-menu {
-        width: 10rem;
-    }
-    #main-menu:hover {
-        width: auto;
-        min-width: 10rem;
-        max-width: 90%%;
-    }
-    main {
-        margin-left: 10rem;
-    }
-}
-code {
-    font-weight: normal;
-}
-
-hr { 
-  border: 0; 
-  height: 1px; 
-  background-image: -webkit-linear-gradient(left, %(BG1)s, %(BG9)s, %(BG1)s);
-  background-image: -moz-linear-gradient(left, %(BG1)s, %(BG9)s, %(BG1)s);
-  background-image: -ms-linear-gradient(left, %(BG1)s, %(BG9)s, %(BG1)s);
-  background-image: -o-linear-gradient(left, %(BG1)s, %(BG9)s, %(BG1)s); 
-}
-body {
-    background: %(BG1)s;
-    margin: 0;
-}
-.doc {
-    margin-left: calc(1em + 9px);
-    padding-right: 20px;
-    margin-bottom: 1em;
-}
-@media (max-width: %(BREAKPOINT)s) {
-    .doc {
-        margin-left: calc(0.2em + 9px);
-        padding-right: 0;
-    }
-}
-.doc p, .doc .h   {
-    padding-right: 5px;
-}
-.doc .h   {
-    display: inline
-}
-details:not(.doc-part) {
-    padding-left: 5px;
-}
-main > h1 {
-    line-height: 1.3;
-    padding: 0.5em 0;
-    background: %(BG9)s;
-    color: white;
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 1em;
-}
-main > h1 > a {
-    color: inherit;
-}
-
-/* </app.Head> */
-        """
 
 class Page(Element):
 
@@ -267,7 +299,7 @@ class Page(Element):
         </CSSCollector>
 
 
-def resolve_conf(entries: List[Dict]) -> List[types.DocEntry]:
+def resolve_conf(entries: List[Dict]) -> List[datatypes.DocEntry]:
     result = []
     for entry in entries:
         if entry['type'] == 'class':
@@ -310,7 +342,7 @@ def files_to_render():
         files.append([
             f"{page['slug']}.html",
             page['title'],
-            Page,
+            lambda **args: StyleContext(styles=Styles)(Page(**args)),
             {
                 'title': page['title'],
                 'h_title': page.get('h_title'),

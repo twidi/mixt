@@ -82,6 +82,7 @@ tests:  ## Run test tests
 .PHONY: check-doc
 check-doc:  ## Check if documentation is up to date
 	@echo "$(BOLD)Checking documentation$(RESET)"
+	@rm -fr docs.new
 	@mkdir docs.new
 	@MIXT_DISABLE_DEV_MODE=1 python -m api_doc.export docs.new
 	@diff -q docs.new docs > /dev/null && (echo 'Doc is up to date'; rm -r docs.new) || (echo 'Doc is not up to date' 1>&2; rm -r docs.new; exit 1)

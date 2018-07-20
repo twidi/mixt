@@ -4,8 +4,9 @@ from docutils.examples import internals
 from typing import List
 
 from mixt import Element, Required, html
+from mixt.contrib.css import css_vars, render_css, Modes
 
-from ... import types
+from ... import datatypes
 from ..generic import Details, htmlize_rst
 
 
@@ -22,29 +23,37 @@ def htmlize_details(parts: List[List[str]]):
 class DocString(Element):
     class PropTypes:
         _class: str = "docstring"
-        doc: Required[types.SimpleDocString]
+        doc: Required[datatypes.SimpleDocString]
         hide_summary: bool = False
         hide_details: bool = False
         open: bool = False
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        return {
+            "details.docstring": {
+                margin-top: 1*em,
+                "> summary > p": {
+                    margin-top: 0,
+                    white-space: normal,
+                    display: inline,
+                },
+                "> div.content > p:first-child": {
+                    margin-top: 1*em,
+                },
+            },
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-/* <components.models.docstring> */
-details.docstring {
-    margin-top: 1em;
-}
-details.docstring > summary > p {
-    margin-top: 0;
-    white-space: normal;
-    display: inline;
-}
-details.docstring > div.content > p:first-child {
-    margin-top: 1em;
-}
-/* </components.models.docstring> */
-        """
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     def render(self, context):
         doc = self.doc

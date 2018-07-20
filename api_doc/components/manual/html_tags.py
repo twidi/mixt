@@ -7,7 +7,7 @@ from mixt import html, h
 from mixt.internal.html import __tags__, HtmlBaseElement
 
 from ...code_utils import load_docstring, resolve_proptypes
-from ... import types
+from ... import datatypes
 from ..doc import DocPart, DocHeader
 from ..models import Class, DocString
 from .base import _Manual
@@ -31,11 +31,11 @@ def get_proptypes(tag):
 def prepare_tag(name, tag):
     docstring = load_docstring(tag)
 
-    klass = types.Class(
+    klass = datatypes.Class(
         name=name,
         attrs=[],
         functions=[],
-        doc=types.ClassDocString(
+        doc=datatypes.ClassDocString(
             summary=docstring.get("Summary") or "",
             details=docstring.get("Extended Summary") or [],
         ),
@@ -71,7 +71,7 @@ class HtmlTags(_Manual):
         ]
 
         html_docstring = load_docstring(html)
-        docstring = types.SimpleDocString(
+        docstring = datatypes.SimpleDocString(
             summary=html_docstring.get("Summary") or "",
             details=html_docstring.get("Extended Summary") or [],
         )

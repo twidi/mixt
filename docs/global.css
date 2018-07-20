@@ -1,354 +1,309 @@
 
-/* <app.Head> */
+/* <api_doc.app.Head> */
 #main-menu {
     position: fixed;
     left: 0;
     top: 0;
     overflow: auto;
     z-index: 1;
-    height: 100%;
-}
+    height: 100% }
 
-@media (max-width: 40rem) {
-    #main-menu {
-        width: 2rem;
-    }
-    #main-menu > ul {
-        display: none;
-    }
-    #main-menu:not(.focus-within) > p {
-        transform: rotate(-90deg) translateX(-6rem) translateY(-5px);
-        white-space: nowrap;
-    }
-    #main-menu.focus-within {
-        width: auto;
-        max-width: 90%;
-    }
-    #main-menu.focus-within > ul {
-        display: block;
-    }
-    #main-menu.focus-within:before {
-        content: "";
-    }
-    main {
-        margin-left: 2rem;
-    }
-}
+    @media (max-width: 40rem) {
 
-@media not all and (max-width: 40rem) {
-    #main-menu {
-        width: 10rem;
-    }
-    #main-menu:hover {
-        width: auto;
-        min-width: 10rem;
-        max-width: 90%;
-    }
-    main {
-        margin-left: 10rem;
-    }
-}
+        #main-menu {
+            width: 2rem }
+
+            #main-menu > ul {
+                display: none }
+
+            #main-menu:not(.focus-within) > p {
+                transform: rotate(-90deg) translatex(-6rem) translatey(-5px);
+                white-space: nowrap }
+
+            #main-menu.focus-within {
+                width: auto;
+                max-width: 90% }
+
+                #main-menu.focus-within > ul {
+                    display: block }
+
+                #main-menu.focus-within:before {
+                    content: '' } }
+
+    @media not all and (max-width: 40rem) {
+
+        #main-menu {
+            width: 10rem }
+
+            #main-menu:hover {
+                width: auto;
+                min-width: 10rem;
+                max-width: 90% } }
+
 code {
-    font-weight: normal;
-}
+    font-weight: normal }
 
-hr { 
-  border: 0; 
-  height: 1px; 
-  background-image: -webkit-linear-gradient(left, #f7fcf0, #084081, #f7fcf0);
-  background-image: -moz-linear-gradient(left, #f7fcf0, #084081, #f7fcf0);
-  background-image: -ms-linear-gradient(left, #f7fcf0, #084081, #f7fcf0);
-  background-image: -o-linear-gradient(left, #f7fcf0, #084081, #f7fcf0); 
-}
+hr {
+    border: 0;
+    height: 1px;
+    background-image: -webkit-linear-gradient(left, #f7fcf0, #084081, #f7fcf0);
+    background-image: -moz-linear-gradient(left, #f7fcf0, #084081, #f7fcf0);
+    background-image: -ms-linear-gradient(left, #f7fcf0, #084081, #f7fcf0);
+    background-image: -o-linear-gradient(left, #f7fcf0, #084081, #f7fcf0);
+    background-image: linear-gradient(left, #f7fcf0, #084081, #f7fcf0) }
+
 body {
     background: #f7fcf0;
-    margin: 0;
-}
+    margin: 0 }
+
 .doc {
     margin-left: calc(1em + 9px);
     padding-right: 20px;
-    margin-bottom: 1em;
-}
-@media (max-width: 40rem) {
-    .doc {
-        margin-left: calc(0.2em + 9px);
-        padding-right: 0;
-    }
-}
-.doc p, .doc .h   {
-    padding-right: 5px;
-}
-.doc .h   {
-    display: inline
-}
+    margin-bottom: 1em }
+
+    @media (max-width: 40rem) {
+
+        .doc {
+            margin-left: calc(1em / 5 + 9px);
+            padding-right: 0 } }
+
+    .doc p, .doc .h {
+        padding-right: 5px }
+
+    .doc .h {
+        display: inline }
+
 details:not(.doc-part) {
-    padding-left: 5px;
-}
-main > h1 {
+    padding-left: 5px }
+
+main >h1 {
     line-height: 1.3;
     padding: 0.5em 0;
     background: #084081;
     color: white;
     text-align: center;
     margin-top: 0;
-    margin-bottom: 1em;
-}
-main > h1 > a {
-    color: inherit;
-}
+    margin-bottom: 1em }
 
-/* </app.Head> */
-        
-/* <components.generic.menu.H> */
-.h + .permalink {    
+    main >h1 >a {
+        color: inherit }
+
+@media (max-width: 40rem) {
+
+    main {
+        margin-left: 2rem } }
+
+@media not all and (max-width: 40rem) {
+
+    main {
+        margin-left: 10rem } }
+
+
+/* </api_doc.app.Head> */
+
+/* <api_doc.components.generic.menu.H> */
+.h + .permalink {
     visibility: hidden;
     padding-left: 0.5em;
     vertical-align: middle;
     line-height: 0.8;
     color: #333;
-    opacity: 0.75;
-}
-.h + .permalink:hover, .h + .permalink:focus, 
-.h:hover + .permalink, .h:focus + .permalink, .h.focus-within + .permalink {
-    visibility: visible;
-}
-div:hover > .h + .permalink, 
-div:focus > .h + .permalink, 
-div.focus-within > .h + .permalink {
-    visibility: visible;
-}
+    opacity: 0.75 }
 
-details:hover > summary > .h + .permalink, 
-details:focus > summary > .h + .permalink, 
-details.focus-within > summary > .h + .permalink {
-    visibility: visible;
-}
-/* </components.generic.menu.H> */
-        
-/* <components.main_menu.MainMenuCollector> */
+    .h + .permalink:hover, .h + .permalink:focus, .h + .permalink.focus-within {
+        visibility: visible }
+
+.h:hover + .permalink, .h:focus + .permalink, .h.focus-within + .permalink {
+    visibility: visible }
+
+div:hover > .h + .permalink, div:focus > .h + .permalink, div.focus-within > .h + .permalink {
+    visibility: visible }
+
+details:hover > summary > .h + .permalink, details:focus > summary > .h + .permalink, details.focus-within > summary > .h + .permalink {
+    visibility: visible }
+
+
+/* </api_doc.components.generic.menu.H> */
+
+/* <api_doc.components.main_menu.MainMenuCollector> */
 #main-menu {
     background: #084081;
-    color: white;
-}
-#main-menu > p {
-    margin-left: 10px;
-}
-#main-menu ul {
-    list-style: none;
+    color: white }
+
+    #main-menu > p {
+        margin-left: 10px }
+
+    #main-menu ul {
+        list-style: none;
+        margin-left: 1em }
+
+    #main-menu > ul {
+        margin: 10px;
+        padding-right: 15px }
+
+    #main-menu a {
+        color: inherit;
+        text-decoration: none;
+        line-height: 1.8;
+        display: inline-block;
+        white-space: nowrap }
+
+    #main-menu li > a {
+        display: block }
+
+.menu-class:after, .menu-module:after, .menu-function-staticmethod:after, .menu-function-property:after, .menu-function-classmethod:after {
+    font-weight: normal;
+    font-size: smaller;
     margin-left: 1em;
-}
-#main-menu > ul {
-    margin: 10px;
-    padding-right: 15px;
-}
+    padding: 1px 5px 2px;
+    border-radius: 6px;
+    position: relative;
+    top: -1px;
+    background: #084081;
+    color: white }
 
-#main-menu a {
-    color: inherit;
-    text-decoration: none;
-    line-height: 1.8;
-    display: inline-block;
-    white-space: nowrap;
-}
-
-.menu-class:after, 
-.menu-module:after, 
-.menu-function-staticmethod:after, 
-.menu-function-property:after,
-.menu-function-classmethod:after { 
-    
-            font-weight: normal;
-            font-size: smaller;
-            margin-left: 1em;
-            padding: 1px 5px 2px;
-            border-radius: 6px;
-            position: relative;
-            top: -1px;
-        
-    
-            background: #084081;
-            color: white;
-        
-}
-li:not(:hover) > .menu-class:after,
-li:not(:hover) > details > summary:not(.current) > .menu-class:after,
-li:not(:hover) > details > summary:not(.current) > .menu-module:after,
-li:not(:hover) > details > summary:not(.current) > .menu-function-staticmethod:after, 
-li:not(:hover) > details > summary:not(.current) > .menu-function-property:after,
-li:not(:hover) > details > summary:not(.current) > .menu-function-classmethod:after {
-    
-            background: white;
-            color: #084081;
-        
-}
-
-.menu-class:after { 
-    content: "class";
-}
-.menu-module:after { 
-    content: "module";
-}
-li:not(:hover) > details > summary:not(.current) > .menu-function-staticmethod:after, 
-li:not(:hover) > details > summary:not(.current) > .menu-function-property:after,
-li:not(:hover) > details > summary:not(.current) > .menu-function-classmethod:after {
-    
-            background: white;
-            color: #084081;
-        
-}
-
-#main-menu li:hover > details > summary,
-#main-menu li:hover > a,
-#main-menu .current {
-    color: #084081;
-}
-#main-menu li:hover > details > summary::before,
-#main-menu li:hover > a::before,
-#main-menu .current::before {
-    content: " ";
+li:not(:hover) > .menu-class:after {
     background: white;
-    position: absolute;
-    height: 1.8em;
-    z-index: -1;
-    left: 0;
-    right: 0;
-}
+    color: #084081 }
 
+li:not(:hover) > details > summary:not(.current) > .menu-class:after, li:not(:hover) > details > summary:not(.current) > .menu-module:after, li:not(:hover) > details > summary:not(.current) > .menu-function-staticmethod:after, li:not(:hover) > details > summary:not(.current) > .menu-function-property:after, li:not(:hover) > details > summary:not(.current) > .menu-function-classmethod:after {
+    background: white;
+    color: #084081 }
+
+#main-menu li:hover > details > summary, #main-menu li:hover > a, #main-menu .current {
+    color: #084081 }
+
+    #main-menu li:hover > details > summary:before, #main-menu li:hover > a:before, #main-menu .current:before {
+        content: ' ';
+        background: white;
+        position: absolute;
+        height: 1.8em;
+        z-index: -1;
+        left: 0;
+        right: 0 }
+
+.menu-class:after {
+    content: 'class' }
+
+.menu-module:after {
+    content: 'module' }
 
 .menu-function-staticmethod:after {
-    content: "staticmethod";
-}
-.menu-function-property:after {
-    content: "property";
-}
-.menu-function-classmethod:after {
-    content: "classmethod";
-}
+    content: 'staticmethod' }
 
-/* </components.main_menu.MainMenuCollector> */
-        
-/* <components.manual.base._Manual> */
+.menu-function-property:after {
+    content: 'property' }
+
+.menu-function-classmethod:after {
+    content: 'classmethod' }
+
+
+/* </api_doc.components.main_menu.MainMenuCollector> */
+
+/* <api_doc.components.manual.base._Manual> */
 .doc > .manual:first-child:last-child {
     padding: 5px 0 5px 1em;
-    border-radius: 7px 0 0 7px;
-}
-.manual > .content > p:first-child {
-    margin-top: 1em;
-}
-.manual > .content > p:first-child strong {
-    line-height: 1.3;
-}
+    border-radius: 7px 0 0 7px }
 
-.manual:hover,
-.manual:target,
-.manual.focus-within {
-    background: #e0f3db;
-}
-.manual .doc-part:hover,
-.manual .doc-part:focus,
-.manual .doc-part.focus-within {
-    background: #ccebc5;
-}
-.manual .doc-part .doc-part:hover,
-.manual .doc-part .doc-part:focus,
-.manual .doc-part .doc-part.focus-within {
-    background: #a8ddb5;
-}
-.manual .doc-part .doc-part .doc-part:hover,
-.manual .doc-part .doc-part .doc-part:focus,
-.manual .doc-part .doc-part .doc-part.focus-within {
-    background: #7bccc4;
-}
-.manual .doc-part .doc-part .doc-part .doc-part:hover,
-.manual .doc-part .doc-part .doc-part .doc-part:focus,
-.manual .doc-part .doc-part .doc-part .doc-part.focus-within {
-    background: #4eb3d3;
-}
-/* </components.manual.base._Manual> */
-        
-/* <components.doc.DocPart> */
+.manual > .content > p:first-child {
+    margin-top: 1em }
+
+    .manual > .content > p:first-child strong {
+        line-height: 1.3 }
+
+.manual:hover, .manual:target, .manual.focus-within {
+    background: #e0f3db }
+
+.manual .doc-part:hover, .manual .doc-part:focus, .manual .doc-part.focus-within {
+    background: #ccebc5 }
+
+.manual .doc-part .doc-part:hover, .manual .doc-part .doc-part:focus, .manual .doc-part .doc-part.focus-within {
+    background: #a8ddb5 }
+
+.manual .doc-part .doc-part .doc-part:hover, .manual .doc-part .doc-part .doc-part:focus, .manual .doc-part .doc-part .doc-part.focus-within {
+    background: #7bccc4 }
+
+.manual .doc-part .doc-part .doc-part .doc-part:hover, .manual .doc-part .doc-part .doc-part .doc-part:focus, .manual .doc-part .doc-part .doc-part .doc-part.focus-within {
+    background: #4eb3d3 }
+
+
+/* </api_doc.components.manual.base._Manual> */
+
+/* <api_doc.components.doc.DocPart> */
 .doc-part {
     padding: 5px 0 5px 5px;
     border-radius: 7px 0 0 7px;
     -moz-outline-radius: 7px 0 0 7px;
     -webkit-outline-radius: 7px 0 0 7px;
-    outline-radius: 7px 0 0 7px;
-}
-.doc-part[open] > summary > .h {
-    text-decoration: underline;
-}
-/* </components.doc.DocPart> */
-        
-/* <components.generic.details.Details> */
+    outline-radius: 7px 0 0 7px }
 
+    .doc-part[open] > summary > .h {
+        text-decoration: underline }
+
+
+/* </api_doc.components.doc.DocPart> */
+
+/* <api_doc.components.generic.details.Details> */
 details .h {
     margin-top: 0;
     padding: 3px 0;
-}
+    margin-bottom: 0 }
+
 details[open] .h {
-    margin-bottom: 1em;
-}
-details:not([open]) .h {
-    margin-bottom: 0;
-}
-summary {
-    cursor: pointer;
-    white-space: nowrap;
-}
-summary .h {
-    display: inline-block;
-    vertical-align: middle;
-    line-height: 1.3;
-    white-space: normal;
-}
-.h + details {
-    margin-top: 1em;
-}     
+    margin-bottom: 1em }
+
+details .h:last-child {
+    margin-bottom: 0 }
+
 details + details, summary + details {
-    margin-top: 1em;
-}
+    margin-top: 1em }
+
 details > :not(summary) {
-    margin-left: 1em;
-}
-@media (max-width: 40rem) {
+    margin-left: 1em }
+
+    @media (max-width: 40rem) {
+
     details > :not(summary) {
-        margin-left: 0.2em;
-    }
-}
-
-details > div.content > :first-child, 
-details > div.content > :first-child > :first-child, 
-details > div.content > :first-child > :first-child > :first-child,
-details > div.content > :first-child > :first-child > :first-child > :first-child,
-details > div.content > :first-child > :first-child > :first-child > :first-child > :first-child,
-details > div.content > :first-child > :first-child > :first-child > :first-child > :first-child > :first-child {
-    margin-top: 0;
-}
-
-details .h:last-child,
-details > div.content > p:last-child {
-    margin-bottom: 0;
-}
+        margin-left: 0.2em } }
 
 details > div.content {
     border-left: solid rgba(0, 0, 0, 0.1) 1px;
     margin-left: 4px;
-    padding: 5px 0 5px 1em;
-}
-@media (max-width: 40rem) {
+    padding: 5px 0 5px 1em }
+
+    details > div.content > :first-child, details > div.content > :first-child > :first-child, details > div.content > :first-child > :first-child > :first-child, details > div.content > :first-child > :first-child > :first-child > :first-child, details > div.content > :first-child > :first-child > :first-child > :first-child > :first-child, details > div.content > :first-child > :first-child > :first-child > :first-child > :first-child > :first-child {
+        margin-top: 0 }
+
+    details > div.content > p:last-child {
+        margin-top: 0 }
+
+    @media (max-width: 40rem) {
+
     details > div.content {
         margin-left: 3px;
-        padding-left: 0.2em;
-    }
-}
-details:hover > div.content,
-details:focus > div.content,
-details.focus-within > div.content {
-    border-left: solid transparent 1px;
-}
-/* </components.generic.details.Details> */
-        
-/* <components.generic.code.SourceCode> */
-        .code .hll { background-color: #ffffcc }
+        padding-left: 0.2em } }
+
+summary {
+    cursor: pointer;
+    white-space: nowrap }
+
+    summary .h {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 1.3;
+        white-space: normal }
+
+.h + details {
+    margin-top: 1em }
+
+:hover > div.content, :focus > div.content, .focus-within > div.content {
+    border-left: solid transparent 1px }
+
+
+/* </api_doc.components.generic.details.Details> */
+
+/* <api_doc.components.generic.code.SourceCode> */
+.code .hll { background-color: #ffffcc }
 .code  { background: #f8f8f8; }
 .code .c { color: #408080; font-style: italic } /* Comment */
 .code .err { border: 1px solid #FF0000 } /* Error */
@@ -420,250 +375,200 @@ details.focus-within > div.content {
 .code {
     display: block;
     background: transparent;
-    margin-top: 5px;
-}
-.code > pre {
-    display: inline-block;
-    margin: 0;
-    overflow: auto;
-    white-space: pre;
-}
-/* </components.generic.code.SourceCode> */
-        
-/* <components.models.value._Value> */
+    margin-top: 5px }
+
+    .code > pre {
+        display: inline-block;
+        margin: 0;
+        overflow: auto;
+        white-space: pre }
+
+
+/* </api_doc.components.generic.code.SourceCode> */
+
+/* <api_doc.components.models.value._Value> */
 .value:not(:last-child) p:last-child {
-    margin-bottom: 0;
-}
+    margin-bottom: 0 }
+
 .value:not(:first-child) {
-    margin-top: 1em;
-}
+    margin-top: 1em }
+
 .value .docstring {
-    margin-left: 1em;
-}
-/* </components.models.value._Value> */
-        
-/* <components.models.docstring> */
+    margin-left: 1em }
+
+
+/* </api_doc.components.models.value._Value> */
+
+/* <api_doc.components.models.docstring.DocString> */
 details.docstring {
-    margin-top: 1em;
-}
-details.docstring > summary > p {
-    margin-top: 0;
-    white-space: normal;
-    display: inline;
-}
-details.docstring > div.content > p:first-child {
-    margin-top: 1em;
-}
-/* </components.models.docstring> */
-        
-/* <components.models.base_container._BaseContainer.Class> */
-.class > summary > .h:after { 
-    
-            font-weight: normal;
-            font-size: smaller;
-            margin-left: 1em;
-            padding: 1px 5px 2px;
-            border-radius: 6px;
-            position: relative;
-            top: -1px;
-        
-    
-            background: #084081;
-            color: white;
-        
-    content: "class";
-}
+    margin-top: 1em }
 
-.class:hover,
-.class:target,
-.class.focus-within {
-    background: #e0f3db;
-}
-.class-doc-part:hover,
-.class-doc-part:focus,
-.class-doc-part.focus-within {
-    background: #ccebc5;
-}
-.class-attributes .value:hover,
-.class-attributes .value:focus, 
-.class-attributes .value.focus-within, 
-.class-methods .function:hover,
-.class-methods .function:focus,
-.class-methods .function.focus-within {
-    background: #a8ddb5;
-}
-.class-methods .function-doc-part:hover,
-.class-methods .function-doc-part:focus,
-.class-methods .function-doc-part:focus-within {
-    background: #7bccc4;
-}
-.class-methods .value:hover,
-.class-methods .value:focus,
-.class-methods .value.focus-within {
-    background: #4eb3d3;
-}
-/* </components.models.base_container._BaseContainer.Class> */
-        
-/* <components.models.proptypes.PropTypes> */
-.prop_types:hover,
-.prop_types:target,
-.prop_types.focus-within {
-    background: #ccebc5;
-}
-.prop_types-doc-part:hover,
-.prop_types-doc-part:focus,
-.prop_types-doc-part.focus-within,
-.prop_types-props .value:hover,
-.prop_types-props .value:focus, 
-.prop_types-props .value.focus-within {
-    background: #a8ddb5;
-}
-.prop_types-props.doc-part .value:hover,
-.prop_types-props.doc-part .value:focus, 
-.prop_types-props.doc-part .value.focus-within {
-    background: #7bccc4;
-}
-/* </components.models.proptypes.PropTypes> */
-        
-/* <components.models.function.Function> */
+    details.docstring > summary > p {
+        margin-top: 0;
+        white-space: normal;
+        display: inline }
+
+    details.docstring > div.content > p:first-child {
+        margin-top: 1em }
+
+
+/* </api_doc.components.models.docstring.DocString> */
+
+/* <api_doc.components.models.klass.BaseContainer.Class> */
+.class > summary > .h:after {
+    font-weight: normal;
+    font-size: smaller;
+    margin-left: 1em;
+    padding: 1px 5px 2px;
+    border-radius: 6px;
+    position: relative;
+    top: -1px;
+    background: #084081;
+    color: white;
+    content: 'class' }
+
+.class:hover, .class:target, .class.focus-within {
+    background: #e0f3db }
+
+.class-doc-part:hover, .class-doc-part:focus, .class-doc-part.focus-within {
+    background: #ccebc5 }
+
+.class-attributes .value:hover, .class-attributes .value:focus, .class-attributes .value.focus-within, .class-methods .function:hover, .class-methods .function:focus, .class-methods .function.focus-within {
+    background: #a8ddb5 }
+
+.class-methods .function-doc-part:hover, .class-methods .function-doc-part:focus, .class-methods .function-doc-part.focus-within {
+    background: #7bccc4 }
+
+.class-methods .value:hover, .class-methods .value:focus, .class-methods .value.focus-within {
+    background: #4eb3d3 }
+
+
+/* </api_doc.components.models.klass.BaseContainer.Class> */
+
+/* <api_doc.components.models.proptypes.PropTypes> */
+.prop_types:hover, .prop_types:target, .prop_types.focus-within {
+    background: #ccebc5 }
+
+.prop_types-doc-part:hover, .prop_types-doc-part:focus, .prop_types-doc-part.focus-within, .prop_types-props .value:hover, .prop_types-props .value:focus, .prop_types-props .value.focus-within {
+    background: #a8ddb5 }
+
+.prop_types-props-doc-part .value:hover, .prop_types-props-doc-part .value:focus, .prop_types-props-doc-part .value.focus-within {
+    background: #7bccc4 }
+
+
+/* </api_doc.components.models.proptypes.PropTypes> */
+
+/* <api_doc.components.models.function.Function> */
 .function-kind {
-    display: none;
-}
-.function-staticmethod > summary > .h:after, 
-.function-property > summary > .h:after,
-.function-classmethod > summary > .h:after { 
-    
-            font-weight: normal;
-            font-size: smaller;
-            margin-left: 1em;
-            padding: 1px 5px 2px;
-            border-radius: 6px;
-            position: relative;
-            top: -1px;
-        
-    
-            background: #084081;
-            color: white;
-        
-}
+    display: none }
 
-.function-staticmethod > summary > .h:after {
-    content: "staticmethod";
-}
-.function-property > summary > .h:after {
-    content: "property";
-}
-.function-classmethod > summary > .h:after {
-    content: "classmethod";
-}
+.function-staticmethod > summary > .h:after, .function-property > summary > .h:after, .function-classmethod > summary > .h:after {
+    font-weight: normal;
+    font-size: smaller;
+    margin-left: 1em;
+    padding: 1px 5px 2px;
+    border-radius: 6px;
+    position: relative;
+    top: -1px;
+    background: #084081;
+    color: white }
+
 .function > .content > details:not(.doc-part) > summary {
-    opacity: 0.25
-}
+    opacity: 0.25 }
+
 .function:hover > .content > details:not(.doc-part):not([open]) > summary {
-    opacity: 1
-}
+    opacity: 1 }
 
 @media (max-width: 40rem) {
+
     .function-arg {
         display: block;
-        margin-left: 1em;
-    }
-}
-/* </components.models.function.Function> */
-        
-/* <components.models.base_container._BaseContainer.Module> */
-.module > summary > .h:after { 
-    
-            font-weight: normal;
-            font-size: smaller;
-            margin-left: 1em;
-            padding: 1px 5px 2px;
-            border-radius: 6px;
-            position: relative;
-            top: -1px;
-        
-    
-            background: #084081;
-            color: white;
-        
-    content: "module";
-}
+        margin-left: 1em } }
 
-.module:hover,
-.module:target,
-.module.focus-within {
-    background: #e0f3db;
-}
-.module-doc-part:hover,
-.module-doc-part:focus,
-.module-doc-part.focus-within {
-    background: #ccebc5;
-}
-.module-attributes .value:hover,
-.module-attributes .value:focus, 
-.module-attributes .value.focus-within, 
-.module-functions .function:hover,
-.module-functions .function:focus,
-.module-functions .function.focus-within {
-    background: #a8ddb5;
-}
-.module-functions .function-doc-part:hover,
-.module-functions .function-doc-part:focus,
-.module-functions .function-doc-part:focus-within {
-    background: #7bccc4;
-}
-.module-functions .value:hover,
-.module-functions .value:focus,
-.module-functions .value.focus-within {
-    background: #4eb3d3;
-}
-/* </components.models.base_container._BaseContainer.Module> */
-        
-/* <components.models.module.Module> */
-.module .class:hover,
-.module .class:target,
-.module .class.focus-within {
-    background: #a8ddb5;
-}
-.module .class-doc-part:hover,
-.module .class-doc-part:focus,
-.module .class-doc-part.focus-within,
-.module .prop_types:hover,
-.module .prop_types:target,
-.module .prop_types.focus-within {
-    background: #7bccc4;
-}
-.module .prop_types-doc-part:hover,
-.module .prop_types-doc-part:focus,
-.module .prop_types-doc-part.focus-within,
-.module .prop_types-props .value:hover,
-.module .prop_types-props .value:focus, 
-.module .prop_types-props .value.focus-within {
-    background: #4eb3d3;
-}
-.module .prop_types-props.doc-part .value:hover,
-.module .prop_types-props.doc-part .value:focus, 
-.module .prop_types-props.doc-part .value.focus-within {
-    background: #2b8cbe;
-}
-/* </components.models.module.Module> */
-        
-/* <components.manual.html_utils.HtmlUtils> */
-.HtmlUtils .function-function > summary > .h:after { 
-    
-            font-weight: normal;
-            font-size: smaller;
-            margin-left: 1em;
-            padding: 1px 5px 2px;
-            border-radius: 6px;
-            position: relative;
-            top: -1px;
-        
-    
-            background: #084081;
-            color: white;
-        
-    content: "function";
-}
-/* </components.manual.html_utils.HtmlUtils> */
-        
+.function-staticmethod > summary > .h:after {
+    content: 'staticmethod' }
+
+.function-property > summary > .h:after {
+    content: 'property' }
+
+.function-classmethod > summary > .h:after {
+    content: 'classmethod' }
+
+
+/* </api_doc.components.models.function.Function> */
+
+/* <api_doc.components.models.module.BaseContainer.Module> */
+.module .class:hover, .module .class:target, .module .class.focus-within {
+    background: #a8ddb5 }
+
+.module .class-doc-part:hover, .module .class-doc-part:focus, .module .class-doc-part.focus-within {
+    background: #7bccc4 }
+
+.module .prop-types:hover, .module .prop-types:target, .module .prop-types.focus-within {
+    background: #7bccc4 }
+
+.module .prop-types-doc-part:hover, .module .prop-types-doc-part:focus, .module .prop-types-doc-part.focus-within {
+    background: #4eb3d3 }
+
+.module .prop-types-props .value:hover, .module .prop-types-props .value:focus, .module .prop-types-props .value.focus-within {
+    background: #4eb3d3 }
+
+.module .prop-types-props.doc-part .value {
+    background: #2b8cbe }
+
+
+/* </api_doc.components.models.module.BaseContainer.Module> */
+
+/* <api_doc.components.models.module.Module> */
+.module .class:hover, .module .class:target, .module .class.focus-within {
+    background: #a8ddb5 }
+
+.module .class-doc-part:hover, .module .class-doc-part:focus, .module .class-doc-part.focus-within {
+    background: #7bccc4 }
+
+.module .prop-types:hover, .module .prop-types:target, .module .prop-types.focus-within {
+    background: #7bccc4 }
+
+.module .prop-types-doc-part:hover, .module .prop-types-doc-part:focus, .module .prop-types-doc-part.focus-within {
+    background: #4eb3d3 }
+
+.module .prop-types-props .value:hover, .module .prop-types-props .value:focus, .module .prop-types-props .value.focus-within {
+    background: #4eb3d3 }
+
+.module .prop-types-props.doc-part .value {
+    background: #2b8cbe }
+
+
+/* </api_doc.components.models.module.Module> */
+
+/* <api_doc.components.manual.html_utils.HtmlUtils> */
+.HtmlUtils .function-function > summary > .h:after {
+    font-weight: normal;
+    font-size: smaller;
+    margin-left: 1em;
+    padding: 1px 5px 2px;
+    border-radius: 6px;
+    position: relative;
+    top: -1px;
+    background: #084081;
+    color: white;
+    content: 'function' }
+
+
+/* </api_doc.components.manual.html_utils.HtmlUtils> */
+
+/* <api_doc.components.manual.contrib_css.ContribCss> */
+#ContribCss-class-Modes-attributes .attr-details {
+    display: none }
+
+.ContribCss-special_vars-doc-part > .content > details:not(.doc-part) > summary {
+    opacity: 0.25 }
+
+.ContribCss-special_vars-doc-part:hover > .content > details:not(.doc-part):not([open]) > summary {
+    opacity: 1 }
+
+#ContribCss-at-rules_rules ul {
+    list-style: disc }
+
+
+/* </api_doc.components.manual.contrib_css.ContribCss> */

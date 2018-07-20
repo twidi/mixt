@@ -2,7 +2,7 @@
 
 from mixt import Element, html, h
 
-from ... import types
+from ... import datatypes
 from ..doc import DocPart, DocHeader
 from ..generic import Rst
 from ..models import NamedValue
@@ -39,16 +39,16 @@ and, if you want, a default value. The format is ``prop_name: type`` or
                 <DocHeader menu="Special types">Special types</DocHeader>
 
                 <NamedValue id_prefix="{id_prefix}-types-" h_level={self.h_level+2} value={
-                    types.NamedValue(
+                    datatypes.NamedValue(
                         name="Required",
                         type='',
-                        doc=types.SimpleDocString(
+                        doc=datatypes.SimpleDocString(
                             ["By default all props are optional. Enclosing a prop type with ``Required[]`` make it... required."],
                             [
                                 ["Note: A required prop cannot have a default value."]
                             ]
                         ),
-                        example=types.Code(
+                        example=datatypes.Code(
                             # language=Python
 """
 >>> from mixt import Required
@@ -62,16 +62,16 @@ and, if you want, a default value. The format is ``prop_name: type`` or
                 } open_doc_details />
 
                 <NamedValue id_prefix="{id_prefix}-types-" h_level={self.h_level+2} value={
-                    types.NamedValue(
+                    datatypes.NamedValue(
                         name="Choices",
                         type='',
-                        doc=types.SimpleDocString(
+                        doc=datatypes.SimpleDocString(
                             ["``Choices`` allows to define a list of acceptable value."],
                             [
                                 ["In the ``PropTypes`` class, ``Choices`` is used as the type. And the value of this prop is the list of choices."]
                             ]
                         ),
-                        example=types.Code(
+                        example=datatypes.Code(
                             # language=Python
 """
 >>> from mixt import Choices
@@ -84,14 +84,14 @@ and, if you want, a default value. The format is ``prop_name: type`` or
                 } open_doc_details />
 
                 <NamedValue id_prefix="{id_prefix}-types-" h_level={self.h_level+2} value={
-                    types.NamedValue(
+                    datatypes.NamedValue(
                         name="DefaultChoices",
                         type='',
-                        doc=types.SimpleDocString(
+                        doc=datatypes.SimpleDocString(
                             ["``DefaultChoices`` is like ``Choices`` but the first entry will be the default prop value."],
                             []
                         ),
-                        example=types.Code(
+                        example=datatypes.Code(
                             # language=Python
 """
 >>> from mixt import DefaultChoices
@@ -112,10 +112,10 @@ and, if you want, a default value. The format is ``prop_name: type`` or
 
 
                 <NamedValue id_prefix="{id_prefix}-values-" h_level={self.h_level+2} value={
-                    types.NamedValue(
+                    datatypes.NamedValue(
                         name="Booleans",
                         type='',
-                        doc=types.SimpleDocString(
+                        doc=datatypes.SimpleDocString(
                             ["boolean props are handled specifically."],
                             [
                                 ["A boolean can be passed:"],
@@ -133,7 +133,7 @@ and, if you want, a default value. The format is ``prop_name: type`` or
                                 ],
                             ]
                         ),
-                        example=types.Code(
+                        example=datatypes.Code(
                             # language=Python
 """
 >>> class Component(Element):
@@ -175,14 +175,14 @@ False
                 } open_doc_details />
 
                 <NamedValue id_prefix="{id_prefix}-values-" h_level={self.h_level+2} value={
-                    types.NamedValue(
+                    datatypes.NamedValue(
                         name="Numbers",
                         type='',
-                        doc=types.SimpleDocString(
+                        doc=datatypes.SimpleDocString(
                             ["Numbers (``int`` and ``float``) can be passed as string, and numbers can be passed to strings."],
                             []
                         ),
-                        example=types.Code(
+                        example=datatypes.Code(
                             # language=Python
 """
 >>> class Component(Element):
@@ -210,17 +210,17 @@ mixt.exceptions.InvalidPropValueError: <Component>.num: `1` is not a valid value
                 } open_doc_details />
 
                 <NamedValue id_prefix="{id_prefix}-values-" h_level={self.h_level+2} value={
-                    types.NamedValue(
+                    datatypes.NamedValue(
                         name="None",
                         type='',
-                        doc=types.SimpleDocString(
+                        doc=datatypes.SimpleDocString(
                             ["``None`` will be interpreted as python ``None`` if passed directly or as string."],
                             [
                                 ["It is important to note the difference between ``None`` and ``NotProvided``."],
                                 ["``None`` is actually a value, and cannot be passed to a prop not having ``None`` as possible type."],
                             ]
                         ),
-                        example=types.Code(
+                        example=datatypes.Code(
                             # language=Python
 """
 >>> class Component(Element):
@@ -250,14 +250,14 @@ mixt.exceptions.InvalidPropValueError: <Component>.string: `None` is not a valid
                 } open_doc_details />
 
                 <NamedValue id_prefix="{id_prefix}-values-" h_level={self.h_level+2} value={
-                    types.NamedValue(
+                    datatypes.NamedValue(
                         name="NotProvided",
                         type='',
-                        doc=types.SimpleDocString(
+                        doc=datatypes.SimpleDocString(
                             ["Passing ``NotProvided`` (directly, in python or as a string) to a prop is equal to not pass it anything. The prop won't be set."],
                             []
                         ),
-                        example=types.Code(
+                        example=datatypes.Code(
                             # language=Python
 """
 >>> from mixt import NotProvided
