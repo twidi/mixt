@@ -12,6 +12,12 @@ Yes, **controversial**.
 
 Once you have your html, you can do whatever you want with it. Think of it as a replacement for your classic template engine.
 
+**Source code**: `<https://github.com/twidi/mixt/>`_
+
+**Documentation**: `<https://twidi.github.io/mixt/>`_
+
+**PyPI**: `<https://pypi.org/project/mixt/>`_
+
 ***********
 Basic usage
 ***********
