@@ -18,6 +18,8 @@ Once you have your html, you can do whatever you want with it. Think of it as a 
 
 **PyPI**: `<https://pypi.org/project/mixt/>`_
 
+**CI** (CircleCi): `<https://circleci.com/gh/twidi/workflows/mixt/>`_
+
 ***********
 Basic usage
 ***********
