@@ -556,3 +556,19 @@ details.docstring {
 
 
 /* </api_doc.components.manual.html_utils.HtmlUtils> */
+
+/* <api_doc.components.manual.contrib_css.ContribCss> */
+#ContribCss-class-Modes-attributes .attr-details {
+    display: none }
+
+.ContribCss-special_vars-doc-part > .content > details:not(.doc-part) > summary {
+    opacity: 0.25 }
+
+.ContribCss-special_vars-doc-part:hover > .content > details:not(.doc-part):not([open]) > summary {
+    opacity: 1 }
+
+#ContribCss-at-rules_rules ul {
+    list-style: disc }
+
+
+/* </api_doc.components.manual.contrib_css.ContribCss> */

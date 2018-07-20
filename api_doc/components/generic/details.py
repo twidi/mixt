@@ -148,7 +148,7 @@ Details.init();
     def render(self, context):
         summary = self.children('summary')
         children = self.children('summary', exclude=True)
-        if len(children) == 1:
+        if len(children) == 1 and not isinstance(children[0], str):
             if not children[0].has_class('content'):
                 children[0].prepend_class('content')
         else:

@@ -10,14 +10,17 @@ from .base import _Manual
 
 class Intro(_Manual):
 
-    def render(self, context):
-        readme_path = os.path.normpath(
+    def get_path(self, name):
+        return os.path.normpath(
             os.path.join(
                 os.path.dirname(__file__),
                 '../' * (len(__name__.split('.')) - 1),
-                'README.rst'
+                name
             )
         )
+
+    def render(self, context):
+        readme_path = self.get_path('README.rst')
 
         with open(readme_path) as file:
             content = file.read()
@@ -33,6 +36,19 @@ class Intro(_Manual):
             nodes.strong(text="MIXT"),
             nodes.Text(": "),
         ]
+
+        contrib_path = self.get_path(os.path.join('src/mixt/contrib/README.rst'))
+        with open(contrib_path) as file:
+            contrib_content = file.read()
+
+        contrib_document = internals(contrib_content)[0]
+
+        for section in [child for child in contrib_document.children if isinstance(child, nodes.section)]:
+            section_title = section.children[0].rawsource
+            link = f'`Read the "mixt.contrib.{section_title}" documentation <contrib-{section_title}.html>`_.'
+            link_para = nodes.paragraph()
+            link_para.children = internals(link)[0].children
+            section.children.append(link_para)
 
         return h.Div()(
             htmlize_node(document),
@@ -50,6 +66,8 @@ API
 ***
 
 And then you can continue by reading `the API documentation <api.html>`_.
+
 """
-            )
+            ),
+            htmlize_node(contrib_document)
         )

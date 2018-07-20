@@ -101,6 +101,16 @@ PAGES = [
             },
         ]
     },
+    {
+        'title': 'Mixt CSS',
+        'slug': 'contrib-css',
+        'conf': [
+            {
+                'type': "manual",
+                'component': manual.ContribCss,
+            },
+        ]
+    },
 ]
 
 

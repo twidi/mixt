@@ -58,6 +58,9 @@ def htmlize_node(node, id_prefix='', h_level=2):
         if node_type is nodes.literal:
             return h.Code()(node.astext())
 
+        if node_type is nodes.doctest_block:
+            return SourceCode(language="python")(node.astext())
+
         if node_type is nodes.literal_block:
             try:
                 language = node.attributes['classes'][1]  # 0 is always "code" for code-blocks
@@ -109,11 +112,15 @@ def htmlize_node(node, id_prefix='', h_level=2):
     return container(children) if children else None
 
 
-def htmlize_rst(text):
-    return htmlize_node(internals(text)[0]) if text else None
+def htmlize_rst(text, id_prefix='', h_level=2):
+    return htmlize_node(internals(text)[0], id_prefix, h_level) if text else None
 
 
 class Rst(Element):
+
+    class PropTypes:
+        id_prefix: str = ''
+        h_level: int = 2
 
     def append(self, child_or_children):
         if len(self.__children__):
@@ -126,4 +133,4 @@ class Rst(Element):
         super().prepend(child_or_children)
 
     def render(self, context):
-        return htmlize_rst(str(self.children()[0]))
+        return htmlize_rst(str(self.children()[0]), self.id_prefix, self.h_level)

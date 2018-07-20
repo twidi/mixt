@@ -112,7 +112,7 @@ class NamedValue(_Value):
                 menu_link="#{id_prefix}"
                 menu_class="menu-value menu-value-named"
             >
-                {value.name}{output_type}{output_default}
+                {value.name}<span class="attr-details">{output_type}{output_default}</span>
             </H>
 
             <DocString doc={value.doc} open={self.open_doc_details}/>
