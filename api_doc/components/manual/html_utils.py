@@ -1,27 +1,39 @@
 # coding: mixt
 
-from mixt import html
+from mixt import html, h
+from mixt.contrib.css import css_vars, render_css, Modes
 
-from ... import types
 from ...code_utils import resolve_class, resolve_function
 from ..doc import DocPart, DocHeader
-from ..models import Class, Code, Function
+from ..generic import Rst, SourceCode
+from ..models import Class, Function
 from .base import _Manual
 
 
 class HtmlUtils(_Manual):
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        return {
+            ".HtmlUtils .function-function > summary > .h:after": merge(
+                context.styles.snippets['TAG'],
+                context.styles.snippets['HL'],
+                {
+                    content: str("function"),
+                }
+            )
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-.HtmlUtils .function-function > summary > .h:after { 
-    %(TAG)s
-    %(HL)s
-    content: "function";
-}
-
-        """
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     def render(self, context):
         id_prefix = f'{self.id_prefix}HtmlUtils'
@@ -54,30 +66,27 @@ class HtmlUtils(_Manual):
             <DocPart kind="HtmlUtils" subkind="if-else" id_prefix={id_prefix} level={self.h_level+1}>
                 <DocHeader menu="if / else tags">if / else tags</DocHeader>
 
-                <p>
-                    Mixt avoids support for logic within the HTML flow, except for one case where we found it especially
-                    useful: conditionally rendering HTML.
-                </p>
-                <p>
-                    That is why Mixt provides the <code>&lt;if&gt;</code> tag, which takes a prop named
-                    <code>cond</code>.
-                </p>
-                <p>
-                    Children of an <code>&lt;if&gt;</code> tag are only rendered if <code>cond</code> evaluates
-                    to <code>True</code>.
-                </p>
-                <p>
-                    It comes with the <code>&lt;else&gt;</code> tag, not taking any prop, that is optional but if
-                    used, must come right after the closing <code>&lt;/if&gt;</code> tag.
-                </p>
-                <p>
-                    Children of an <code>&lt;else&gt;</code> tag are only rendered if the <code>cond</code> prop of the
-                    <code>&lt;if&gt;</code> tag evaluates to <code>False</code>.
-                </p>
+                <Rst>{h.Raw(
+# language=RST
+"""
+Mixt avoids support for logic within the HTML flow, except for one case where we found it especially
+useful: conditionally rendering HTML.
+
+That is why Mixt provides the ``<if>`` tag, which takes a prop named ``cond``.
+
+Children of an ``<if>`` tag are only rendered if ``cond`` evaluates to ``True``.
+
+It comes with the ``<else>`` tag, not taking any prop, that is optional but if
+used, must come right after the closing ``</if>`` tag.
+
+Children of an ``<else>`` tag are only rendered if the ``cond`` prop of the
+``<if>`` tag evaluates to ``False``.
+"""
+                )}</Rst>
 
                 <DocPart kind="HtmlUtils" subkind="if-else-example" id_prefix="{id_prefix}" level={self.h_level+2} open>
                     <DocHeader menu="Example">Example</DocHeader>
-                    <Code code={types.Code(
+                    <SourceCode language="python">{h.Raw(
 # language=Python
 """
 >>> class Component(Element):
@@ -129,8 +138,8 @@ class HtmlUtils(_Manual):
 ...             {part_if_true}
 ...             {part_if_false}
 ...         </div>
-""", language="python"
-                    )} />
+"""
+                    )}</SourceCode>
                 </DocPart>
             </DocPart>
 
@@ -141,7 +150,7 @@ class HtmlUtils(_Manual):
 
                 <DocPart kind="HtmlUtils" subkind="if-else-example" id_prefix="{id_prefix}" level={self.h_level+2} open>
                     <DocHeader menu="Example">Example</DocHeader>
-                    <Code code={types.Code(
+                    <SourceCode language="python">{h.Raw(
 # language=Python
 """
 >>> class Component(Element):
@@ -153,8 +162,8 @@ class HtmlUtils(_Manual):
 
 >>> print(<Component />)
 <div>Foo</div>
-""", language="python"
-                    )} />
+""",
+                    )}</SourceCode>
                 </DocPart>
             </DocPart>
 

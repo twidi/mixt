@@ -1,10 +1,9 @@
 # coding: mixt
 
-from mixt import html
+from mixt import html, h
 
-from ... import types
 from ..doc import DocPart, DocHeader
-from ..models import Code
+from ..generic import Rst, SourceCode
 from .base import _Manual
 
 
@@ -15,43 +14,35 @@ class Context(_Manual):
 
         return <DocPart kind="Context" id_prefix={id_prefix} level={self.h_level}>
             <DocHeader menu="Context">Context</DocHeader>
+            <Rst>{h.Raw(
+# language=RST
+"""
+**Context provides a way to pass data through the component tree without having to
+pass props down manually at every level.**
 
-            <p><strong>
-                Context provides a way to pass data through the component tree without having to
-                pass props down manually at every level.
-            </strong></p>
+In a typical Mixt application, data is passed top-down (parent to child) via props,
+but this can be cumbersome for certain types of props (e.g. locale preference,
+UI theme, authenticated user...) that are required by many components within an
+application.
 
-            <p>
-                In a typical Mixt application, data is passed top-down (parent to child) via props,
-                but this can be cumbersome for certain types of props (e.g. locale preference,
-                UI theme, authenticated user...) that are required by many components within an
-                application.
-            </p>
+Context provides a way to share values like these between components without
+having to explicitly pass a prop through every level of the tree.
 
-            <p>
-                Context provides a way to share values like these between components without
-                having to explicitly pass a prop through every level of the tree.
-            </p>
+A context is a simple element than simply render its children, passing itself
+down the tree. So every element in a tree under a context, gain this context.
 
-            <p>
-                A context is a simple element than simply render its children, passing itself
-                down the tree. So every element in a tree under a context, gain this context.
-            </p>
+You cannot pass anything to a context. A context has a ``PropTypes`` class
+defining the expected props and their types.
 
-            <p>
-                You cannot pass anything to a context. A context has a <code>PropTypes</code> class
-                defining the expected props and their types.
-            </p>
-
-            <p>
-                You can have many contexts in the tree. They are merged so their children elements
-                can access props of all of them. You just cannot set the same prop in these
-                different contexts.
-            </p>
+You can have many contexts in the tree. They are merged so their children elements
+can access props of all of them. You just cannot set the same prop in these
+different contexts.
+"""
+            )}</Rst>
 
             <DocPart kind="Context" subkind="example" id_prefix={id_prefix} level={self.h_level+1} open>
                 <DocHeader menu="Example">Example</DocHeader>
-                <Code code={types.Code(
+                <SourceCode language="python">{h.Raw(
 # language=Python
 """
 >>> from mixt import BaseContext, Element, NotProvided, html
@@ -89,8 +80,8 @@ class Context(_Manual):
 ...     </AuthenticatedContext>
 ... )
 <div>Hello. You need to idenfify yourself.</div>
-""", language="python"
-                )} />
+"""
+                )}</SourceCode>
             </DocPart>
 
         </DocPart>

@@ -1,95 +1,99 @@
+from mixt.contrib.css import css_vars, render_css, Modes
+
 from .generic import MenuCollector
 
 
 class MainMenuCollector(MenuCollector):
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        colors = context.styles.colors
+
+        tagged = tuple(
+            f'.menu-{name}'
+            for name in [
+                'class',
+                'module',
+                'function-staticmethod',
+                'function-property',
+                'function-classmethod'
+            ]
+        )
+
+        return merge({
+            "#main-menu": {
+                background: colors[9],
+                color: white,
+                "> p": {
+                    margin-left: 10*px,
+                },
+                "ul": {
+                    list-style: none,
+                    margin-left: 1*em,
+                },
+                "> ul": {
+                    margin: 10*px,
+                    padding-right: 15*px,
+                },
+                "a": {
+                    color: inherit,
+                    text-decoration: none,
+                    line-height: 1.8,
+                    display: inline-block,
+                    white-space: nowrap,
+                },
+                "li > a": {
+                    display: block,
+                }
+            },
+            tagged: {
+                "&:after": merge(
+                    context.styles.snippets['TAG'],
+                    context.styles.snippets['HL'],
+                ),
+            },
+            "li:not(:hover)": {
+                "> .menu-class:after": context.styles.snippets['HL_REVERSE'],
+                "> details > summary:not(.current)": {
+                    (f"> {t}" for t in tagged): {
+                        "&:after": context.styles.snippets['HL_REVERSE']
+                    },
+                }
+            },
+            "#main-menu ": {
+                "li:hover > details > summary,"
+                "li:hover > a,"
+                ".current": {
+                    color: colors[9],
+                    "&:before": {
+                        content: str(" "),
+                        background: white,
+                        position: absolute,
+                        height: 1.8*em,
+                        z-index: -1,
+                        left: 0,
+                        right: 0,
+                    }
+                },
+
+            },
+        }, {
+            f"{t}:after": {
+                content: str(t.split('-')[-1])
+            }
+            for t in tagged
+        })
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-/* <components.main_menu.MainMenuCollector> */
-#main-menu {
-    background: %(BG9)s;
-    color: white;
-}
-#main-menu > p {
-    margin-left: 10px;
-}
-#main-menu ul {
-    list-style: none;
-    margin-left: 1em;
-}
-#main-menu > ul {
-    margin: 10px;
-    padding-right: 15px;
-}
-
-#main-menu a {
-    color: inherit;
-    text-decoration: none;
-    line-height: 1.8;
-    display: inline-block;
-}
-
-.menu-class:after, 
-.menu-module:after, 
-.menu-function-staticmethod:after, 
-.menu-function-property:after,
-.menu-function-classmethod:after { 
-    %(TAG)s
-    %(HL)s
-}
-li:not(:hover) > .menu-class:after,
-li:not(:hover) > details > summary:not(.current) > .menu-class:after,
-li:not(:hover) > details > summary:not(.current) > .menu-module:after,
-li:not(:hover) > details > summary:not(.current) > .menu-function-staticmethod:after, 
-li:not(:hover) > details > summary:not(.current) > .menu-function-property:after,
-li:not(:hover) > details > summary:not(.current) > .menu-function-classmethod:after {
-    %(HL-reverse)s
-}
-
-.menu-class:after { 
-    content: "class";
-}
-.menu-module:after { 
-    content: "module";
-}
-li:not(:hover) > details > summary:not(.current) > .menu-function-staticmethod:after, 
-li:not(:hover) > details > summary:not(.current) > .menu-function-property:after,
-li:not(:hover) > details > summary:not(.current) > .menu-function-classmethod:after {
-    %(HL-reverse)s
-}
-
-#main-menu li:hover > details > summary,
-#main-menu li:hover > a,
-#main-menu .current {
-    color: %(BG9)s;
-}
-#main-menu li:hover > details > summary::before,
-#main-menu li:hover > a::before,
-#main-menu .current::before {
-    content: " ";
-    background: white;
-    position: absolute;
-    height: 1.8em;
-    z-index: -1;
-    left: 0;
-    right: 0;
-}
-
-
-.menu-function-staticmethod:after {
-    content: "staticmethod";
-}
-.menu-function-property:after {
-    content: "property";
-}
-.menu-function-classmethod:after {
-    content: "classmethod";
-}
-
-/* </components.main_menu.MainMenuCollector> */
-        """
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     @classmethod
     def render_js_global(cls, context):

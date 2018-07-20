@@ -1,90 +1,59 @@
 # coding: mixt
 
-from docutils import nodes
 from docutils.examples import internals
 from typing import List
 
-from mixt import Element, Required, html, h
+from mixt import Element, Required, html
+from mixt.contrib.css import css_vars, render_css, Modes
 
-from ... import types
-from ..generic import Details
-from . import Code
-
-
-CONTAINERS = {
-    nodes.document: h.Fragment,
-    nodes.paragraph: h.P,
-    nodes.bullet_list: h.Ul,
-    nodes.enumerated_list: h.Ol,
-    nodes.list_item: h.Li,
-}
-
-def htmlize_node(node):
-
-    if isinstance(node, str):
-        return node
-
-    node_type = type(node)
-
-    if node_type in CONTAINERS:
-        container = CONTAINERS[node_type]()
-    else:
-
-        if node_type is nodes.title_reference:
-            return h.Code(_class="reference")(node.astext())
-
-        if node_type is nodes.literal:
-            return h.Code()(node.astext())
-
-        if node_type is nodes.literal_block:
-            try:
-                language = node.attributes['classes'][1]  # 0 is always "code" for code-blocks
-            except IndexError:
-                language = "text"
-            return Code(code=types.Code(code=node.astext(), language=language))
-
-        return node.astext()
-
-    children = [htmlize_node(child) for child in node.children]
-    return container(children) if children else None
+from ... import datatypes
+from ..generic import Details, htmlize_rst
 
 
 def htmlize_summary(lines: List[str]):
     text = "\n".join(lines).strip()
-    return htmlize_node(internals(text)[0]) if text else None
+    return htmlize_rst(text)
 
 
 def htmlize_details(parts: List[List[str]]):
     text = "\n\n".join(["\n".join(para) for para in parts]).strip()
-    return htmlize_node(internals(text)[0]) if text else None
+    return htmlize_rst(text)
 
 
 class DocString(Element):
     class PropTypes:
         _class: str = "docstring"
-        doc: Required[types.SimpleDocString]
+        doc: Required[datatypes.SimpleDocString]
         hide_summary: bool = False
         hide_details: bool = False
         open: bool = False
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        return {
+            "details.docstring": {
+                margin-top: 1*em,
+                "> summary > p": {
+                    margin-top: 0,
+                    white-space: normal,
+                    display: inline,
+                },
+                "> div.content > p:first-child": {
+                    margin-top: 1*em,
+                },
+            },
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-/* <components.models.docstring> */
-details.docstring {
-    margin-top: 1em;
-}
-details.docstring > summary > p {
-    margin-top: 0;
-    white-space: normal;
-    display: inline;
-}
-details.docstring > div.content > p:first-child {
-    margin-top: 1em;
-}
-/* </components.models.docstring> */
-        """
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     def render(self, context):
         doc = self.doc

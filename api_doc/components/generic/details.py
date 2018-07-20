@@ -1,4 +1,5 @@
 from mixt import Element, html
+from mixt.contrib.css import css_vars, render_css, Modes
 
 
 class Details(Element):
@@ -71,84 +72,83 @@ Details.init();
 /* </components.generic.details.Details> */
         """
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        return {
+            details: {
+                ".h": {
+                    margin-top: 0,
+                    padding: (3*px, 0),
+                    margin-bottom: 0,
+                },
+                "&[open]": {
+                    ".h": {
+                        margin-bottom: 1*em,
+                    }
+                },
+                ".h:last-child": {
+                    margin-bottom: 0,
+                },
+                "details + &, summary + &": {
+                    margin-top: 1*em,
+                },
+                "> :not(summary)": {
+                    margin-left: 1*em,
+                    media({max-width: context.styles.breakpoint}): {
+                        margin-left: 0.2*em,
+                    }
+                },
+                "> div.content": {
+                    border-left: (solid, rgba(0, 0, 0, 0.1), 1*px),
+                    margin-left: 4*px,
+                    padding: (5*px, 0, 5*px, 1*em),
+                    (" > :first-child" * nb for nb in b.range(1, 7)): {
+                        margin-top: 0,
+                    },
+                    "> p:last-child": {
+                        margin-top: 0,
+                    },
+                    media({max-width: context.styles.breakpoint}): {
+                        margin-left: 3*px,
+                        padding-left: 0.2*em,
+                    }
+                },
+            },
+            summary: {
+                cursor: pointer,
+                white-space: nowrap,
+                ".h": {
+                    display: inline-block,
+                    vertical-align: middle,
+                    line-height: 1.3,
+                    white-space: normal,
+                },
+            },
+            ".h + details": {
+                margin-top: 1*em,
+            },
+            "&:hover, &:focus, &.focus-within": {
+                "> div.content": {
+                    border-left: (solid, transparent, 1*px),
+                }
+            }
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-/* <components.generic.details.Details> */
-
-details .h {
-    margin-top: 0;
-    padding: 3px 0;
-}
-details[open] .h {
-    margin-bottom: 1em;
-}
-details:not([open]) .h {
-    margin-bottom: 0;
-}
-summary {
-    cursor: pointer;
-    white-space: nowrap;
-}
-summary .h {
-    display: inline-block;
-    vertical-align: middle;
-    line-height: 1.3;
-    white-space: normal;
-}
-.h + details {
-    margin-top: 1em;
-}     
-details + details, summary + details {
-    margin-top: 1em;
-}
-details > :not(summary) {
-    margin-left: 1em;
-}
-@media (max-width: %(BREAKPOINT)s) {
-    details > :not(summary) {
-        margin-left: 0.2em;
-    }
-}
-
-details > div.content > :first-child, 
-details > div.content > :first-child > :first-child, 
-details > div.content > :first-child > :first-child > :first-child,
-details > div.content > :first-child > :first-child > :first-child > :first-child,
-details > div.content > :first-child > :first-child > :first-child > :first-child > :first-child,
-details > div.content > :first-child > :first-child > :first-child > :first-child > :first-child > :first-child {
-    margin-top: 0;
-}
-
-details .h:last-child,
-details > div.content > p:last-child {
-    margin-bottom: 0;
-}
-
-details > div.content {
-    border-left: solid rgba(0, 0, 0, 0.1) 1px;
-    margin-left: 4px;
-    padding: 5px 0 5px 1em;
-}
-@media (max-width: %(BREAKPOINT)s) {
-    details > div.content {
-        margin-left: 3px;
-        padding-left: 0.2em;
-    }
-}
-details:hover > div.content,
-details:focus > div.content,
-details.focus-within > div.content {
-    border-left: solid transparent 1px;
-}
-/* </components.generic.details.Details> */
-        """
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     def render(self, context):
         summary = self.children('summary')
         children = self.children('summary', exclude=True)
-        if len(children) == 1:
+        if len(children) == 1 and not isinstance(children[0], str):
             if not children[0].has_class('content'):
                 children[0].prepend_class('content')
         else:

@@ -1,48 +1,60 @@
-from typing import Callable
+from typing import Callable, List, Dict
 
-from mixt import CSSCollector as DefaultCSSCollector, Element, html
-from mixt.internal.base import OptionalContext
+from mixt import CSSCollector as DefaultCSSCollector, Element, html, Required
+from mixt.contrib.css import css_vars
+from mixt.contrib.css.units import QuantifiedUnit
+from mixt.contrib.css.vars import CSS_VARS
+from mixt.internal.base import OptionalContext, BaseContext
 
 
-BG = [
-    "white",
-    "#f7fcf0",
-    "#e0f3db",
-    "#ccebc5",
-    "#a8ddb5",
-    "#7bccc4",
-    "#4eb3d3",
-    "#2b8cbe",
-    "#0868ac",
-    "#084081",
+__colors__: List[str] = [
+        "white",
+        "#f7fcf0",
+        "#e0f3db",
+        "#ccebc5",
+        "#a8ddb5",
+        "#7bccc4",
+        "#4eb3d3",
+        "#2b8cbe",
+        "#0868ac",
+        "#084081",
 ]
-BGS = {f'BG{index}': color for index, color in enumerate(BG)}
 
-BREAKPOINT = '40rem'
 
-CSS_SNIPPETS = dict(
-    {
-        'TAG': """
-            font-weight: normal;
-            font-size: smaller;
-            margin-left: 1em;
-            padding: 1px 5px 2px;
-            border-radius: 6px;
-            position: relative;
-            top: -1px;
-        """,
-        'HL': """
-            background: %(BG9)s;
-            color: white;
-        """ % BGS,
-        'HL-reverse': """
-            background: white;
-            color: %(BG9)s;
-        """ % BGS,
-        'BREAKPOINT': BREAKPOINT,
-    },
-    **BGS
-)
+# noinspection PyUnresolvedReferences
+@css_vars(globals())
+def create_snippets():
+    return {
+        "TAG": {
+            font-weight: normal,
+            font-size: smaller,
+            margin-left: 1*em,
+            padding: (1*px, 5*px, 2*px),
+            border-radius: 6*px,
+            position: relative,
+            top: -1*px,
+        },
+        "HL": {
+            background: __colors__[9],
+            color: white,
+        },
+        "HL_REVERSE": {
+            background: white,
+            color: __colors__[9],
+        },
+    }
+
+
+class Styles:
+    colors: List[str] = __colors__
+    snippets: Dict[str, Dict] = create_snippets()
+    breakpoint: QuantifiedUnit = CSS_VARS.rem(40)
+
+
+class StyleContext(BaseContext):
+    class PropTypes:
+        styles: Required[Styles]
+
 
 # language=CSS
 TYPESET_CSS = """
@@ -78,7 +90,7 @@ table, caption, tbody, tfoot, thead, tr, th, td,
 applet, canvas, embed, figure, figcaption, iframe, img, object {
   background: transparent;
   border: 0;
-  font-size: 100%%;
+  font-size: 100%;
   font: inherit;
   line-height: 1.0;
   margin: 0;
@@ -161,17 +173,17 @@ samp {
 }
 small {
   color: gray;
-  font-size: 80%%;
+  font-size: 80%;
 }
 s {
   text-decoration: line-through;
 }
 sub {
-  font-size: 80%%;
+  font-size: 80%;
   vertical-align: sub;
 }
 sup {
-  font-size: 80%%;
+  font-size: 80%;
   vertical-align: super;
 }
 var {
@@ -229,22 +241,22 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 0;
 }
 h1 {
-  font-size: 200%%;
+  font-size: 200%;
 }
 h2 {
-  font-size: 160%%;
+  font-size: 160%;
 }
 h3 {
-  font-size: 140%%;
+  font-size: 140%;
 }
 h4 {
-  font-size: 120%%;
+  font-size: 120%;
 }
 h5 {
-  font-size: 110%%;
+  font-size: 110%;
 }
 h6 {
-  font-size: 100%%;
+  font-size: 100%;
 }
 p {
   /* line-height set above */
@@ -265,7 +277,7 @@ pre {
   font-size: 12px;
   /* line-height set above */
   /* margin set above */
-  max-width: 100%%;
+  max-width: 100%;
   overflow: scroll;
   padding: .7em;
   /* Mozilla, since 1999 */
@@ -322,28 +334,32 @@ td {
 
 embed, iframe, img, object {
   display: inline;
-  max-width: 100%%;
+  max-width: 100%;
 }
 figure {
   display: block;
-  max-width: 100%%;
+  max-width: 100%;
   /* margin set above */
 }
 figcaption {
-  font-size: 80%%;
+  font-size: 80%;
   /* line-height set above */
   /* margin set above */
   text-align: left;
 }
 /* </components.style.TypesetStyle> */
-""" % CSS_SNIPPETS
+"""
 
 
 class TypesetStyle(Element):
+    class PropTypes:
+        with_tag: bool = True
+
     def render(self, context):
-        return html.Style(type="text/css")(html.Raw(TYPESET_CSS))
+        css = html.Raw(TYPESET_CSS)
+        return html.Style(type="text/css")(css) if self.with_tag else css
 
 
 class CSSCollector(DefaultCSSCollector):
     def call_collected_method(self, method: Callable, context: OptionalContext, is_global: bool) -> str:
-        return super().call_collected_method(method, context, is_global) % CSS_SNIPPETS
+        return super().call_collected_method(method, context, is_global)

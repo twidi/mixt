@@ -42,5 +42,9 @@ JS = """
 """
 
 class VendoredScripts(Element):
+    class PropTypes:
+        with_tag: bool = True
+
     def render(self, context):
-        return html.Script(type="text/javascript")(html.Raw(JS))
+        js = html.Raw(JS)
+        return html.Script(type="text/javascript")(html.Raw(js)) if self.with_tag else js

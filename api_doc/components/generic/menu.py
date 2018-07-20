@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 from mixt import Element, Required, html
+from mixt.contrib.css import css_vars, render_css, Modes
 
 
 class H(Element):
@@ -11,36 +12,55 @@ class H(Element):
         menu_link: str
         menu_class: str
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
+    @classmethod
+    def render_pycss_global(cls, context):
+        _focus = "&:hover, &:focus, &.focus-within"
+
+        return {
+            ".h": {
+                "+ .permalink": {
+                    visibility: hidden,
+                    padding-left: 0.5*em,
+                    vertical-align: middle,
+                    line-height: 0.8,
+                    color: '#333',
+                    opacity: 0.75,
+                    _focus: {
+                        visibility: visible,
+                    }
+                },
+                _focus: {
+                    "+ .permalink": {
+                        visibility: visible,
+                    },
+                },
+            },
+            div: {
+                _focus: {
+                    "> .h + .permalink": {
+                        visibility: visible,
+                    }
+                }
+            },
+            details: {
+                _focus: {
+                    "> summary > .h + .permalink": {
+                        visibility: visible,
+                    }
+                }
+            }
+        }
+
     @classmethod
     def render_css_global(cls, context):
-        # language=CSS
-        return """
-/* <components.generic.menu.H> */
-.h + .permalink {    
-    visibility: hidden;
-    padding-left: 0.5em;
-    vertical-align: middle;
-    line-height: 0.8;
-    color: #333;
-    opacity: 0.75;
-}
-.h + .permalink:hover, .h + .permalink:focus, 
-.h:hover + .permalink, .h:focus + .permalink, .h.focus-within + .permalink {
-    visibility: visible;
-}
-div:hover > .h + .permalink, 
-div:focus > .h + .permalink, 
-div.focus-within > .h + .permalink {
-    visibility: visible;
-}
-
-details:hover > summary > .h + .permalink, 
-details:focus > summary > .h + .permalink, 
-details.focus-within > summary > .h + .permalink {
-    visibility: visible;
-}
-/* </components.generic.menu.H> */
-        """
+        css = render_css((cls.render_pycss_global(context)))
+        return f"""
+/* <{cls.__module__}.{cls.__name__}> */
+{css}
+/* </{cls.__module__}.{cls.__name__}> */
+"""
 
     def render(self, context):
         props = dict(self.props)
@@ -116,7 +136,8 @@ class MenuCollector(Element):
             self.__last__ = self.__last__.add(child)
 
     def render_menu(self, id, _class=None):
-        return <Menu id={id} class={_class or ''} menu={self.__root__} />
+        if self.__root__.children:
+            return <Menu id={id} class={_class or ''} menu={self.__root__} />
 
     @classmethod
     def render_js_global(cls, context):

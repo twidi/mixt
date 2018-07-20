@@ -301,13 +301,52 @@ Usage (we'll use ``CSSCollector`` in these examples but it works the same with `
            >>> css = ref.current.render_collected("file", "outside", with_tag=False)
            >>> save_to_file(css, 'index.css')
 
+       And if we want to generate many html files and be sure the external css file will have
+       everything that is needed, we can use the ``reuse`` feature.
+
+       It tells a collector to reuse another collector for some content. By default it's all the
+       content, but it can be limited to global or non-global content, and it can also be limited
+       to some namespaces only.
+
+       .. code-block:: python
+
+           >>> global_collector = CSSCollector()
+
+           >>> ref = Ref()
+           >>> def render(content):
+           ...     return <html>
+           ...         <head>
+           ...             {lambda: ref.current.render_collected("default")}
+           ...         </head>
+           ...         <body>
+           ...             <CSSCollector
+           ...               ref={ref}
+           ...               reuse={global_collector}
+           ...               reuse_global=True  # the default
+           ...               reuse_non_global=False
+           ...               reuse_namespaces=None  # the default, else can be a list of namespaces
+           ...             >
+           ...             {content}
+           ...             </CSSCollector>
+           ...        </body>
+           ...     </html>
+
+           # each file will have its own non-global styles
+           >>> save_to_file(str(render("page 1")), 'page1.html')
+           >>> save_to_file(str(render("page 2")), 'page2.html')
+
+           # we'll have the global styles for every components used on each page
+           # useful if one component used on page 2 but not on page 1 for example
+           >>> css = global_collector.render_collected(with_tag=False)
+           >>> save_to_file(css, 'index.css')
+
 """
 
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Type, Union, cast
 
 from ..element import Element
-from ..exceptions import MixtException
+from ..exceptions import InvalidPropValueError, MixtException
 from ..html import Raw, Script, Style
 from ..proptypes import DefaultChoices
 from .base import AnElement, Base, BaseMetaclass, OneOrManyElements, OptionalContext
@@ -383,12 +422,29 @@ class Collector(Element, metaclass=CollectorMetaclass):
 
             If not set, the content won't be inserted: the ``render_collected`` method will need
             to be called to get the content. For example using the ``ref`` prop.
+        reuse : Collector
+            Tell the collector to use data from the given collector. Useful to collect from many
+            components not in the same tree and extract collected content for all at once.
+        reuse_global : bool
+            If ``True`` (the default) and if ``reuse`` is set, the globally collected stuff will
+            be collected by the reused collector.
+        reuse_non_global : bool
+            If ``True`` (the default) and if ``reuse`` is set, the non-globally collected stuff
+            will be collected by the reused collector.
+        reuse_namespaces : Optional[List[str]]
+            If not ``None`` (the default), only the given namespaces will be collected by the
+            ``reuse``, the other being collected by ``self``.. Else (if ``None``),  all namespaces
+            will be collected by ``reuse``.
 
         """
 
         render_position: DefaultChoices = cast(
             DefaultChoices, [None, "before", "after"]
         )
+        reuse: Any
+        reuse_global: bool = True
+        reuse_non_global: bool = True
+        reuse_namespaces: List[str]
 
     def __init__(self, **kwargs: Any) -> None:
         """Create the collector with an empty list of collected children..
@@ -400,13 +456,39 @@ class Collector(Element, metaclass=CollectorMetaclass):
         kwargs : Dict[str, Any]
             The props to set on this collector.
 
+        Raises
+        ------
+        InvalidPropValueError
+            If the ``reuse`` prop if not an instance of the exact same class.
+
         """
         self.__collected__: Dict[str, List[AnElement]] = defaultdict(list)
-        self.__global_classes__: Set[Type[Base]] = set()
-        self.__global_methods__: Set[Callable] = set()
+        self.__classes_no_methods__: Dict[Type, Set[str]] = defaultdict(set)
+        self.__global_methods_done_for_namespaces__: Dict[  # pylint: disable=invalid-name
+            str, Set[Callable]
+        ] = defaultdict(
+            set
+        )
+
         super().__init__(**kwargs)
 
-    def postrender_child_element(
+        reuse = self.prop("reuse", None)
+        if reuse and reuse.__class__ is not self.__class__:
+            raise InvalidPropValueError(
+                self.__display_name__, "reuse", reuse, self.__class__
+            )
+        # fasten access to reuse* props
+        self.reuse: Collector = reuse
+        self.reuse_global: bool = self.prop("reuse_global")
+        self.reuse_non_global: bool = self.prop("reuse_non_global")
+        self.reuse_namespaces: Optional[Set[str]] = None
+        if (
+            self.has_prop("reuse_namespaces")
+            and self.prop("reuse_namespaces") is not None
+        ):
+            self.reuse_namespaces = set(self.prop("reuse_namespaces"))
+
+    def postrender_child_element(  # pylint: disable=too-many-branches
         self, child: "Element", child_element: AnElement, context: OptionalContext
     ) -> None:
         """Catch child render_{KIND} method, or child content if a ``Collect``.
@@ -420,59 +502,71 @@ class Collector(Element, metaclass=CollectorMetaclass):
 
         Then collect if it's a ``Collect`` instance.
 
-        Parameters
-        ----------
-        child : Element
-            The element in a tree on which ``render`` was just called.
-        child_element : AnElement
-            The element rendered by the call of the ``render`` method of `child`.
-        context : OptionalContext
-            The context passed through the tree.
+        For the parameters, see ``Element.postrender_child_element``.
 
         Raises
         ------
         MixtException
-            If the ``render_{KIND}_global`` is not a ``classmethod``.
+
+            - If the ``render_{KIND}_global`` is not a class method.
+            - If the ``render_{KIND}`` is not a method
 
         """
         if self.KIND:
-            if child.__class__ not in self.__global_classes__:
+            no_methods = self.__classes_no_methods__[child.__class__]
+
+            method_name = f"render_{self.KIND}_global"
+            if method_name not in no_methods:
                 for base in reversed(child.__class__.__mro__):
-                    if base in self.__global_classes__:
+                    no_methods_base = self.__classes_no_methods__[base]
+                    if method_name in no_methods_base:
                         continue
-                    self.__global_classes__.add(base)
-                    if not hasattr(base, f"render_{self.KIND}_global"):
+                    if not hasattr(base, method_name):
+                        no_methods_base.add(method_name)
                         continue
-                    method = getattr(base, f"render_{self.KIND}_global")
+                    method = getattr(base, method_name)
                     if not hasattr(method, "__func__"):
                         if getattr(base, "__display_name__", None):
                             name = f"<{base.__display_name__}>"  # type: ignore
                         else:
                             name = str(base)
                         raise MixtException(
-                            f"{name}.render_{self.KIND}_global must be a classmethod"
+                            f"{name}.{method_name} must be a classmethod"
                         )
-                    if method.__func__ in self.__global_methods__:
-                        continue
-                    self.__global_methods__.add(method.__func__)
                     self.append_collected(
-                        self.call_collected_method(method, context, True)
+                        self.call_collected_method(method, context, True),
+                        is_global=True,
+                        global_method=method.__func__,
                     )
 
-            if hasattr(child, f"render_{self.KIND}"):
-                method = getattr(child, f"render_{self.KIND}")
-                if callable(method):
+            method_name = f"render_{self.KIND}"
+            if method_name not in no_methods:
+                if not hasattr(child, method_name):
+                    no_methods.add(method_name)
+                else:
+                    method = getattr(child, method_name)
+                    if not callable(method):
+                        if getattr(child, "__display_name__", None):
+                            name = f"<{child.__display_name__}>"  # type: ignore
+                        else:
+                            name = str(child)
+                        raise MixtException(f"{name}.{method_name} must be a method")
                     self.append_collected(
-                        self.call_collected_method(method, context, False)
+                        self.call_collected_method(method, context, False),
+                        is_global=False,
                     )
 
         if isinstance(child, self.Collect):
-            self.append_collected(child, default_namespace=child.namespace)
+            self.append_collected(
+                child, is_global=False, default_namespace=child.namespace
+            )
 
     def append_collected(
         self,
         collected: Union[Dict[str, AnElement], AnElement],
+        is_global: bool,
         default_namespace: str = "default",
+        global_method: Optional[Callable] = None,
     ) -> None:
         """Add the given `collected` content to the collector.
 
@@ -482,15 +576,42 @@ class Collector(Element, metaclass=CollectorMetaclass):
             If it's a dict, the keys are used to save their content to "sub" collectors.
             If not, the `default_namespace` will be used as the name of the "sub" collector where to
             collect.
+        is_global : bool
+            If the collected data is global one (ie from ``render_{KIND}_global``) or not.
         default_namespace : str
             The name of the "sub" collector where to save the `collected` content if it is not
             a dict. Default to "default".
+        global_method : Optional[Callable]
+            If ``is_global`` is ``True``, this is the method called to get the content to collect,
+            to mark it as already collected.
 
         """
         if not isinstance(collected, dict):
             collected = {default_namespace: collected}
+
         for namespace, collected_for_namespace in collected.items():
-            self.__collected__[namespace].append(collected_for_namespace)
+            collector: Collector = self
+
+            if self.reuse and (
+                self.reuse_namespaces is None or namespace in self.reuse_namespaces
+            ):
+                if (is_global and self.reuse_global) or (
+                    not is_global and self.reuse_non_global
+                ):
+                    collector = self.reuse
+
+            if is_global and global_method:
+                if (
+                    global_method
+                    in collector.__global_methods_done_for_namespaces__[namespace]
+                ):
+                    continue
+
+                collector.__global_methods_done_for_namespaces__[namespace].add(
+                    global_method
+                )
+
+            collector.__collected__[namespace].append(collected_for_namespace)
 
     def call_collected_method(
         self,
