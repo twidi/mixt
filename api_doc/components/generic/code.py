@@ -14,8 +14,10 @@ class SourceCode(Element):
     # noinspection PyUnresolvedReferences
     @css_vars(globals())
     @classmethod
-    def render_pycss_global(cls, context):
-        return {
+    def render_css_global(cls, context):
+        return render_css({
+            "/*": f"<{cls.__module__}.{cls.__name__}>",
+        }) + HtmlFormatter().get_style_defs(".code") + "\n" + render_css({
             ".code": {
                 display: block,
                 background: transparent,
@@ -27,17 +29,8 @@ class SourceCode(Element):
                     white-space: pre,
                 }
             },
-        }
-
-    @classmethod
-    def render_css_global(cls, context):
-        css = render_css((cls.render_pycss_global(context)))
-        return f"""
-/* <{cls.__module__}.{cls.__name__}> */
-{HtmlFormatter().get_style_defs(".code")}
-{css}
-/* </{cls.__module__}.{cls.__name__}> */
-"""
+            "/**": f"</{cls.__module__}.{cls.__name__}>",
+        })
 
     def append(self, child_or_children):
         if len(self.__children__):

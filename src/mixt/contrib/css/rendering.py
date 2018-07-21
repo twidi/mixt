@@ -46,6 +46,12 @@ _SELECTOR_TEMPLATE: str = "".join(
 %(sel_after_endline)s
 """.split()
 )
+_COMMENTS_TEMPLATE: str = "".join(
+    """
+%(DECLARATIONS)s
+%(sel_after_endline)s
+""".split()
+)
 
 _NO__SELECTOR_TEMPLATE: str = "".join(
     """
@@ -67,6 +73,12 @@ _DECLARATION_NO_VALUE_TEMPLATE: str = "".join(
 %(indent)s
 %(KEY)s
 %(semicolon)s
+""".split()
+)
+_COMMENT_DECLARATION_TEMPLATE: str = "".join(
+    """
+%(indent)s
+%(KEY)s
 """.split()
 )
 
@@ -109,11 +121,17 @@ def _render_selector(
 
     last_decl_index: int = len(declarations) - 1
 
-    if not selector:
+    if not selector or (selector == "/*" and not conf["indent_children"]):
         level = level - 1
 
     css_declarations: str = conf["decl_endline"].join(
-        (_DECLARATION_TEMPLATE if value is not None else _DECLARATION_NO_VALUE_TEMPLATE)
+        (
+            _DECLARATION_NO_VALUE_TEMPLATE
+            if value is None
+            else _COMMENT_DECLARATION_TEMPLATE
+            if value == "/*"
+            else _DECLARATION_TEMPLATE
+        )
         % {
             "KEY": key,
             "VALUE": value,
@@ -129,7 +147,12 @@ def _render_selector(
         for index, (key, value) in enumerate(declarations)
     )
 
-    if selector:
+    if selector == "/*":
+        stack_result = _COMMENTS_TEMPLATE % {
+            "DECLARATIONS": css_declarations,
+            "sel_after_endline": conf["sel_after_endline"],
+        }
+    elif selector:
         stack_result = _SELECTOR_TEMPLATE % {
             "SELECTOR": selector,
             "DECLARATIONS": css_declarations,
@@ -274,6 +297,7 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
 
     """
     declarations: List[Tuple[str, Union[str, None]]] = []
+    comments: List[Tuple[str, Union[str, None]]] = []
     result: str = ""
 
     selector = selector.strip()
@@ -383,6 +407,11 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
                 selector, declarations, conf, render_selector_level, force_indent
             )
 
+            if comments:
+                result += _render_selector(
+                    "/*", comments, dict(conf, decl_incr=1), render_selector_level, ""
+                )
+
             if isinstance(key, GeneratorType):
                 key = tuple(key)
             if isinstance(key, QuantifiedUnit):
@@ -471,6 +500,24 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
             if key.startswith("%"):
                 raise ValueError(f"A CSS property cannot start with %: {key}")
 
+            if key.startswith("/*"):
+                if conf["display_comments"]:
+                    lines = value.split("\n")
+                    for index, line in enumerate(lines):
+                        declaration = line.strip()
+                        if index == 0:
+                            declaration = f"/* {declaration}"
+                        else:
+                            declaration = f"   {declaration}"
+                        if index == len(lines) - 1:
+                            declaration = f"{declaration} */"
+                        comments.append((declaration, "/*"))
+                continue
+
+            if comments:
+                declarations += comments
+                comments = []
+
             if value is None:
                 declarations.append((key, None))
 
@@ -487,9 +534,16 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
 
                     declarations.append((key, one_value))
 
-    result += _render_selector(
-        selector, declarations, conf, render_selector_level, force_indent
-    )
+    if declarations:
+        if comments:
+            declarations += comments
+        result += _render_selector(
+            selector, declarations, conf, render_selector_level, force_indent
+        )
+    elif comments:
+        result += _render_selector(
+            "/*", comments, dict(conf, decl_incr=1), render_selector_level, ""
+        )
 
     def get_ext_selectors(ext_selectors: List[str]) -> List[str]:
         """Get the final list of selectors for an extend.

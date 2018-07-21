@@ -87,7 +87,7 @@ Here is an example that resumes all the features:
 ...             # Also works, without quotes: `marginTop`, `margin_top`, `MarginTop`
 ...             margin-top: 1*em,
 ...
-...             # The `ul` is nested under `var`. For nested selectors which don't include the
+...             # The `ul` is nested under `nav`. For nested selectors which don't include the
 ...             # `&` character, the selector is automatically prefixed with `& ` (the space is
 ...             # important). So here, `ul` is in fact `& ul`, and `&` will be replaced by the
 ...             # chaining of the parent selectors, so at the end we'll have `nav ul`.
@@ -95,8 +95,11 @@ Here is an example that resumes all the features:
 ...                 # `list` is usually a python builtin but as it's part of a css "keyword", it is
 ...                 # now a part of a CSS var. To access the `list` builtin, use the `builtins` or
 ...                 # `b` namespace: `b.list(thing_to_cast_list)`. Note that it is different for
-...                 # python keywords, like `for` that MUST be prefixed with an underscore `_` and
-...                 # cannot be accessed via `builtins.`.
+...                 # python keywords, like `for` and `class` (but also non-keywords like `super`,
+...                 # `self` and `cls`) that must, to be used as a CSS var, be prefixed with an
+...                 # underscore `_` (or used with the first letter in uppercase): `super()` will
+...                 # work for the python `super` pseudo-keyword, and `_super` or `Super` will wor
+...                 # as a CSS var rendering "super".
 ...                 list-style: none,  # do not use the python `None` here, it won't work
 ...
 ...
@@ -108,7 +111,7 @@ Here is an example that resumes all the features:
 ...                     # here we don't put anything, so at the end this selector won't be rendered
 ...                 },
 ...
-...                 # there is nothing that force us to put the `&` at the beginning. Here at the
+...                 # There is nothing that force us to put the `&` at the beginning. Here at the
 ...                 # end will have `body.theme-red ul nav`.
 ...                 "body.theme-red &": {
 ...                     background: red,
@@ -116,7 +119,18 @@ Here is an example that resumes all the features:
 ...                     # and here it will be `body.theme-red nav ul li`
 ...                     li: {
 ...                         color: white,
-...                     }
+...                     },
+...
+...                     # You can put comments in the generated CSS. The key must start with `/*`.
+...                     "/*": "this is a comment",
+...
+...                     # If you want many comments at the same level, still start the key with
+...                     #  `/*` but complete it, like we did here with another `*`.
+...                     # Also note how we can handle a multi-lines comment.
+...                     #
+...                     "/**": '''this is a
+...                               multi-lines comment''',  # number of spaces it not important
+...
 ...                 },
 ...
 ...                 li: {
@@ -275,6 +289,9 @@ Here is an example that resumes all the features:
     body.theme-red nav ul li {
       color: white;
     }
+    /* this is a comment */
+    /* this is a
+       multi-lines comment */
     nav ul li {
       height: 1.5em;
       width: calc(100% - 2em);

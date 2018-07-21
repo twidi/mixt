@@ -48,7 +48,7 @@ def create_snippets():
 class Styles:
     colors: List[str] = __colors__
     snippets: Dict[str, Dict] = create_snippets()
-    breakpoint: QuantifiedUnit = CSS_VARS.rem(40)
+    breakpoint: QuantifiedUnit = CSS_VARS.rem(50)
 
 
 class StyleContext(BaseContext):

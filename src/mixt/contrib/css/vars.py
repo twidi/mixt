@@ -7,10 +7,9 @@ the string ``margin-bottom``.
 """
 
 from collections import defaultdict
-from keyword import iskeyword
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 
-from .utils import _dict_merge, builtins, isbuiltin
+from .utils import _dict_merge, builtins, isbuiltin, iskeyword
 
 
 class Var(str):
