@@ -8,7 +8,7 @@
     z-index: 1;
     height: 100% }
 
-    @media (max-width: 40rem) {
+    @media (max-width: 50rem) {
 
         #main-menu {
             width: 2rem }
@@ -30,7 +30,7 @@
                 #main-menu.focus-within:before {
                     content: '' } }
 
-    @media not all and (max-width: 40rem) {
+    @media not all and (max-width: 50rem) {
 
         #main-menu {
             width: 10rem }
@@ -61,7 +61,7 @@ body {
     padding-right: 20px;
     margin-bottom: 1em }
 
-    @media (max-width: 40rem) {
+    @media (max-width: 50rem) {
 
         .doc {
             margin-left: calc(1em / 5 + 9px);
@@ -88,12 +88,12 @@ main >h1 {
     main >h1 >a {
         color: inherit }
 
-@media (max-width: 40rem) {
+@media (max-width: 50rem) {
 
     main {
         margin-left: 2rem } }
 
-@media not all and (max-width: 40rem) {
+@media not all and (max-width: 50rem) {
 
     main {
         margin-left: 10rem } }
@@ -261,7 +261,7 @@ details + details, summary + details {
 details > :not(summary) {
     margin-left: 1em }
 
-    @media (max-width: 40rem) {
+    @media (max-width: 50rem) {
 
     details > :not(summary) {
         margin-left: 0.2em } }
@@ -277,7 +277,7 @@ details > div.content {
     details > div.content > p:last-child {
         margin-top: 0 }
 
-    @media (max-width: 40rem) {
+    @media (max-width: 50rem) {
 
     details > div.content {
         margin-left: 3px;
@@ -479,7 +479,7 @@ details.docstring {
 .function:hover > .content > details:not(.doc-part):not([open]) > summary {
     opacity: 1 }
 
-@media (max-width: 40rem) {
+@media (max-width: 50rem) {
 
     .function-arg {
         display: block;
