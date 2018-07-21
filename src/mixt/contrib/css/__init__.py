@@ -111,7 +111,7 @@ Here is an example that resumes all the features:
 ...                     # here we don't put anything, so at the end this selector won't be rendered
 ...                 },
 ...
-...                 # there is nothing that force us to put the `&` at the beginning. Here at the
+...                 # There is nothing that force us to put the `&` at the beginning. Here at the
 ...                 # end will have `body.theme-red ul nav`.
 ...                 "body.theme-red &": {
 ...                     background: red,
@@ -119,7 +119,18 @@ Here is an example that resumes all the features:
 ...                     # and here it will be `body.theme-red nav ul li`
 ...                     li: {
 ...                         color: white,
-...                     }
+...                     },
+...
+...                     # You can put comments in the generated CSS. The key must start with `/*`.
+...                     "/*": "this is a comment",
+...
+...                     # If you want many comments at the same level, still start the key with
+...                     #  `/*` but complete it, like we did here with another `*`.
+...                     # Also note how we can handle a multi-lines comment.
+...                     #
+...                     "/**": '''this is a
+...                               multi-lines comment''',  # number of spaces it not important
+...
 ...                 },
 ...
 ...                 li: {
@@ -278,6 +289,9 @@ Here is an example that resumes all the features:
     body.theme-red nav ul li {
       color: white;
     }
+    /* this is a comment */
+    /* this is a
+       multi-lines comment */
     nav ul li {
       height: 1.5em;
       width: calc(100% - 2em);
