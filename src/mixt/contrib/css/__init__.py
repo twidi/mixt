@@ -354,4 +354,5 @@ from .modes import (  # noqa: F401
 )
 from .rendering import render_css  # noqa: F401
 from .units import load_css_units  # noqa: F401
+from .utils import CssDict  # noqa: F401
 from .vars import CSS_VARS as c  # noqa: F401

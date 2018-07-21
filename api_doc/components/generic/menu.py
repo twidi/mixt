@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 from mixt import Element, Required, html
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, CssDict
 
 
 class H(Element):
@@ -18,7 +18,7 @@ class H(Element):
     def render_css_global(cls, context):
         _focus = "&:hover, &:focus, &.focus-within"
 
-        return render_css({
+        return CssDict({
             "/*": f"<{cls.__module__}.{cls.__name__}>",
             ".h": {
                 "+ .permalink": {

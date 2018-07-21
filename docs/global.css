@@ -385,8 +385,8 @@ summary {
 
 /* </api_doc.components.generic.code.SourceCode> */
 
-
 /* <api_doc.components.models.value._Value> */
+
 .value:not(:last-child) p:last-child {
     margin-bottom: 0 }
 
@@ -396,8 +396,8 @@ summary {
 .value .docstring {
     margin-left: 1em }
 
-
 /* </api_doc.components.models.value._Value> */
+
 /* <api_doc.components.models.docstring.DocString> */
 
 details.docstring {
@@ -413,6 +413,7 @@ details.docstring {
 
 /* </api_doc.components.models.docstring.DocString> */
 
+/* <api_doc.components.models.klass.Class> */
 /* <api_doc.components.models.klass.BaseContainer.Class> */
 
 .class > summary > .h:after {
@@ -443,6 +444,7 @@ details.docstring {
     background: #4eb3d3 }
 
 /* </api_doc.components.models.klass.BaseContainer.Class> */
+/* </api_doc.components.models.klass.Class> */
 
 /* <api_doc.components.models.proptypes.PropTypes> */
 
@@ -496,6 +498,7 @@ details.docstring {
 
 /* </api_doc.components.models.function.Function> */
 
+/* <api_doc.components.models.module.Module> */
 /* <api_doc.components.models.module.BaseContainer.Module> */
 
 .module > summary > .h:after {
@@ -525,10 +528,6 @@ details.docstring {
 .module-functions .value:hover, .module-functions .value:focus, .module-functions .value.focus-within {
     background: #4eb3d3 }
 
-/* </api_doc.components.models.module.BaseContainer.Module> */
-
-/* <api_doc.components.models.module.Module> */
-
 .module .class:hover, .module .class:target, .module .class.focus-within {
     background: #a8ddb5 }
 
@@ -547,6 +546,7 @@ details.docstring {
 .module .prop-types-props.doc-part .value {
     background: #2b8cbe }
 
+/* </api_doc.components.models.module.BaseContainer.Module> */
 /* </api_doc.components.models.module.Module> */
 
 /* <api_doc.components.manual.html_utils.HtmlUtils> */

@@ -345,6 +345,8 @@ Usage (we'll use ``CSSCollector`` in these examples but it works the same with `
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Type, Union, cast
 
+from mixt.contrib.css import CssDict, render_css
+
 from ..element import Element
 from ..exceptions import InvalidPropValueError, MixtException
 from ..html import Raw, Script, Style
@@ -586,11 +588,13 @@ class Collector(Element, metaclass=CollectorMetaclass):
             to mark it as already collected.
 
         """
-        if not isinstance(collected, dict):
+        if not isinstance(collected, dict) or isinstance(collected, CssDict):
             collected = {default_namespace: collected}
 
         for namespace, collected_for_namespace in collected.items():
             collector: Collector = self
+            if not collected:
+                continue
 
             if self.reuse and (
                 self.reuse_namespaces is None or namespace in self.reuse_namespaces
@@ -743,6 +747,13 @@ class CSSCollector(Collector):
         return (  # type: ignore
             Style(type=self.type)(Raw(str_collected)) if with_tag else str_collected
         )
+
+    @classmethod
+    def _render_element_to_list(cls, element: AnElement, acc: List) -> None:
+        if isinstance(element, CssDict):
+            acc.append(render_css(element))
+        else:
+            super()._render_element_to_list(element, acc)
 
 
 class JSCollector(Collector):

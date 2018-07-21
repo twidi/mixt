@@ -104,3 +104,9 @@ def dict_hash(dct: Dict) -> int:
             for key, value in dct.items()
         )
     )
+
+
+class CssDict(dict):
+    """A dict to help mixt CSS collector render css dicts itself."""
+
+    pass

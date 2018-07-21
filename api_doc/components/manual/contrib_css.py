@@ -2,7 +2,7 @@
 
 from mixt import html, h
 from mixt.contrib import css as contrib_css
-from mixt.contrib.css import css_vars, render_css
+from mixt.contrib.css import css_vars, CssDict
 
 from ...code_utils import load_docstring, resolve_class, resolve_function
 from ... import datatypes
@@ -19,7 +19,7 @@ class ContribCss(_Manual):
     @css_vars(globals())
     @classmethod
     def render_css_global(cls, context):
-        return render_css({
+        return CssDict({
             "/*": f"<{cls.__module__}.{cls.__name__}>",
             "#ContribCss-class-Modes-attributes .attr-details": {
                 display: none,

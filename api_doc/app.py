@@ -3,7 +3,7 @@
 from typing import Dict, List, Optional
 
 from mixt import Element, JSCollector, Ref, Required, exceptions, html, __version__
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, CssDict
 from mixt.internal import collectors, dev_mode
 
 from .components import CSSCollector, H, MainMenuCollector, VendoredScripts, TypesetStyle
@@ -121,7 +121,7 @@ class Head(Element):
     @classmethod
     def render_css_global(cls, context):
         colors = context.styles.colors
-        return render_css({
+        return CssDict({
             "/*": f"<{cls.__module__}.{cls.__name__}>",
             "#main-menu": {
                 position: fixed,

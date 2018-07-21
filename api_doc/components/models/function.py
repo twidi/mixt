@@ -1,7 +1,7 @@
 # coding: mixt
 
 from mixt import Element, NotProvided, Required, html
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars
 
 from ... import datatypes
 
@@ -31,7 +31,7 @@ class Function(Element):
                 'classmethod'
             ]
         )
-        return render_css(merge({
+        return merge({
             "/*": f"<{cls.__module__}.{cls.__name__}>",
             ".function-kind": {
                 display: none,
@@ -63,7 +63,7 @@ class Function(Element):
             for t in tagged
         }, {
             "/**": f"</{cls.__module__}.{cls.__name__}>",
-        }))
+        })
 
     def render(self, context):
         func = self.obj

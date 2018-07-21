@@ -1,4 +1,4 @@
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars
 
 from .generic import MenuCollector
 
@@ -22,7 +22,7 @@ class MainMenuCollector(MenuCollector):
             ]
         )
 
-        return render_css(merge({
+        return merge({
             "/*": f"<{cls.__module__}.{cls.__name__}>",
             "#main-menu": {
                 background: colors[9],
@@ -87,7 +87,7 @@ class MainMenuCollector(MenuCollector):
             for t in tagged
         }, {
             "/**": f"</{cls.__module__}.{cls.__name__}>"
-        }))
+        })
 
     @classmethod
     def render_js_global(cls, context):

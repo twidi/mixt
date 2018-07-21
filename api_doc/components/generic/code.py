@@ -3,7 +3,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import PythonLexer, get_lexer_by_name
 
 from mixt import Element, Required, h
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, render_css
 from mixt.exceptions import InvalidChildrenError
 
 

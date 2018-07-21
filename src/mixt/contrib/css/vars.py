@@ -9,7 +9,7 @@ the string ``margin-bottom``.
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 
-from .utils import _dict_merge, builtins, isbuiltin, iskeyword
+from .utils import CssDict, _dict_merge, builtins, isbuiltin, iskeyword
 
 
 class Var(str):
@@ -979,7 +979,7 @@ class Merge(Var):
 
     def __call__(  # type: ignore  # pylint: disable=arguments-differ
         self, *dicts: Dict
-    ) -> Dict:
+    ) -> CssDict:
         """Merge many dictionaries into one, recursively.
 
         For keys that have dict as values, they are also merged.
@@ -992,8 +992,8 @@ class Merge(Var):
 
         Returns
         -------
-        dict
-            The joined dicts.
+        CssDict
+            The joined dicts in a ``CssDict`` (subclass of ``dict``)
 
         Examples
         --------
@@ -1013,11 +1013,11 @@ class Merge(Var):
 
         """
         if not dicts:
-            return {}
+            return CssDict()
         result = dicts[0]
         for dct in dicts[1:]:
             result = _dict_merge(result, dct, update=False)
-        return result
+        return CssDict(result)
 
 
 CSS_VALUES_TYPE = Dict[Tuple[Any, Any], Any]
