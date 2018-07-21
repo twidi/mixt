@@ -119,9 +119,10 @@ class Head(Element):
     # noinspection PyUnresolvedReferences
     @css_vars(globals())
     @classmethod
-    def render_pycss_global(cls, context):
+    def render_css_global(cls, context):
         colors = context.styles.colors
-        return {
+        return render_css({
+            "/*": f"<{cls.__module__}.{cls.__name__}>",
             "#main-menu": {
                 position: fixed,
                 left: 0,
@@ -229,16 +230,8 @@ class Head(Element):
                     }
                 }
             },
-        }
-
-    @classmethod
-    def render_css_global(cls, context):
-        css = render_css((cls.render_pycss_global(context)))
-        return f"""
-/* <{cls.__module__}.{cls.__name__}> */
-{css}
-/* </{cls.__module__}.{cls.__name__}> */
-"""
+            "/**": f"</{cls.__module__}.{cls.__name__}>",
+        })
 
 
 class Page(Element):

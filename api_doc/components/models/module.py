@@ -22,13 +22,14 @@ class Module(_BaseContainer):
     # noinspection PyUnresolvedReferences
     @css_vars(globals())
     @classmethod
-    def render_pycss_global(cls, context):
+    def render_css_global(cls, context):
         colors = context.styles.colors
 
         _target = "&:hover, &:target, &.focus-within"
         _focus = "&:hover, &:focus, &.focus-within"
 
-        return {
+        return super().render_css_global(context) + render_css({
+            "/*": f"<{cls.__module__}.{cls.__name__}>",
             ".module": {
                 ".class": {
                     _target: {
@@ -58,17 +59,9 @@ class Module(_BaseContainer):
                         background: colors[7],
                     }
                 }
-            }
-        }
-
-    @classmethod
-    def render_css_global(cls, context):
-        css = render_css((cls.render_pycss_global(context)))
-        return super().render_css_global(context) + f"""
-/* <{cls.__module__}.{cls.__name__}> */
-{css}
-/* </{cls.__module__}.{cls.__name__}> */
-"""
+            },
+            "/**": f"</{cls.__module__}.{cls.__name__}>",
+        })
 
     def render_content(self, id_prefix, context):
         children_before, content, children_after = super().render_content(id_prefix, context)

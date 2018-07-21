@@ -1,5 +1,5 @@
-
 /* <api_doc.app.Head> */
+
 #main-menu {
     position: fixed;
     left: 0;
@@ -98,10 +98,10 @@ main >h1 {
     main {
         margin-left: 10rem } }
 
-
 /* </api_doc.app.Head> */
 
 /* <api_doc.components.generic.menu.H> */
+
 .h + .permalink {
     visibility: hidden;
     padding-left: 0.5em;
@@ -122,10 +122,10 @@ div:hover > .h + .permalink, div:focus > .h + .permalink, div.focus-within > .h 
 details:hover > summary > .h + .permalink, details:focus > summary > .h + .permalink, details.focus-within > summary > .h + .permalink {
     visibility: visible }
 
-
 /* </api_doc.components.generic.menu.H> */
 
 /* <api_doc.components.main_menu.MainMenuCollector> */
+
 #main-menu {
     background: #084081;
     color: white }
@@ -197,10 +197,10 @@ li:not(:hover) > details > summary:not(.current) > .menu-class:after, li:not(:ho
 .menu-function-classmethod:after {
     content: 'classmethod' }
 
-
 /* </api_doc.components.main_menu.MainMenuCollector> */
 
 /* <api_doc.components.manual.base._Manual> */
+
 .doc > .manual:first-child:last-child {
     padding: 5px 0 5px 1em;
     border-radius: 7px 0 0 7px }
@@ -226,10 +226,10 @@ li:not(:hover) > details > summary:not(.current) > .menu-class:after, li:not(:ho
 .manual .doc-part .doc-part .doc-part .doc-part:hover, .manual .doc-part .doc-part .doc-part .doc-part:focus, .manual .doc-part .doc-part .doc-part .doc-part.focus-within {
     background: #4eb3d3 }
 
-
 /* </api_doc.components.manual.base._Manual> */
 
 /* <api_doc.components.doc.DocPart> */
+
 .doc-part {
     padding: 5px 0 5px 5px;
     border-radius: 7px 0 0 7px;
@@ -240,10 +240,10 @@ li:not(:hover) > details > summary:not(.current) > .menu-class:after, li:not(:ho
     .doc-part[open] > summary > .h {
         text-decoration: underline }
 
-
 /* </api_doc.components.doc.DocPart> */
 
 /* <api_doc.components.generic.details.Details> */
+
 details .h {
     margin-top: 0;
     padding: 3px 0;
@@ -299,10 +299,10 @@ summary {
 :hover > div.content, :focus > div.content, .focus-within > div.content {
     border-left: solid transparent 1px }
 
-
 /* </api_doc.components.generic.details.Details> */
 
 /* <api_doc.components.generic.code.SourceCode> */
+
 .code .hll { background-color: #ffffcc }
 .code  { background: #f8f8f8; }
 .code .c { color: #408080; font-style: italic } /* Comment */
@@ -383,8 +383,8 @@ summary {
         overflow: auto;
         white-space: pre }
 
-
 /* </api_doc.components.generic.code.SourceCode> */
+
 
 /* <api_doc.components.models.value._Value> */
 .value:not(:last-child) p:last-child {
@@ -398,8 +398,8 @@ summary {
 
 
 /* </api_doc.components.models.value._Value> */
-
 /* <api_doc.components.models.docstring.DocString> */
+
 details.docstring {
     margin-top: 1em }
 
@@ -411,10 +411,10 @@ details.docstring {
     details.docstring > div.content > p:first-child {
         margin-top: 1em }
 
-
 /* </api_doc.components.models.docstring.DocString> */
 
 /* <api_doc.components.models.klass.BaseContainer.Class> */
+
 .class > summary > .h:after {
     font-weight: normal;
     font-size: smaller;
@@ -442,10 +442,10 @@ details.docstring {
 .class-methods .value:hover, .class-methods .value:focus, .class-methods .value.focus-within {
     background: #4eb3d3 }
 
-
 /* </api_doc.components.models.klass.BaseContainer.Class> */
 
 /* <api_doc.components.models.proptypes.PropTypes> */
+
 .prop_types:hover, .prop_types:target, .prop_types.focus-within {
     background: #ccebc5 }
 
@@ -455,10 +455,10 @@ details.docstring {
 .prop_types-props-doc-part .value:hover, .prop_types-props-doc-part .value:focus, .prop_types-props-doc-part .value.focus-within {
     background: #7bccc4 }
 
-
 /* </api_doc.components.models.proptypes.PropTypes> */
 
 /* <api_doc.components.models.function.Function> */
+
 .function-kind {
     display: none }
 
@@ -494,32 +494,41 @@ details.docstring {
 .function-classmethod > summary > .h:after {
     content: 'classmethod' }
 
-
 /* </api_doc.components.models.function.Function> */
 
 /* <api_doc.components.models.module.BaseContainer.Module> */
-.module .class:hover, .module .class:target, .module .class.focus-within {
+
+.module > summary > .h:after {
+    font-weight: normal;
+    font-size: smaller;
+    margin-left: 1em;
+    padding: 1px 5px 2px;
+    border-radius: 6px;
+    position: relative;
+    top: -1px;
+    background: #084081;
+    color: white;
+    content: 'module' }
+
+.module:hover, .module:target, .module.focus-within {
+    background: #e0f3db }
+
+.module-doc-part:hover, .module-doc-part:focus, .module-doc-part.focus-within {
+    background: #ccebc5 }
+
+.module-attributes .value:hover, .module-attributes .value:focus, .module-attributes .value.focus-within, .module-functions .function:hover, .module-functions .function:focus, .module-functions .function.focus-within {
     background: #a8ddb5 }
 
-.module .class-doc-part:hover, .module .class-doc-part:focus, .module .class-doc-part.focus-within {
+.module-functions .function-doc-part:hover, .module-functions .function-doc-part:focus, .module-functions .function-doc-part.focus-within {
     background: #7bccc4 }
 
-.module .prop-types:hover, .module .prop-types:target, .module .prop-types.focus-within {
-    background: #7bccc4 }
-
-.module .prop-types-doc-part:hover, .module .prop-types-doc-part:focus, .module .prop-types-doc-part.focus-within {
+.module-functions .value:hover, .module-functions .value:focus, .module-functions .value.focus-within {
     background: #4eb3d3 }
-
-.module .prop-types-props .value:hover, .module .prop-types-props .value:focus, .module .prop-types-props .value.focus-within {
-    background: #4eb3d3 }
-
-.module .prop-types-props.doc-part .value {
-    background: #2b8cbe }
-
 
 /* </api_doc.components.models.module.BaseContainer.Module> */
 
 /* <api_doc.components.models.module.Module> */
+
 .module .class:hover, .module .class:target, .module .class.focus-within {
     background: #a8ddb5 }
 
@@ -538,10 +547,10 @@ details.docstring {
 .module .prop-types-props.doc-part .value {
     background: #2b8cbe }
 
-
 /* </api_doc.components.models.module.Module> */
 
 /* <api_doc.components.manual.html_utils.HtmlUtils> */
+
 .HtmlUtils .function-function > summary > .h:after {
     font-weight: normal;
     font-size: smaller;
@@ -554,10 +563,10 @@ details.docstring {
     color: white;
     content: 'function' }
 
-
 /* </api_doc.components.manual.html_utils.HtmlUtils> */
 
 /* <api_doc.components.manual.contrib_css.ContribCss> */
+
 #ContribCss-class-Modes-attributes .attr-details {
     display: none }
 
@@ -570,5 +579,5 @@ details.docstring {
 #ContribCss-at-rules_rules ul {
     list-style: disc }
 
-
 /* </api_doc.components.manual.contrib_css.ContribCss> */
+

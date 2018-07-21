@@ -8,7 +8,7 @@ class MainMenuCollector(MenuCollector):
     # noinspection PyUnresolvedReferences
     @css_vars(globals())
     @classmethod
-    def render_pycss_global(cls, context):
+    def render_css_global(cls, context):
         colors = context.styles.colors
 
         tagged = tuple(
@@ -22,7 +22,8 @@ class MainMenuCollector(MenuCollector):
             ]
         )
 
-        return merge({
+        return render_css(merge({
+            "/*": f"<{cls.__module__}.{cls.__name__}>",
             "#main-menu": {
                 background: colors[9],
                 color: white,
@@ -84,16 +85,9 @@ class MainMenuCollector(MenuCollector):
                 content: str(t.split('-')[-1])
             }
             for t in tagged
-        })
-
-    @classmethod
-    def render_css_global(cls, context):
-        css = render_css((cls.render_pycss_global(context)))
-        return f"""
-/* <{cls.__module__}.{cls.__name__}> */
-{css}
-/* </{cls.__module__}.{cls.__name__}> */
-"""
+        }, {
+            "/**": f"</{cls.__module__}.{cls.__name__}>"
+        }))
 
     @classmethod
     def render_js_global(cls, context):
