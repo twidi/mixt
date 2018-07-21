@@ -65,7 +65,7 @@ you don't have to use strings for properties or values (only for selectors).</p>
 <span class="o">...</span>             <span class="c1"># Also works, without quotes: `marginTop`, `margin_top`, `MarginTop`</span>
 <span class="o">...</span>             <span class="n">margin</span><span class="o">-</span><span class="n">top</span><span class="p">:</span> <span class="mi">1</span><span class="o">*</span><span class="n">em</span><span class="p">,</span>
 <span class="o">...</span>
-<span class="o">...</span>             <span class="c1"># The `ul` is nested under `var`. For nested selectors which don&#39;t include the</span>
+<span class="o">...</span>             <span class="c1"># The `ul` is nested under `nav`. For nested selectors which don&#39;t include the</span>
 <span class="o">...</span>             <span class="c1"># `&amp;` character, the selector is automatically prefixed with `&amp; ` (the space is</span>
 <span class="o">...</span>             <span class="c1"># important). So here, `ul` is in fact `&amp; ul`, and `&amp;` will be replaced by the</span>
 <span class="o">...</span>             <span class="c1"># chaining of the parent selectors, so at the end we&#39;ll have `nav ul`.</span>
@@ -73,8 +73,11 @@ you don't have to use strings for properties or values (only for selectors).</p>
 <span class="o">...</span>                 <span class="c1"># `list` is usually a python builtin but as it&#39;s part of a css &quot;keyword&quot;, it is</span>
 <span class="o">...</span>                 <span class="c1"># now a part of a CSS var. To access the `list` builtin, use the `builtins` or</span>
 <span class="o">...</span>                 <span class="c1"># `b` namespace: `b.list(thing_to_cast_list)`. Note that it is different for</span>
-<span class="o">...</span>                 <span class="c1"># python keywords, like `for` that MUST be prefixed with an underscore `_` and</span>
-<span class="o">...</span>                 <span class="c1"># cannot be accessed via `builtins.`.</span>
+<span class="o">...</span>                 <span class="c1"># python keywords, like `for` and `class` (but also non-keywords like `super`,</span>
+<span class="o">...</span>                 <span class="c1"># `self` and `cls`) that must, to be used as a CSS var, be prefixed with an</span>
+<span class="o">...</span>                 <span class="c1"># underscore `_` (or used with the first letter in uppercase): `super()` will</span>
+<span class="o">...</span>                 <span class="c1"># work for the python `super` pseudo-keyword, and `_super` or `Super` will wor</span>
+<span class="o">...</span>                 <span class="c1"># as a CSS var rendering &quot;super&quot;.</span>
 <span class="o">...</span>                 <span class="nb">list</span><span class="o">-</span><span class="n">style</span><span class="p">:</span> <span class="n">none</span><span class="p">,</span>  <span class="c1"># do not use the python `None` here, it won&#39;t work</span>
 <span class="o">...</span>
 <span class="o">...</span>

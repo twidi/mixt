@@ -9,7 +9,7 @@ from .test_vars import test_defaults
 
 
 DEFAULT_CSS_VARS_LEN = 137
-LOADED_CSS_VARS_LEN = 4977
+LOADED_CSS_VARS_LEN = 4976
 
 
 def len_css_vars():

@@ -87,7 +87,7 @@ Here is an example that resumes all the features:
 ...             # Also works, without quotes: `marginTop`, `margin_top`, `MarginTop`
 ...             margin-top: 1*em,
 ...
-...             # The `ul` is nested under `var`. For nested selectors which don't include the
+...             # The `ul` is nested under `nav`. For nested selectors which don't include the
 ...             # `&` character, the selector is automatically prefixed with `& ` (the space is
 ...             # important). So here, `ul` is in fact `& ul`, and `&` will be replaced by the
 ...             # chaining of the parent selectors, so at the end we'll have `nav ul`.
@@ -95,8 +95,11 @@ Here is an example that resumes all the features:
 ...                 # `list` is usually a python builtin but as it's part of a css "keyword", it is
 ...                 # now a part of a CSS var. To access the `list` builtin, use the `builtins` or
 ...                 # `b` namespace: `b.list(thing_to_cast_list)`. Note that it is different for
-...                 # python keywords, like `for` that MUST be prefixed with an underscore `_` and
-...                 # cannot be accessed via `builtins.`.
+...                 # python keywords, like `for` and `class` (but also non-keywords like `super`,
+...                 # `self` and `cls`) that must, to be used as a CSS var, be prefixed with an
+...                 # underscore `_` (or used with the first letter in uppercase): `super()` will
+...                 # work for the python `super` pseudo-keyword, and `_super` or `Super` will wor
+...                 # as a CSS var rendering "super".
 ...                 list-style: none,  # do not use the python `None` here, it won't work
 ...
 ...

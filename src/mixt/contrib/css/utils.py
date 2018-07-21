@@ -2,7 +2,10 @@
 
 import builtins
 import collections
+from keyword import iskeyword as iskeyworld_default
 from typing import Callable, Dict, List, Mapping
+
+from mixt.internal.proptypes import FUTURE_KEYWORDS
 
 
 __IGNORE_BUILTINS: List[str] = ["globals"]
@@ -13,9 +16,15 @@ BUILTINS_LIST: List[str] = [
     if not key.startswith("_") and key == key.lower() and key not in __IGNORE_BUILTINS
 ]
 
+__OTHER_KEYWORDS: List[str] = FUTURE_KEYWORDS | {"super", "self", "cls"}
+
 
 # pylint: disable=invalid-name
 isbuiltin: Callable[[str], bool] = frozenset(BUILTINS_LIST).__contains__
+iskeyword: Callable[[str], bool] = lambda name: iskeyworld_default(
+    name
+) or name in __OTHER_KEYWORDS
+# pylint: enable=invalid-name
 
 
 def _dict_merge(dct: Dict, merge_dct: Mapping, update: bool = True) -> Dict:
