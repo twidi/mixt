@@ -6,7 +6,7 @@ from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Tuple, Union
 from .modes import Modes, get_default_mode
 from .units import QuantifiedUnit
 from .utils import dict_hash
-from .vars import Extend, Override, join, many, merge
+from .vars import Comment, Extend, Override, Raw, join, many, merge
 
 
 def render_css(css: Dict, mode: Optional[Modes] = None) -> str:
@@ -32,6 +32,8 @@ def render_css(css: Dict, mode: Optional[Modes] = None) -> str:
     return _render_css("", css, mode.value)
 
 
+_RAW_KEY: str = "::RAW::"
+
 _SELECTOR_TEMPLATE: str = "".join(
     """
 %(indent)s %(SELECTOR)s %(space)s
@@ -46,7 +48,7 @@ _SELECTOR_TEMPLATE: str = "".join(
 %(sel_after_endline)s
 """.split()
 )
-_COMMENTS_TEMPLATE: str = "".join(
+_RAW_TEMPLATE: str = "".join(
     """
 %(DECLARATIONS)s
 %(sel_after_endline)s
@@ -75,10 +77,10 @@ _DECLARATION_NO_VALUE_TEMPLATE: str = "".join(
 %(semicolon)s
 """.split()
 )
-_COMMENT_DECLARATION_TEMPLATE: str = "".join(
+_RAW_DECLARATION_TEMPLATE: str = "".join(
     """
 %(indent)s
-%(KEY)s
+%(VALUE)s
 """.split()
 )
 
@@ -121,15 +123,15 @@ def _render_selector(
 
     last_decl_index: int = len(declarations) - 1
 
-    if not selector or (selector == "/*" and not conf["indent_children"]):
+    if not selector or (selector == _RAW_KEY and not conf["indent_children"]):
         level = level - 1
 
     css_declarations: str = conf["decl_endline"].join(
         (
             _DECLARATION_NO_VALUE_TEMPLATE
             if value is None
-            else _COMMENT_DECLARATION_TEMPLATE
-            if value == "/*"
+            else _RAW_DECLARATION_TEMPLATE
+            if key == _RAW_KEY
             else _DECLARATION_TEMPLATE
         )
         % {
@@ -147,8 +149,15 @@ def _render_selector(
         for index, (key, value) in enumerate(declarations)
     )
 
-    if selector == "/*":
-        stack_result = _COMMENTS_TEMPLATE % {
+    if (
+        declarations
+        and declarations[-1][0] == _RAW_KEY
+        and conf["closing_endline"] == " "
+    ):
+        conf = dict(conf, closing_endline="\n")
+
+    if selector == _RAW_KEY:
+        stack_result = _RAW_TEMPLATE % {
             "DECLARATIONS": css_declarations,
             "sel_after_endline": conf["sel_after_endline"],
         }
@@ -396,6 +405,30 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
 
         _extends[key][2].append(selector)
 
+    def render_current_stack(merge_comments: bool) -> None:
+        """Render and clean the current stack.
+
+        Parameters
+        ----------
+        merge_comments : bool
+            If ``True``, the comments in the stack will be rendered in the same selector
+            as the declarations. If ``False``, the default, they will be rendered after.
+
+        """
+        nonlocal result
+        if declarations:
+            if merge_comments:
+                if comments:
+                    declarations.extend(comments)
+                comments.clear()
+            result += _render_selector(
+                selector, declarations, conf, render_selector_level, force_indent
+            )
+        if comments:
+            result += _render_selector(
+                _RAW_KEY, comments, dict(conf, decl_incr=1), render_selector_level, ""
+            )
+
     while stack:  # pylint: disable=too-many-nested-blocks
         key: Union[str, Sequence[str]]
         value: Union[Dict, str]
@@ -403,14 +436,7 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
         key, value = stack.pop(0)
 
         if isinstance(value, dict):
-            result += _render_selector(
-                selector, declarations, conf, render_selector_level, force_indent
-            )
-
-            if comments:
-                result += _render_selector(
-                    "/*", comments, dict(conf, decl_incr=1), render_selector_level, ""
-                )
+            render_current_stack(merge_comments=False)
 
             if isinstance(key, GeneratorType):
                 key = tuple(key)
@@ -500,7 +526,7 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
             if key.startswith("%"):
                 raise ValueError(f"A CSS property cannot start with %: {key}")
 
-            if key.startswith("/*"):
+            if key.startswith(Comment.prefix):
                 if conf["display_comments"]:
                     lines = value.split("\n")
                     for index, line in enumerate(lines):
@@ -511,12 +537,35 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
                             declaration = f"   {declaration}"
                         if index == len(lines) - 1:
                             declaration = f"{declaration} */"
-                        comments.append((declaration, "/*"))
+                        comments.append((_RAW_KEY, declaration))
                 continue
 
             if comments:
                 declarations += comments
                 comments = []
+
+            if key.startswith(Raw.prefix):
+                render_current_stack(merge_comments=True)
+
+                content: str
+                for content in [value] if isinstance(value, str) else value:
+                    declarations.extend(
+                        (_RAW_KEY, line.strip()) for line in content.split("\n")
+                    )
+                result += _render_selector(
+                    _RAW_KEY,
+                    declarations,
+                    dict(
+                        conf,
+                        decl_incr=1,
+                        # closing_endline="\n"
+                        # if conf["closing_endline"] == " "
+                        # else conf["closing_endline"],
+                    ),
+                    render_selector_level,
+                    "",
+                )
+                continue
 
             if value is None:
                 declarations.append((key, None))
@@ -534,16 +583,7 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
 
                     declarations.append((key, one_value))
 
-    if declarations:
-        if comments:
-            declarations += comments
-        result += _render_selector(
-            selector, declarations, conf, render_selector_level, force_indent
-        )
-    elif comments:
-        result += _render_selector(
-            "/*", comments, dict(conf, decl_incr=1), render_selector_level, ""
-        )
+    render_current_stack(merge_comments=True)
 
     def get_ext_selectors(ext_selectors: List[str]) -> List[str]:
         """Get the final list of selectors for an extend.

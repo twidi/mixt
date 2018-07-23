@@ -17,7 +17,7 @@ class HtmlUtils(_Manual):
     @classmethod
     def render_css_global(cls, context):
         return CssDict({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".HtmlUtils .function-function > summary > .h:after": merge(
                 context.styles.snippets['TAG'],
                 context.styles.snippets['HL'],
@@ -25,7 +25,7 @@ class HtmlUtils(_Manual):
                     content: str("function"),
                 }
             ),
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render(self, context):

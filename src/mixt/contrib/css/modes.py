@@ -48,6 +48,7 @@ class Modes(Enum):
     ...                 }
     ...             }
     ...         },
+    ...         ":raw:": ".foo-bar {color: black}",
     ...         ".bar": {
     ...             "color": "orange",
     ...         },
@@ -58,8 +59,8 @@ class Modes(Enum):
     >>> from mixt.contrib.css import Modes, render_css
     >>> print(render_css(css, Modes.COMPRESSED))
     .content{color:blue;font-weight:bold;background:green}.content .foo{color:green}@media(all and (
-    max-width: 600px){.content{color:red;font-weight:normal}.content .foo{color:yellow}}.content .ba
-    r{color:orange}.content{z-index:1}
+    max-width: 600px){.content{color:red;font-weight:normal}.content .foo{color:yellow}}.foo-bar {
+    color: black}.content .bar{color:orange}.content{z-index:1}
 
     >>> print(render_css(css, Modes.COMPACT))
     .content {color: blue; font-weight: bold; background: green}
@@ -68,6 +69,7 @@ class Modes(Enum):
      .content {color: red; font-weight: normal}
      .content .foo {color: yellow}
     }
+    .foo-bar {color: black}
     .content .bar {color: orange}
     .content {z-index: 1}
 
@@ -90,6 +92,7 @@ class Modes(Enum):
         color: yellow;
       }
     }
+    .foo-bar {color: black}
     .content .bar {
       color: orange;
     }
@@ -120,6 +123,8 @@ class Modes(Enum):
                     color: yellow;
                 }
         }
+
+        .foo-bar {color: black}
 
         .content .bar {
             color: orange;
@@ -153,6 +158,8 @@ class Modes(Enum):
                     }
             }
 
+        .foo-bar {color: black}
+
         .content .bar {
                 color: orange;
             }
@@ -179,6 +186,8 @@ class Modes(Enum):
 
                 .content .foo {
                     color: yellow } }
+
+        .foo-bar {color: black}
 
         .content .bar {
             color: orange }

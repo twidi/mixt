@@ -20,7 +20,7 @@ class ContribCss(_Manual):
     @classmethod
     def render_css_global(cls, context):
         return CssDict({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             "#ContribCss-class-Modes-attributes .attr-details": {
                 display: none,
             },
@@ -35,7 +35,7 @@ class ContribCss(_Manual):
             "#ContribCss-at-rules_rules ul": {
                 list-style: disc,
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render(self, context):
@@ -84,7 +84,7 @@ Except for ``dummy`` and ``builtins``, they are normal CSS vars when used normal
 
                 {[
                     <Function obj={resolve_function(name, getattr(contrib_css.vars, name).__class__.__call__)} h_level={self.h_level+1} id_prefix="{id_prefix}-special_vars-" />
-                    for name in 'join many override extend string Not merge'.split()
+                    for name in 'join many override extend raw comment string Not merge'.split()
                 ]}
 
                 {self.render_dummy(f"{id_prefix}-special_vars", self.h_level+1)}

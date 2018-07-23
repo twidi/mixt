@@ -179,6 +179,22 @@ def test_extend():
     # other tests in test_extend.py
 
 
+def test_raw():
+    vars.Raw.counter = 0
+
+    assert vars.raw() == ":raw:1"
+    assert vars.raw() == ":raw:2"
+    assert vars.raw == "raw"
+
+
+def test_comment():
+    vars.Comment.counter = 0
+
+    assert vars.comment() == "/*1"
+    assert vars.comment() == "/*2"
+    assert vars.comment == "comment"
+
+
 def test_media():
     assert vars.media - "foo" == "media-foo"  # must be a Var
 
@@ -339,6 +355,10 @@ def test_defaults():
         assert many is vars.many
         assert override is vars.override
         assert extend is vars.extend
+        assert raw is vars.raw
+        assert r is vars.raw
+        assert comment is vars.comment
+        assert c is vars.comment
         assert string is vars.string
         assert str is vars.string
         assert repr is vars.string

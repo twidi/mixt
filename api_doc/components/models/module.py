@@ -29,7 +29,7 @@ class Module(_BaseContainer):
         _focus = "&:hover, &:focus, &.focus-within"
 
         return merge({
-            "/***": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
         }, super().render_css_global(context), {
             ".module": {
                 ".class": {
@@ -61,7 +61,7 @@ class Module(_BaseContainer):
                     }
                 }
             },
-            "/****": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render_content(self, id_prefix, context):

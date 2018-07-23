@@ -32,7 +32,7 @@ class Function(Element):
             ]
         )
         return merge({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".function-kind": {
                 display: none,
             },
@@ -62,7 +62,7 @@ class Function(Element):
             }
             for t in tagged
         }, {
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render(self, context):

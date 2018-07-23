@@ -25,7 +25,7 @@ class PropTypes(Element):
         _focus = "&:hover, &:focus, &.focus-within"
 
         return CssDict({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".prop_types": {
                 _target: {
                     background: colors[3],
@@ -41,7 +41,7 @@ class PropTypes(Element):
                     }
                 }
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render(self, context):

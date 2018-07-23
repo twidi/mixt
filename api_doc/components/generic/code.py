@@ -3,7 +3,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import PythonLexer, get_lexer_by_name
 
 from mixt import Element, Required, h
-from mixt.contrib.css import css_vars, render_css
+from mixt.contrib.css import css_vars, CssDict
 from mixt.exceptions import InvalidChildrenError
 
 
@@ -15,9 +15,9 @@ class SourceCode(Element):
     @css_vars(globals())
     @classmethod
     def render_css_global(cls, context):
-        return render_css({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
-        }) + HtmlFormatter().get_style_defs(".code") + "\n" + render_css({
+        return CssDict({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
+            raw(): HtmlFormatter().get_style_defs(".code"),
             ".code": {
                 display: block,
                 background: transparent,
@@ -29,7 +29,7 @@ class SourceCode(Element):
                     white-space: pre,
                 }
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def append(self, child_or_children):

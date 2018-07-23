@@ -302,7 +302,6 @@ summary {
 /* </api_doc.components.generic.details.Details> */
 
 /* <api_doc.components.generic.code.SourceCode> */
-
 .code .hll { background-color: #ffffcc }
 .code  { background: #f8f8f8; }
 .code .c { color: #408080; font-style: italic } /* Comment */
@@ -372,6 +371,7 @@ summary {
 .code .vi { color: #19177C } /* Name.Variable.Instance */
 .code .vm { color: #19177C } /* Name.Variable.Magic */
 .code .il { color: #666666 } /* Literal.Number.Integer.Long */
+
 .code {
     display: block;
     background: transparent;

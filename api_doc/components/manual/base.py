@@ -18,7 +18,7 @@ class _Manual(Element):
         _focus = "&:hover, &:focus, &.focus-within"
 
         return CssDict({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".doc > .manual:first-child:last-child": {
                 padding: (5*px, 0, 5*px, 1*em),
                 border-radius: (7*px, 0, 0, 7*px),
@@ -56,5 +56,5 @@ class _Manual(Element):
                     }
                 },
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })

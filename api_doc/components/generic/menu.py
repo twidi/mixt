@@ -19,7 +19,7 @@ class H(Element):
         _focus = "&:hover, &:focus, &.focus-within"
 
         return CssDict({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".h": {
                 "+ .permalink": {
                     visibility: hidden,
@@ -52,7 +52,7 @@ class H(Element):
                     }
                 }
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render(self, context):

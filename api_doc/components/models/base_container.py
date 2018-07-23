@@ -36,7 +36,7 @@ class _BaseContainer(Element):
         _focus = "&:hover, &:focus, &.focus-within"
 
         return CssDict({
-            "/*": f"<{cls.__module__}.BaseContainer.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.BaseContainer.{cls.__name__}>",
             f".{_kind}": {
                 "> summary > .h:after": merge(
                     context.styles.snippets['TAG'],
@@ -69,7 +69,7 @@ class _BaseContainer(Element):
                     }
                 },
             },
-            "/**": f"</{cls.__module__}.BaseContainer.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.BaseContainer.{cls.__name__}>",
         })
 
     def render_content(self, id_prefix, context):

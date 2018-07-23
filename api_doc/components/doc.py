@@ -19,7 +19,7 @@ class DocPart(Element):
     @classmethod
     def render_css_global(cls, context):
         return CssDict({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".doc-part": {
                 padding: (5*px, 0, 5*px, 5*px),
                 border-radius: (7*px, 0, 0, 7*px),
@@ -30,7 +30,7 @@ class DocPart(Element):
                     text-decoration: underline
                 }
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     @classmethod

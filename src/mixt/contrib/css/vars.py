@@ -759,6 +759,64 @@ class Extend(Var):
         return f"extend{self.extends}"
 
 
+class Raw(Var):
+    """``Var`` that, when called, tells the rendered that the value should be rendered untouched.
+
+    Attributes
+    ----------
+    counter : int
+        Will be incremented on each call to produce a different key each time.
+    prefix : str
+        The beginning of the key to produce.
+
+    """
+
+    counter = 0
+    prefix = ":raw:"
+
+    def __call__(self) -> Var:  # type: ignore  # pylint: disable=arguments-differ
+        """Generate a new unique key starting with ``:raw:``, to be used as a CSS key.
+
+        When encountering this key, the rendered will render the value untouched., outside
+        of any selector.
+
+        Alias: ``r()``
+
+        Returns
+        -------
+        str
+            A new generated string with a unique key.
+
+        """
+        self.__class__.counter += 1  # type: ignore
+        return Var(f"{self.prefix}{self.__class__.counter}")  # type: ignore
+
+
+class Comment(Raw):
+    """``Var`` that, when called, tells the rendered that the values is a CSS comment."""
+
+    counter = 0
+    prefix = "/*"
+
+    def __call__(  # type: ignore  # pylint: disable=useless-super-delegation
+        self
+    ) -> str:
+        """Generate a new unique key starting with ``/*``, to be used as a CSS key.
+
+        When encountering this key, the rendered will encapsulate the value in ``/* */`` and
+        will render it.
+
+        Alias: ``c()``
+
+        Returns
+        -------
+        str
+            A new generated string with a unique key.
+
+        """
+        return super().__call__()  # we need the docstring for documentation
+
+
 class AtRule(Var):
     """``Var`` that, when called, allows to define a CSS '@-rule'.
 
@@ -1241,6 +1299,8 @@ join = Join("join")
 many = Many("many")
 override = Override("override")
 extend = Extend("extend")
+raw = Raw("raw")
+comment = Comment("comment")
 string = String("string")
 Not = negate = Negate("not")
 merge = Merge("merge")
@@ -1276,6 +1336,8 @@ def load_defaults() -> None:
     add_css_var("many", kind=None, value=many)
     add_css_var("override", kind=None, value=override)
     add_css_var("extend", kind=None, value=extend)
+    add_css_var("raw", kind=None, value=raw, aliases=["r"])
+    add_css_var("comment", kind=None, value=comment, aliases=["c"])
     add_css_var("string", kind=None, value=string, aliases=["str", "repr"])
     add_css_var("not", kind=None, value=negate)
     add_css_var("b", kind=None, value=builtins, aliases=["builtins"])

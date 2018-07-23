@@ -24,7 +24,7 @@ class _Value(Element):
     @classmethod
     def render_css_global(cls, context):
         return CssDict({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".value": {
                 "&:not(:last-child) p:last-child": {
                     margin-bottom: 0,
@@ -36,7 +36,7 @@ class _Value(Element):
                     margin-left: 1*em,
                 },
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render_example(self, context, id_prefix):

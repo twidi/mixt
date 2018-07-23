@@ -122,7 +122,7 @@ class Head(Element):
     def render_css_global(cls, context):
         colors = context.styles.colors
         return CssDict({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             "#main-menu": {
                 position: fixed,
                 left: 0,
@@ -230,7 +230,7 @@ class Head(Element):
                     }
                 }
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
 

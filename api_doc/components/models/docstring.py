@@ -33,7 +33,7 @@ class DocString(Element):
     @classmethod
     def render_css_global(cls, context):
         return CssDict({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             "details.docstring": {
                 margin-top: 1*em,
                 "> summary > p": {
@@ -45,7 +45,7 @@ class DocString(Element):
                     margin-top: 1*em,
                 },
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render(self, context):

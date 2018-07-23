@@ -23,7 +23,7 @@ class MainMenuCollector(MenuCollector):
         )
 
         return merge({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             "#main-menu": {
                 background: colors[9],
                 color: white,
@@ -86,7 +86,7 @@ class MainMenuCollector(MenuCollector):
             }
             for t in tagged
         }, {
-            "/**": f"</{cls.__module__}.{cls.__name__}>"
+            comment(): f"</{cls.__module__}.{cls.__name__}>"
         })
 
     @classmethod

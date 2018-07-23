@@ -22,9 +22,9 @@ class Class(_BaseContainer):
     @classmethod
     def render_css_global(cls, context):
         return merge({
-            "/***": f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
         }, super().render_css_global(context), {
-            "/****": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render_content(self, id_prefix, context):

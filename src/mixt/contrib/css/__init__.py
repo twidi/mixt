@@ -1,3 +1,4 @@
+# noinspection PyUnresolvedReferences
 """**Mixt CSS**: tools to write CSS in python.
 
 Introduction
@@ -131,6 +132,10 @@ Here is an example that resumes all the features:
 ...                     "/**": '''this is a
 ...                               multi-lines comment''',  # number of spaces it not important
 ...
+...                     # If you don't want to bother with the different keys, you can use the
+...                     # `comment()` function that will produce a different string key each time.
+...                     comment(): "another comment",
+...
 ...                 },
 ...
 ...                 li: {
@@ -260,6 +265,18 @@ Here is an example that resumes all the features:
 ...         # As we extend the same dict as before, the two selectors ".alert" and ".popup" will be
 ...         # used for the same rule like this: `.alert, .popup: { z-index: 1000 }`
 ...         ".popup": extend({z-index: 1000}, "abs-box"),
+...
+...         # You can include "raw" CSS by using the `:raw:` key, or any key starting with `:raw:`.
+...         # (because as always you cannot have twice the same key in a python dict).
+...         # It can be handy to import CSS generated/copied/whatever from elsewhere.
+...         # Note that it's "raw" CSS so there is no nesting with parent selectors, but it will
+...         # still be indented to match the current rendering mode.
+...         ":raw:": ".foo: { color: blue; }",
+...         ":raw::": ".bar { color: white; }",
+...
+...         # If you don't want to bother with the different keys, you can use, like for comments,
+...         # the `raw()` function that will produce a different string key each time.
+...         raw() ".baz { color: red; }"
 ...     }
 
 >>> # Now we can render this css
@@ -292,6 +309,7 @@ Here is an example that resumes all the features:
     /* this is a comment */
     /* this is a
        multi-lines comment */
+    /* another comment */
     nav ul li {
       height: 1.5em;
       width: calc(100% - 2em);
@@ -337,6 +355,9 @@ Here is an example that resumes all the features:
     .alert, .popup {
       z-index: 1000;
     }
+    .foo: { color: blue; }
+    .bar { color: white; }
+    .baz { color: red; }
 
 """
 
