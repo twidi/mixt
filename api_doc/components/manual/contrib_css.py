@@ -2,7 +2,7 @@
 
 from mixt import html, h
 from mixt.contrib import css as contrib_css
-from mixt.contrib.css import css_vars, render_css
+from mixt.contrib.css import css_vars, CssDict
 
 from ...code_utils import load_docstring, resolve_class, resolve_function
 from ... import datatypes
@@ -19,8 +19,8 @@ class ContribCss(_Manual):
     @css_vars(globals())
     @classmethod
     def render_css_global(cls, context):
-        return render_css({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+        return CssDict({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             "#ContribCss-class-Modes-attributes .attr-details": {
                 display: none,
             },
@@ -35,7 +35,7 @@ class ContribCss(_Manual):
             "#ContribCss-at-rules_rules ul": {
                 list-style: disc,
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render(self, context):
@@ -84,7 +84,7 @@ Except for ``dummy`` and ``builtins``, they are normal CSS vars when used normal
 
                 {[
                     <Function obj={resolve_function(name, getattr(contrib_css.vars, name).__class__.__call__)} h_level={self.h_level+1} id_prefix="{id_prefix}-special_vars-" />
-                    for name in 'join many override extend string Not merge'.split()
+                    for name in 'join many override extend combine raw comment string Not merge'.split()
                 ]}
 
                 {self.render_dummy(f"{id_prefix}-special_vars", self.h_level+1)}
@@ -136,6 +136,167 @@ Rules
 -----
 
 """ + self.get_at_rules()
+                )}</Rst>
+
+            </DocPart>
+
+            <DocPart kind={id_prefix} subkind="collector" id_prefix={id_prefix} level={self.h_level} open>
+                <DocHeader menu="Usage with CSS collector">Usage with CSS collector</DocHeader>
+
+                <Rst id_prefix="{id_prefix}-at-rules" h_level={self.h_level+1}>{h.Raw(
+# language=RST
+"""
+``mixt.contrib.css`` can be used on its own but it is totally possible to use it with the
+``mixt`` `CSS collector <api.html#module-collectors-classes-class-CSSCollector>`_. 
+
+In fact, it uses it all the times even if the collected CSS are just strings.
+
+To have your ``render_css_global`` or ``render_css`` method be able to return a CSS dict, you
+cannot return directly a dict because it is used to handle namespaces.
+
+So you have two 0ptions:
+
+- Convert the dict to a ``CssDict``
+- Return a call to ``combine``
+
+The first is useful when you have a simple CssDict: ``return CssDict({foo: bar})``.
+
+The second can serve the exact same purpose: ``return combine({foo: bar})``, but is also useful to
+combine many dicts: ``return combine({foo: bar}, call_to_function_that_return_a_dict())``.
+
+And of course don't forget to decorate your method.
+
+Here is an example:
+
+.. code-block:: python
+
+    from mixt.contrib.css import css_vars
+
+    class MyComponent(Element):
+
+        @css_vars(globals())
+        @classmethod
+        def render_css_global(cls, context):
+            return CssDict({
+                ".foo": {
+                    color: white;
+                }
+            })
+
+Don't forget to call ``load_css_keywords()``, for example in the ``__init__.py`` file of your
+components directory.
+
+Note that calls to ``extend`` will work between components, as soon as the name of the extend
+is defined before.
+
+You can do this with a "Css library" component like we do in the following example to defined a 
+``ext`` named extend, that is used in our components. This work because we include the ``CssLib``
+component in the app.
+
+.. code-block:: python
+
+    class CssLib(Element):
+        @classmethod
+        def render_css_global(cls, context):
+            return CssDict({
+                "%ext": {"ext": "end"}
+            })
+
+    class Foo(Element):
+        @classmethod
+        def render_css_global(cls, context):
+            return CssDict({
+                ".foo": extend("ext", css={
+                    "color": "FOO",
+                })
+            })
+
+    class Bar(Element):
+        @classmethod
+        def render_css_global(cls, context):
+            return CssDict({
+                ".bar": extend("ext", css={
+                    "color": "BAR",
+                })
+            })
+
+    class App(Element):
+        def render(self, context):
+            return <CSSCollector render_position="before">
+                <CssLib />
+                <Foo />
+                <Bar />
+            </CSSCollector>
+
+    print(str(App())
+
+.. code-block:: html
+
+    <style type="text/css">
+    .foo, .bar {
+      ext: end;
+    }
+    .foo {
+      color: FOO;
+    }
+    .bar {
+      color: BAR;
+    }
+    </style>
+
+This of course can also be done without the ``CssLib`` component as you can directly use dicts when
+calling ``extend``:
+
+.. code-block:: python
+
+    # this could be in an other python files, available for all your components
+    extends = {
+        "ext": {"ext": "end"}
+    }
+
+    class Foo(Element):
+        @classmethod
+        def render_css_global(cls, context):
+            return CssDict({
+                ".foo": extend(extends["ext"], css={
+                    "color": "FOO",
+                })
+            })
+
+    class Bar(Element):
+        @classmethod
+        def render_css_global(cls, context):
+            return CssDict({
+                ".bar": extend(extends["ext"], css={
+                    "color": "BAR",
+                })
+            })
+
+    class App(Element):
+        def render(self, context):
+            return <CSSCollector render_position="before">
+                <Foo />
+                <Bar />
+            </CSSCollector>
+
+    print(str(App())
+
+.. code-block:: html
+
+    <style type="text/css">
+    .foo, .bar {
+      ext: end;
+    }
+    .foo {
+      color: FOO;
+    }
+    .bar {
+      color: BAR;
+    }
+    </style>
+
+"""
+
                 )}</Rst>
 
             </DocPart>

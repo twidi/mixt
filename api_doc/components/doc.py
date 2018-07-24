@@ -1,7 +1,7 @@
 # coding: mixt
 
 from mixt import Element, Required, html
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, CssDict
 
 from .generic import Details, H
 
@@ -18,8 +18,8 @@ class DocPart(Element):
     @css_vars(globals())
     @classmethod
     def render_css_global(cls, context):
-        return render_css({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+        return CssDict({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".doc-part": {
                 padding: (5*px, 0, 5*px, 5*px),
                 border-radius: (7*px, 0, 0, 7*px),
@@ -30,7 +30,7 @@ class DocPart(Element):
                     text-decoration: underline
                 }
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     @classmethod

@@ -4,7 +4,7 @@ from docutils.examples import internals
 from typing import List
 
 from mixt import Element, Required, html
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, CssDict
 
 from ... import datatypes
 from ..generic import Details, htmlize_rst
@@ -32,8 +32,8 @@ class DocString(Element):
     @css_vars(globals())
     @classmethod
     def render_css_global(cls, context):
-        return render_css({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+        return CssDict({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             "details.docstring": {
                 margin-top: 1*em,
                 "> summary > p": {
@@ -45,7 +45,7 @@ class DocString(Element):
                     margin-top: 1*em,
                 },
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render(self, context):

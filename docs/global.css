@@ -1,4 +1,25 @@
+
 /* <api_doc.app.Head> */
+/* <Extends> */
+
+.menu-class:after, .menu-module:after, .menu-function-staticmethod:after, .menu-function-property:after, .menu-function-classmethod:after, .class > summary > .h:after, .function-staticmethod > summary > .h:after, .function-property > summary > .h:after, .function-classmethod > summary > .h:after, .module > summary > .h:after, .HtmlUtils .function-function > summary > .h:after {
+    font-weight: normal;
+    font-size: smaller;
+    margin-left: 1em;
+    padding: 1px 5px 2px;
+    border-radius: 6px;
+    position: relative;
+    top: -1px }
+
+.menu-class:after, .menu-module:after, .menu-function-staticmethod:after, .menu-function-property:after, .menu-function-classmethod:after, .class > summary > .h:after, .function-staticmethod > summary > .h:after, .function-property > summary > .h:after, .function-classmethod > summary > .h:after, .module > summary > .h:after, .HtmlUtils .function-function > summary > .h:after {
+    background: #084081;
+    color: white }
+
+li:not(:hover) > .menu-class:after, li:not(:hover) > details > summary:not(.current) > .menu-class:after, li:not(:hover) > details > summary:not(.current) > .menu-module:after, li:not(:hover) > details > summary:not(.current) > .menu-function-staticmethod:after, li:not(:hover) > details > summary:not(.current) > .menu-function-property:after, li:not(:hover) > details > summary:not(.current) > .menu-function-classmethod:after {
+    background: white;
+    color: #084081 }
+
+/* </Extends> */
 
 #main-menu {
     position: fixed;
@@ -99,7 +120,6 @@ main >h1 {
         margin-left: 10rem } }
 
 /* </api_doc.app.Head> */
-
 /* <api_doc.components.generic.menu.H> */
 
 .h + .permalink {
@@ -123,7 +143,6 @@ details:hover > summary > .h + .permalink, details:focus > summary > .h + .perma
     visibility: visible }
 
 /* </api_doc.components.generic.menu.H> */
-
 /* <api_doc.components.main_menu.MainMenuCollector> */
 
 #main-menu {
@@ -150,25 +169,6 @@ details:hover > summary > .h + .permalink, details:focus > summary > .h + .perma
 
     #main-menu li > a {
         display: block }
-
-.menu-class:after, .menu-module:after, .menu-function-staticmethod:after, .menu-function-property:after, .menu-function-classmethod:after {
-    font-weight: normal;
-    font-size: smaller;
-    margin-left: 1em;
-    padding: 1px 5px 2px;
-    border-radius: 6px;
-    position: relative;
-    top: -1px;
-    background: #084081;
-    color: white }
-
-li:not(:hover) > .menu-class:after {
-    background: white;
-    color: #084081 }
-
-li:not(:hover) > details > summary:not(.current) > .menu-class:after, li:not(:hover) > details > summary:not(.current) > .menu-module:after, li:not(:hover) > details > summary:not(.current) > .menu-function-staticmethod:after, li:not(:hover) > details > summary:not(.current) > .menu-function-property:after, li:not(:hover) > details > summary:not(.current) > .menu-function-classmethod:after {
-    background: white;
-    color: #084081 }
 
 #main-menu li:hover > details > summary, #main-menu li:hover > a, #main-menu .current {
     color: #084081 }
@@ -198,7 +198,6 @@ li:not(:hover) > details > summary:not(.current) > .menu-class:after, li:not(:ho
     content: 'classmethod' }
 
 /* </api_doc.components.main_menu.MainMenuCollector> */
-
 /* <api_doc.components.manual.base._Manual> */
 
 .doc > .manual:first-child:last-child {
@@ -227,7 +226,6 @@ li:not(:hover) > details > summary:not(.current) > .menu-class:after, li:not(:ho
     background: #4eb3d3 }
 
 /* </api_doc.components.manual.base._Manual> */
-
 /* <api_doc.components.doc.DocPart> */
 
 .doc-part {
@@ -241,7 +239,6 @@ li:not(:hover) > details > summary:not(.current) > .menu-class:after, li:not(:ho
         text-decoration: underline }
 
 /* </api_doc.components.doc.DocPart> */
-
 /* <api_doc.components.generic.details.Details> */
 
 details .h {
@@ -300,9 +297,7 @@ summary {
     border-left: solid transparent 1px }
 
 /* </api_doc.components.generic.details.Details> */
-
 /* <api_doc.components.generic.code.SourceCode> */
-
 .code .hll { background-color: #ffffcc }
 .code  { background: #f8f8f8; }
 .code .c { color: #408080; font-style: italic } /* Comment */
@@ -372,6 +367,7 @@ summary {
 .code .vi { color: #19177C } /* Name.Variable.Instance */
 .code .vm { color: #19177C } /* Name.Variable.Magic */
 .code .il { color: #666666 } /* Literal.Number.Integer.Long */
+
 .code {
     display: block;
     background: transparent;
@@ -384,9 +380,8 @@ summary {
         white-space: pre }
 
 /* </api_doc.components.generic.code.SourceCode> */
-
-
 /* <api_doc.components.models.value._Value> */
+
 .value:not(:last-child) p:last-child {
     margin-bottom: 0 }
 
@@ -395,7 +390,6 @@ summary {
 
 .value .docstring {
     margin-left: 1em }
-
 
 /* </api_doc.components.models.value._Value> */
 /* <api_doc.components.models.docstring.DocString> */
@@ -412,19 +406,10 @@ details.docstring {
         margin-top: 1em }
 
 /* </api_doc.components.models.docstring.DocString> */
-
+/* <api_doc.components.models.klass.Class> */
 /* <api_doc.components.models.klass.BaseContainer.Class> */
 
 .class > summary > .h:after {
-    font-weight: normal;
-    font-size: smaller;
-    margin-left: 1em;
-    padding: 1px 5px 2px;
-    border-radius: 6px;
-    position: relative;
-    top: -1px;
-    background: #084081;
-    color: white;
     content: 'class' }
 
 .class:hover, .class:target, .class.focus-within {
@@ -443,7 +428,7 @@ details.docstring {
     background: #4eb3d3 }
 
 /* </api_doc.components.models.klass.BaseContainer.Class> */
-
+/* </api_doc.components.models.klass.Class> */
 /* <api_doc.components.models.proptypes.PropTypes> */
 
 .prop_types:hover, .prop_types:target, .prop_types.focus-within {
@@ -456,22 +441,10 @@ details.docstring {
     background: #7bccc4 }
 
 /* </api_doc.components.models.proptypes.PropTypes> */
-
 /* <api_doc.components.models.function.Function> */
 
 .function-kind {
     display: none }
-
-.function-staticmethod > summary > .h:after, .function-property > summary > .h:after, .function-classmethod > summary > .h:after {
-    font-weight: normal;
-    font-size: smaller;
-    margin-left: 1em;
-    padding: 1px 5px 2px;
-    border-radius: 6px;
-    position: relative;
-    top: -1px;
-    background: #084081;
-    color: white }
 
 .function > .content > details:not(.doc-part) > summary {
     opacity: 0.25 }
@@ -495,19 +468,10 @@ details.docstring {
     content: 'classmethod' }
 
 /* </api_doc.components.models.function.Function> */
-
+/* <api_doc.components.models.module.Module> */
 /* <api_doc.components.models.module.BaseContainer.Module> */
 
 .module > summary > .h:after {
-    font-weight: normal;
-    font-size: smaller;
-    margin-left: 1em;
-    padding: 1px 5px 2px;
-    border-radius: 6px;
-    position: relative;
-    top: -1px;
-    background: #084081;
-    color: white;
     content: 'module' }
 
 .module:hover, .module:target, .module.focus-within {
@@ -526,8 +490,6 @@ details.docstring {
     background: #4eb3d3 }
 
 /* </api_doc.components.models.module.BaseContainer.Module> */
-
-/* <api_doc.components.models.module.Module> */
 
 .module .class:hover, .module .class:target, .module .class.focus-within {
     background: #a8ddb5 }
@@ -548,23 +510,12 @@ details.docstring {
     background: #2b8cbe }
 
 /* </api_doc.components.models.module.Module> */
-
 /* <api_doc.components.manual.html_utils.HtmlUtils> */
 
 .HtmlUtils .function-function > summary > .h:after {
-    font-weight: normal;
-    font-size: smaller;
-    margin-left: 1em;
-    padding: 1px 5px 2px;
-    border-radius: 6px;
-    position: relative;
-    top: -1px;
-    background: #084081;
-    color: white;
     content: 'function' }
 
 /* </api_doc.components.manual.html_utils.HtmlUtils> */
-
 /* <api_doc.components.manual.contrib_css.ContribCss> */
 
 #ContribCss-class-Modes-attributes .attr-details {

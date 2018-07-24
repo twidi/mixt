@@ -1,5 +1,5 @@
 from mixt import Element
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, CssDict
 
 
 class _Manual(Element):
@@ -17,8 +17,8 @@ class _Manual(Element):
         _target = "&:hover, &:target, &.focus-within"
         _focus = "&:hover, &:focus, &.focus-within"
 
-        return render_css({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+        return CssDict({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".doc > .manual:first-child:last-child": {
                 padding: (5*px, 0, 5*px, 1*em),
                 border-radius: (7*px, 0, 0, 7*px),
@@ -56,5 +56,5 @@ class _Manual(Element):
                     }
                 },
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })

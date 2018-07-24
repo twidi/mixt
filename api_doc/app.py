@@ -2,14 +2,14 @@
 
 from typing import Dict, List, Optional
 
-from mixt import Element, JSCollector, Ref, Required, exceptions, html, __version__
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt import Element, CSSCollector, JSCollector, Ref, Required, exceptions, html, __version__
+from mixt.contrib.css import css_vars
 from mixt.internal import collectors, dev_mode
 
-from .components import CSSCollector, H, MainMenuCollector, VendoredScripts, TypesetStyle
+from .components import H, MainMenuCollector, VendoredScripts, TypesetStyle
 from .components import manual
 from .components.models import Class, Module
-from .components.style import StyleContext, Styles
+from .components.style import StyleContext, Styles, get_extends
 from .code_utils import resolve_class, resolve_module
 from . import datatypes
 
@@ -121,8 +121,11 @@ class Head(Element):
     @classmethod
     def render_css_global(cls, context):
         colors = context.styles.colors
-        return render_css({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+        return combine({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
+            comment(): f"<Extends>",
+        }, get_extends(), {
+            comment(): f"</Extends>",
             "#main-menu": {
                 position: fixed,
                 left: 0,
@@ -230,7 +233,7 @@ class Head(Element):
                     }
                 }
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
 

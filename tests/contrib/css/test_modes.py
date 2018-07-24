@@ -24,6 +24,7 @@ css = {
                 }
             }
         },
+        ":raw:": ".foo-bar {color: black}",
         ".bar": {
             "color": "orange"
         },
@@ -44,7 +45,7 @@ css = {
 def test_mode_compressed():
     assert (
         render_css(css, Modes.COMPRESSED)
-        == """.content{color:blue;font-weight:bold;background:green}.content .foo{color:green}@media(all and (max-width: 600px){.content{color:red;font-weight:normal}.content .foo{color:yellow}}.content .bar{color:orange}.content{z-index:1}.baz a{margin:1px}.baz b{margin:2px}"""
+        == """.content{color:blue;font-weight:bold;background:green}.content .foo{color:green}@media(all and (max-width: 600px){.content{color:red;font-weight:normal}.content .foo{color:yellow}}.foo-bar {color: black}.content .bar{color:orange}.content{z-index:1}.baz a{margin:1px}.baz b{margin:2px}"""
     )
 
 
@@ -58,6 +59,7 @@ def test_mode_compact():
  .content {color: red; font-weight: normal}
  .content .foo {color: yellow}
 }
+.foo-bar {color: black}
 .content .bar {color: orange}
 .content {z-index: 1}
 .baz a {margin: 1px}
@@ -93,6 +95,7 @@ def test_mode_normal():
     color: yellow;
   }
 }
+.foo-bar {color: black}
 .content .bar {
   color: orange;
 }
@@ -144,6 +147,8 @@ def test_mode_indent():
                 color: yellow;
             }
     }
+
+    .foo-bar {color: black}
 
     .content .bar {
         color: orange;
@@ -202,6 +207,8 @@ def test_mode_indent2():
                 }
         }
 
+    .foo-bar {color: black}
+
     .content .bar {
             color: orange;
         }
@@ -253,6 +260,8 @@ def test_mode_indent3():
 
             .content .foo {
                 color: yellow } }
+
+    .foo-bar {color: black}
 
     .content .bar {
         color: orange }

@@ -1,5 +1,5 @@
 from mixt import Element, html
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, CssDict
 
 
 class Details(Element):
@@ -76,8 +76,8 @@ Details.init();
     @css_vars(globals())
     @classmethod
     def render_css_global(cls, context):
-        return render_css({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+        return CssDict({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             details: {
                 ".h": {
                     margin-top: 0,
@@ -135,7 +135,7 @@ Details.init();
                     border-left: (solid, transparent, 1*px),
                 }
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render(self, context):

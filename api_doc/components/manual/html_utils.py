@@ -1,7 +1,7 @@
 # coding: mixt
 
 from mixt import html, h
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, CssDict
 
 from ...code_utils import resolve_class, resolve_function
 from ..doc import DocPart, DocHeader
@@ -16,16 +16,14 @@ class HtmlUtils(_Manual):
     @css_vars(globals())
     @classmethod
     def render_css_global(cls, context):
-        return render_css({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
-            ".HtmlUtils .function-function > summary > .h:after": merge(
-                context.styles.snippets['TAG'],
-                context.styles.snippets['HL'],
-                {
+        return CssDict({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
+            ".HtmlUtils .function-function > summary > .h:after": extend('TAG', 'HL',
+                css={
                     content: str("function"),
                 }
             ),
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render(self, context):

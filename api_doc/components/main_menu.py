@@ -1,4 +1,4 @@
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars
 
 from .generic import MenuCollector
 
@@ -22,8 +22,8 @@ class MainMenuCollector(MenuCollector):
             ]
         )
 
-        return render_css(merge({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+        return combine({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             "#main-menu": {
                 background: colors[9],
                 color: white,
@@ -50,16 +50,13 @@ class MainMenuCollector(MenuCollector):
                 }
             },
             tagged: {
-                "&:after": merge(
-                    context.styles.snippets['TAG'],
-                    context.styles.snippets['HL'],
-                ),
+                "&:after": extend('TAG', 'HL')
             },
             "li:not(:hover)": {
-                "> .menu-class:after": context.styles.snippets['HL_REVERSE'],
+                "> .menu-class:after": extend('HL_REVERSE'),
                 "> details > summary:not(.current)": {
                     (f"> {t}" for t in tagged): {
-                        "&:after": context.styles.snippets['HL_REVERSE']
+                        "&:after": extend('HL_REVERSE')
                     },
                 }
             },
@@ -86,8 +83,8 @@ class MainMenuCollector(MenuCollector):
             }
             for t in tagged
         }, {
-            "/**": f"</{cls.__module__}.{cls.__name__}>"
-        }))
+            comment(): f"</{cls.__module__}.{cls.__name__}>"
+        })
 
     @classmethod
     def render_js_global(cls, context):

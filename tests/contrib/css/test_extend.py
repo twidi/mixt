@@ -1,7 +1,7 @@
 import pytest
 
 from mixt.contrib.css import render_css, Modes
-from mixt.contrib.css.vars import extend, merge
+from mixt.contrib.css.vars import extend, merge, combine
 
 
 def test_external_dict():
@@ -259,6 +259,36 @@ def test_with_merge():
 """
 
 
+def test_with_combine():
+    lib = {
+        '%my-extend': {"margin": "1px"},
+    }
+
+    css = {
+        ".foo": {"margin": "2px"},
+        ".bar": extend('my-extend'),
+        ".baz": {
+            "a": {"margin": "3px"},
+            "b": extend('my-extend', css={"margin": "4px"}),
+        }
+    }
+
+    assert render_css(combine(lib, css)) == """\
+.bar, .baz b {
+  margin: 1px;
+}
+.foo {
+  margin: 2px;
+}
+.baz a {
+  margin: 3px;
+}
+.baz b {
+  margin: 4px;
+}
+"""
+
+
 def test_not_used():
     css = {
         ".foo": {"margin": "2px"},
@@ -317,12 +347,12 @@ def test_at_rule():
         "%ext2": {"color": "ext2"},  # all ext2 usages are here, except from media
         ".bar": extend(ext1),  # all ext1 usages are here, except from media
         "@media all": {
-            # an extend can be overridden in at-rules
-            "%ext2": {"color": "ext3"},  # all ext2 in media are here
-            ".barbar": extend(ext1),  # all ext1 in media are here
+            # all ext2 in media are before, because named extend
+            "%ext3": {"color": "ext3"},  # all ext3 in media are here
+            ".barbar": extend(ext1),  # all ext1 in media are here, because dict extend
             ".bazbaz": {
                 ".qux1": {"margin": "33px"},
-                ".qux2": extend(ext1, "ext2", css={"margin": "44px"}),
+                ".qux2": extend(ext1, "ext2", "ext3", css={"margin": "44px"}),
             }
         },
         ".baz": {
@@ -344,10 +374,13 @@ def test_at_rule():
 }
 @media all {
   .bazbaz .qux2 {
-    color: ext3;
+    color: ext2;
   }
   .barbar, .bazbaz .qux2 {
     color: ext1;
+  }
+  .bazbaz .qux2 {
+    color: ext3;
   }
   .bazbaz .qux1 {
     margin: 33px;
@@ -444,5 +477,33 @@ def test_chaining():
 }
 .message-success a, .message-info a {
   color: white;
+}
+"""
+
+
+def test_inner_combine():
+    ext1 = combine({"foo": 1}, {"foo": 11})
+    css = {
+        "%ext2": combine({"bar": 2}, {"bar": 22}),
+        "qux": extend(ext1, "ext2", css=combine({"baz": 3}, {"baz": 33})),
+        "zzz": extend(ext1, "ext2", css=combine({"zzz": 4}, {"zzz": 44}))
+    }
+
+    assert render_css(css) == """\
+qux, zzz {
+  bar: 2;
+  bar: 22;
+}
+qux, zzz {
+  foo: 1;
+  foo: 11;
+}
+qux {
+  baz: 3;
+  baz: 33;
+}
+zzz {
+  zzz: 4;
+  zzz: 44;
 }
 """

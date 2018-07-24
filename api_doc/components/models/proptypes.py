@@ -1,7 +1,7 @@
 # coding: mixt
 
 from mixt import Element, Required, html
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, CssDict
 
 from ... import datatypes
 from ..doc import DocPart, DocHeader
@@ -24,8 +24,8 @@ class PropTypes(Element):
         _target = "&:hover, &:target, &.focus-within"
         _focus = "&:hover, &:focus, &.focus-within"
 
-        return render_css({
-            "/*": f"<{cls.__module__}.{cls.__name__}>",
+        return CssDict({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".prop_types": {
                 _target: {
                     background: colors[3],
@@ -41,7 +41,7 @@ class PropTypes(Element):
                     }
                 }
             },
-            "/**": f"</{cls.__module__}.{cls.__name__}>",
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
         })
 
     def render(self, context):

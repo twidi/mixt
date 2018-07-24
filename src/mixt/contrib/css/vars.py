@@ -7,9 +7,20 @@ the string ``margin-bottom``.
 """
 
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 
-from .utils import _dict_merge, builtins, isbuiltin, iskeyword
+from .utils import CssDict, _dict_merge, builtins, dict_hash, isbuiltin, iskeyword
 
 
 class Var(str):
@@ -650,7 +661,7 @@ class Override(Var):
         Returns
         -------
         Override
-            The current object with filled declarations.
+            A new instance of ``Override`` with filled declarations.
 
         Examples
         --------
@@ -682,10 +693,6 @@ class Override(Var):
 
         return new_obj
 
-    def __repr__(self) -> str:
-        """Display the list of declarations."""
-        return f"override{tuple(self.declarations)}"
-
 
 class Extend(Var):
     """``Var`` that, when called, allows to extend a previously defined css dict.
@@ -697,7 +704,7 @@ class Extend(Var):
         An extend can be the name of a previously defined "extend" (key starting with `%`)
         in the same css dict (same level or above), or directly a dict.
         Set when the instance is called with this extend.
-    css : Optional[Dict[str, Any]]
+    css : Optional[Union[Dict[str, Any], Combine]]
         If set, some CSS to add to the selector.
 
     """
@@ -710,7 +717,7 @@ class Extend(Var):
         """
         super().__init__()
         self.extends: Sequence[Union[str, Dict[str, Any]]] = ""
-        self.css: Optional[Dict[str, Any]] = None
+        self.css: Optional[Union[Dict[str, Any], Combine]] = None
 
     def __call__(  # type: ignore
         self, *extends: Union[str, Dict[str, Any]], css: Optional[Dict[str, Any]] = None
@@ -721,13 +728,13 @@ class Extend(Var):
         ----------
         extends : Tuple[Union[str, Dict[str, Any]]]
             The list of names or dicts to extend.
-        css : Dict[str, Any]
+        css : Union[Dict[str, Any], Combine]
             If set, some CSS to add to the selector. ``None`` by default.
 
         Returns
         -------
         Extend
-            The current object with filled extends.
+            A new instance of ``Extend`` with filled extends.
 
         Examples
         --------
@@ -752,11 +759,63 @@ class Extend(Var):
 
         return new_obj
 
-    def __repr__(self) -> str:
-        """Display the extends."""
-        if self.css:
-            return f"extend{self.extends} + some css"
-        return f"extend{self.extends}"
+
+class Raw(Var):
+    """``Var`` that, when called, tells the rendered that the value should be rendered untouched.
+
+    Attributes
+    ----------
+    counter : int
+        Will be incremented on each call to produce a different key each time.
+    prefix : str
+        The beginning of the key to produce.
+
+    """
+
+    counter = 0
+    prefix = ":raw:"
+
+    def __call__(self) -> Var:  # type: ignore  # pylint: disable=arguments-differ
+        """Generate a new unique key starting with ``:raw:``, to be used as a CSS key.
+
+        When encountering this key, the rendered will render the value untouched., outside
+        of any selector.
+
+        Alias: ``r()``
+
+        Returns
+        -------
+        str
+            A new generated string with a unique key.
+
+        """
+        self.__class__.counter += 1  # type: ignore
+        return Var(f"{self.prefix}{self.__class__.counter}")  # type: ignore
+
+
+class Comment(Raw):
+    """``Var`` that, when called, tells the rendered that the values is a CSS comment."""
+
+    counter = 0
+    prefix = "/*"
+
+    def __call__(  # type: ignore  # pylint: disable=useless-super-delegation
+        self
+    ) -> str:
+        """Generate a new unique key starting with ``/*``, to be used as a CSS key.
+
+        When encountering this key, the rendered will encapsulate the value in ``/* */`` and
+        will render it.
+
+        Alias: ``c()``
+
+        Returns
+        -------
+        str
+            A new generated string with a unique key.
+
+        """
+        return super().__call__()  # we need the docstring for documentation
 
 
 class AtRule(Var):
@@ -978,8 +1037,8 @@ class Merge(Var):
     """`Var` that, when called, will merge its given dicts."""
 
     def __call__(  # type: ignore  # pylint: disable=arguments-differ
-        self, *dicts: Dict
-    ) -> Dict:
+        self, *dicts: Union[Dict, "Combine"]
+    ) -> CssDict:
         """Merge many dictionaries into one, recursively.
 
         For keys that have dict as values, they are also merged.
@@ -987,13 +1046,18 @@ class Merge(Var):
 
         Parameters
         ----------
-        dicts : Tuple[Dict, ...]
-            The different dicts to join.
+        dicts : Tuple[Union[Dict, Combine], ...]
+            The different dicts (or instances of ``Combine``) to join.
 
         Returns
         -------
-        dict
-            The joined dicts.
+        CssDict
+            The joined dicts in a ``CssDict`` (subclass of ``dict``)
+
+        Raises
+        ------
+        TypeError
+            If at least one of ``dicts`` is not a dict or an instance of ``Combine``.
 
         Examples
         --------
@@ -1013,11 +1077,166 @@ class Merge(Var):
 
         """
         if not dicts:
-            return {}
-        result = dicts[0]
-        for dct in dicts[1:]:
-            result = _dict_merge(result, dct, update=False)
-        return result
+            return CssDict()
+        result: Dict[str, Any] = {}
+        for dct in dicts:
+            dcts: Sequence[Dict[str, Any]]
+            if isinstance(dct, dict):
+                dcts = [dct]
+            elif isinstance(dct, Combine):
+                dcts = dct.dicts
+            else:
+                raise TypeError(
+                    "`merge` accepts only dicts or instances of ``Combine``"
+                )
+            for sub_dct in dcts:
+                result = _dict_merge(result, sub_dct, update=False)
+        return CssDict(result)
+
+
+class Combine(Var):
+    """``Var`` that, when called, allows to define a css dict from many dicts.
+
+    Attributes
+    ----------
+    dicts : Sequence[Dict[str, Any]]]
+        The list of css dicts to combine.
+        Set when the instance is called with these dicts.
+
+    """
+
+    def __init__(self, _str_: str) -> None:  # pylint: disable=unused-argument
+        """Init the var and its dicts list.
+
+        For the parameters, see ``str``.
+
+        """
+        super().__init__()
+        self.dicts: Sequence[Dict[str, Any]] = []
+
+    def __call__(  # type: ignore
+        self, *dicts: Union[Dict[str, Any], "Combine", str]
+    ) -> Union["Combine", CssDict]:
+        r"""Allow to define a css pseudo "dict" from many dicts.
+
+        Parameters
+        ----------
+        dicts : Union[Dict[str, Any], "Combine"]
+            The different dicts to combine. Can be a dict or already a ``Combine`` that will
+            be expanded to its own dicts, or a string, in which case it will be converted to a
+            raw CSS entry (using ``raw()`` as key)
+
+        Returns
+        -------
+        Union[Combine, CssDict]
+            If no dicts have a shared key, will return a new ``CssDict`` with all keys,
+            else new instance of ``Combine`` with with the given dicts
+
+        Examples
+        --------
+        >>> from mixt.contrib.css.vars import combine, Combine
+        >>> css = combine({"foo": 1}, {"bar": 2})
+        >>> isinstance(css, Combine)
+        False
+        >>> isinstance(css, dict)
+        True
+        >>> css
+        {'foo': 1, 'bar': 2}
+        >>> css = combine({"foo": 1}, {"foo": 2})
+        >>> isinstance(css, Combine)
+        True
+        >>> isinstance(css, dict)
+        False
+        >>> css.dicts
+        [{'foo': 1}, {'foo': 2}]
+
+        """
+        result_dicts: List[Dict[str, Any]] = []
+        for dct in dicts:
+            if isinstance(dct, Combine):
+                result_dicts.extend(dct.dicts)
+            elif isinstance(dct, str):
+                result_dicts.append({raw(): dct})
+            else:
+                result_dicts.append(dct)
+
+        if not result_dicts:
+            return CssDict()
+        if len(result_dicts) == 1:
+            return CssDict(result_dicts[0])
+
+        nb_total_keys = sum(len(dct) for dct in result_dicts)
+
+        final_dict: Dict[str, Any] = {}
+        for dct in result_dicts:
+            final_dict.update(dct)
+
+        if len(final_dict) == nb_total_keys:
+            return CssDict(final_dict)
+
+        new_obj = self.__class__(self)
+        new_obj.dicts = result_dicts
+        return new_obj
+
+    def __hash__(self) -> int:
+        """Return the hash of the object as the sum of the hash of all its dicts.
+
+        Returns
+        -------
+        int
+            The hash of the object.
+
+        """
+        if self.dicts:
+            return sum(dict_hash(dct) for dct in self.dicts)
+        return hash(str(self))
+
+    def __iter__(self) -> Iterator[str]:
+        """Iterate through the keys of all dicts.
+
+        Yields
+        ------
+        str
+            Each key for each dict.
+
+        """
+        yield from self.keys()
+
+    def keys(self) -> Iterator[str]:
+        """Iterate through the keys of all dicts.
+
+        Yields
+        ------
+        str
+            Each key for each dict.
+
+        """
+        for dct in self.dicts:
+            yield from dct.keys()
+
+    def values(self) -> Iterator[Any]:
+        """Iterate through the values of all dicts.
+
+        Yields
+        ------
+        Any
+            Each values for each dict.
+
+        """
+        for dct in self.dicts:
+            yield from dct.values()
+
+    def items(self) -> Iterator[Tuple[str, Any]]:
+        """Iterate through the key/value pairs of all dicts.
+
+        Yields
+        ------
+        Tuple[str, Any]
+            Each key/value pair for each dict.
+
+        """
+        for dct in self.dicts:
+            yield from dct.items()
 
 
 CSS_VALUES_TYPE = Dict[Tuple[Any, Any], Any]
@@ -1241,9 +1460,12 @@ join = Join("join")
 many = Many("many")
 override = Override("override")
 extend = Extend("extend")
+raw = Raw("raw")
+comment = Comment("comment")
 string = String("string")
 Not = negate = Negate("not")
 merge = Merge("merge")
+combine = Combine("combine")
 
 for special_var in [join, many, override, extend, string, Not, negate, merge]:
     special_var.__doc__ = special_var.__call__.__doc__
@@ -1276,10 +1498,13 @@ def load_defaults() -> None:
     add_css_var("many", kind=None, value=many)
     add_css_var("override", kind=None, value=override)
     add_css_var("extend", kind=None, value=extend)
+    add_css_var("raw", kind=None, value=raw, aliases=["r"])
+    add_css_var("comment", kind=None, value=comment, aliases=["c"])
     add_css_var("string", kind=None, value=string, aliases=["str", "repr"])
     add_css_var("not", kind=None, value=negate)
     add_css_var("b", kind=None, value=builtins, aliases=["builtins"])
     add_css_var("merge", kind=None, value=merge)
+    add_css_var("combine", kind=None, value=combine)
 
     add_css_var("charset", kind=None, value=charset)
     add_css_var("import", kind=None, value=_import)
