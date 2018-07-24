@@ -37,10 +37,7 @@ class Function(Element):
                 display: none,
             },
             tagged: {
-                " > summary > .h:after": combine(
-                    context.styles.snippets['TAG'],
-                    context.styles.snippets['HL'],
-                ),
+                " > summary > .h:after": extend('TAG', 'HL')
             },
             ".function": {
                 "> .content > details:not(.doc-part) > summary": {

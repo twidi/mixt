@@ -38,10 +38,8 @@ class _BaseContainer(Element):
         return CssDict({
             comment(): f"<{cls.__module__}.BaseContainer.{cls.__name__}>",
             f".{_kind}": {
-                "> summary > .h:after": combine(
-                    context.styles.snippets['TAG'],
-                    context.styles.snippets['HL'],
-                    {
+                "> summary > .h:after": extend('TAG', 'HL',
+                    css={
                         content: str(_kind),
                     }
                 ),

@@ -22,7 +22,7 @@ class MainMenuCollector(MenuCollector):
             ]
         )
 
-        return merge({
+        return combine({
             comment(): f"<{cls.__module__}.{cls.__name__}>",
             "#main-menu": {
                 background: colors[9],
@@ -50,16 +50,13 @@ class MainMenuCollector(MenuCollector):
                 }
             },
             tagged: {
-                "&:after": combine(
-                    context.styles.snippets['TAG'],
-                    context.styles.snippets['HL'],
-                ),
+                "&:after": extend('TAG', 'HL')
             },
             "li:not(:hover)": {
-                "> .menu-class:after": context.styles.snippets['HL_REVERSE'],
+                "> .menu-class:after": extend('HL_REVERSE'),
                 "> details > summary:not(.current)": {
                     (f"> {t}" for t in tagged): {
-                        "&:after": context.styles.snippets['HL_REVERSE']
+                        "&:after": extend('HL_REVERSE')
                     },
                 }
             },

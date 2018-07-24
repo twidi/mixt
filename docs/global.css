@@ -1,5 +1,25 @@
 
 /* <api_doc.app.Head> */
+/* <Extends> */
+
+.menu-class:after, .menu-module:after, .menu-function-staticmethod:after, .menu-function-property:after, .menu-function-classmethod:after, .class > summary > .h:after, .function-staticmethod > summary > .h:after, .function-property > summary > .h:after, .function-classmethod > summary > .h:after, .module > summary > .h:after, .HtmlUtils .function-function > summary > .h:after {
+    font-weight: normal;
+    font-size: smaller;
+    margin-left: 1em;
+    padding: 1px 5px 2px;
+    border-radius: 6px;
+    position: relative;
+    top: -1px }
+
+.menu-class:after, .menu-module:after, .menu-function-staticmethod:after, .menu-function-property:after, .menu-function-classmethod:after, .class > summary > .h:after, .function-staticmethod > summary > .h:after, .function-property > summary > .h:after, .function-classmethod > summary > .h:after, .module > summary > .h:after, .HtmlUtils .function-function > summary > .h:after {
+    background: #084081;
+    color: white }
+
+li:not(:hover) > .menu-class:after, li:not(:hover) > details > summary:not(.current) > .menu-class:after, li:not(:hover) > details > summary:not(.current) > .menu-module:after, li:not(:hover) > details > summary:not(.current) > .menu-function-staticmethod:after, li:not(:hover) > details > summary:not(.current) > .menu-function-property:after, li:not(:hover) > details > summary:not(.current) > .menu-function-classmethod:after {
+    background: white;
+    color: #084081 }
+
+/* </Extends> */
 
 #main-menu {
     position: fixed;
@@ -149,25 +169,6 @@ details:hover > summary > .h + .permalink, details:focus > summary > .h + .perma
 
     #main-menu li > a {
         display: block }
-
-.menu-class:after, .menu-module:after, .menu-function-staticmethod:after, .menu-function-property:after, .menu-function-classmethod:after {
-    font-weight: normal;
-    font-size: smaller;
-    margin-left: 1em;
-    padding: 1px 5px 2px;
-    border-radius: 6px;
-    position: relative;
-    top: -1px;
-    background: #084081;
-    color: white }
-
-li:not(:hover) > .menu-class:after {
-    background: white;
-    color: #084081 }
-
-li:not(:hover) > details > summary:not(.current) > .menu-class:after, li:not(:hover) > details > summary:not(.current) > .menu-module:after, li:not(:hover) > details > summary:not(.current) > .menu-function-staticmethod:after, li:not(:hover) > details > summary:not(.current) > .menu-function-property:after, li:not(:hover) > details > summary:not(.current) > .menu-function-classmethod:after {
-    background: white;
-    color: #084081 }
 
 #main-menu li:hover > details > summary, #main-menu li:hover > a, #main-menu .current {
     color: #084081 }
@@ -409,15 +410,6 @@ details.docstring {
 /* <api_doc.components.models.klass.BaseContainer.Class> */
 
 .class > summary > .h:after {
-    font-weight: normal;
-    font-size: smaller;
-    margin-left: 1em;
-    padding: 1px 5px 2px;
-    border-radius: 6px;
-    position: relative;
-    top: -1px;
-    background: #084081;
-    color: white;
     content: 'class' }
 
 .class:hover, .class:target, .class.focus-within {
@@ -454,17 +446,6 @@ details.docstring {
 .function-kind {
     display: none }
 
-.function-staticmethod > summary > .h:after, .function-property > summary > .h:after, .function-classmethod > summary > .h:after {
-    font-weight: normal;
-    font-size: smaller;
-    margin-left: 1em;
-    padding: 1px 5px 2px;
-    border-radius: 6px;
-    position: relative;
-    top: -1px;
-    background: #084081;
-    color: white }
-
 .function > .content > details:not(.doc-part) > summary {
     opacity: 0.25 }
 
@@ -491,15 +472,6 @@ details.docstring {
 /* <api_doc.components.models.module.BaseContainer.Module> */
 
 .module > summary > .h:after {
-    font-weight: normal;
-    font-size: smaller;
-    margin-left: 1em;
-    padding: 1px 5px 2px;
-    border-radius: 6px;
-    position: relative;
-    top: -1px;
-    background: #084081;
-    color: white;
     content: 'module' }
 
 .module:hover, .module:target, .module.focus-within {
@@ -541,15 +513,6 @@ details.docstring {
 /* <api_doc.components.manual.html_utils.HtmlUtils> */
 
 .HtmlUtils .function-function > summary > .h:after {
-    font-weight: normal;
-    font-size: smaller;
-    margin-left: 1em;
-    padding: 1px 5px 2px;
-    border-radius: 6px;
-    position: relative;
-    top: -1px;
-    background: #084081;
-    color: white;
     content: 'function' }
 
 /* </api_doc.components.manual.html_utils.HtmlUtils> */
