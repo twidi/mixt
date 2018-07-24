@@ -340,6 +340,9 @@ Usage (we'll use ``CSSCollector`` in these examples but it works the same with `
            >>> css = global_collector.render_collected(with_tag=False)
            >>> save_to_file(css, 'index.css')
 
+**Note**: you can use ``mixt.contrib.css`` with the CSS collector.
+See `Related documentation <contrib-css.html#ContribCss-collector>`_.
+
 """
 
 from collections import defaultdict
@@ -733,6 +736,9 @@ class CSSCollector(Collector):
     - ``render_css_global`` class methods are collected once
     - ``render_css`` methods are collected for every component
     - the default namespace is "default"
+
+    You can use ``mixt.contrib.css`` with the CSS collector.
+    See `Related documentation <contrib-css.html#ContribCss-collector>`_.
 
     """
 

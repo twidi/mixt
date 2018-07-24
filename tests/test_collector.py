@@ -384,7 +384,7 @@ def test_reuse():
         assert ref2.current.render_collected(with_tag=False) == "GlobalFoo.GlobalBar."
 
 
-def test_all_css_render_at_once():
+def test_all_css_render_at_once_with_internal_extend():
 
     class CssLib(Element):
         @classmethod
@@ -394,7 +394,6 @@ def test_all_css_render_at_once():
             })
 
     class Foo(Element):
-
         @classmethod
         def render_css_global(cls, context):
             return CssDict({
@@ -404,7 +403,6 @@ def test_all_css_render_at_once():
             })
 
     class Bar(Element):
-
         @classmethod
         def render_css_global(cls, context):
             return CssDict({
@@ -413,11 +411,57 @@ def test_all_css_render_at_once():
                 })
             })
 
-
     class App(Element):
         def render(self, context):
             return <CSSCollector render_position="before">
                 <CssLib />
+                <Foo />
+                <Bar />
+            </CSSCollector>
+
+    with override_default_mode(Modes.NORMAL):
+        assert str(App()) == """\
+<style type="text/css">
+.foo, .bar {
+  ext: end;
+}
+.foo {
+  color: FOO;
+}
+.bar {
+  color: BAR;
+}
+</style>"""
+
+
+def test_all_css_render_at_once_with_external_extend_dict():
+
+    # this could be in an other python files, available for all your components
+    extends = {
+        "ext": {"ext": "end"}
+    }
+
+    class Foo(Element):
+        @classmethod
+        def render_css_global(cls, context):
+            return CssDict({
+                ".foo": extend(extends["ext"], css={
+                    "color": "FOO",
+                })
+            })
+
+    class Bar(Element):
+        @classmethod
+        def render_css_global(cls, context):
+            return CssDict({
+                ".bar": extend(extends["ext"], css={
+                    "color": "BAR",
+                })
+            })
+
+    class App(Element):
+        def render(self, context):
+            return <CSSCollector render_position="before">
                 <Foo />
                 <Bar />
             </CSSCollector>
