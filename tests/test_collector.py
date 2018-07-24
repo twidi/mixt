@@ -3,8 +3,9 @@
 """Ensure that parents are saved correctly."""
 
 from mixt import Element, NotProvided, Ref, Required, html
+from mixt.contrib.css import CssDict, override_default_mode, Modes
+from mixt.contrib.css.vars import extend
 from mixt.internal.collectors import Collector, CSSCollector, JSCollector
-
 
 def test_collector():
 
@@ -76,9 +77,7 @@ def test_css_collector_via_collect():
     class Content(Element):
 
         def render_style(self, context):
-            return <CSSCollector.Collect>{html.Raw("""
-.content { margin: 15px; }
-""")}
+            return <CSSCollector.Collect>{html.Raw(".content { margin: 15px; }")}
             </CSSCollector.Collect>
 
         def render(self, context):
@@ -177,52 +176,52 @@ def test_namespaces():
         @classmethod
         def render_css_global(cls, context):
             return {
-                'foo': "C1GlobalFoo\n",
-                'bar': "C1GlobalBar\n",
-                'default': "C1GlobalDefault\n"
+                'foo': "C1GlobalFoo",
+                'bar': "C1GlobalBar",
+                'default': "C1GlobalDefault"
             }
 
         def render_css(self, context):
             return {
-                'bar': "C1Local%sBar\n" % self.id,
-                'default': "C1Local%sDefault\n" % self.id
+                'bar': "C1Local%sBar" % self.id,
+                'default': "C1Local%sDefault" % self.id
             }
 
         def render(self, context):
             return <CSSCollector.Collect namespace="bar">{html.Raw(
-                "C1Collect%sBar\n" % self.id
+                "C1Collect%sBar" % self.id
             )}</CSSCollector.Collect>
 
     class Component2(Element):
         @classmethod
         def render_css_global(cls, context):
-            return "C2GlobalDefault\n"
+            return "C2GlobalDefault"
 
         def render_css(self, context):
-            return "C2Local%sDefault\n" % self.id
+            return "C2Local%sDefault" % self.id
 
         def render(self, context):
-            return <CSSCollector.Collect>{html.Raw("C2Collect%sDefault\n" % self.id)}</CSSCollector.Collect>
+            return <CSSCollector.Collect>{html.Raw("C2Collect%sDefault" % self.id)}</CSSCollector.Collect>
 
 
     class Component3(Element):
         @classmethod
         def render_css_global(cls, context):
             return {
-                'foo': "C3GlobalFoo\n",
-                'bar': "C3GlobalBar\n",
-                'default': "C3GlobalDefault\n"
+                'foo': "C3GlobalFoo",
+                'bar': "C3GlobalBar",
+                'default': "C3GlobalDefault"
             }
 
         def render_css(self, context):
             return {
-                'bar': "C3Local%sBar\n" % self.id,
-                'default': "C3Local%sDefault\n" % self.id
+                'bar': "C3Local%sBar" % self.id,
+                'default': "C3Local%sDefault" % self.id
             }
 
         def render(self, context):
             return <CSSCollector.Collect namespace="bar">{html.Raw(
-                "C3Collect%sBar\n" % self.id
+                "C3Collect%sBar" % self.id
             )}</CSSCollector.Collect>
 
 
@@ -244,9 +243,8 @@ def test_namespaces():
     app = App(css_ref = ref)
     str(app)
 
-    print(ref.current.render_collected(with_tag=False))
-
-    assert ref.current.render_collected(with_tag=False) == """\
+    with override_default_mode(Modes.COMPACT):
+        assert ref.current.render_collected(with_tag=False) == """\
 C1GlobalFoo
 C3GlobalFoo
 C1GlobalBar
@@ -272,7 +270,7 @@ C3Local2Default
 C1Local2Default
 """
 
-    assert ref.current.render_collected("foo", "bar", "baz", with_tag=False) == """\
+        assert ref.current.render_collected("foo", "bar", "baz", with_tag=False) == """\
 C1GlobalFoo
 C3GlobalFoo
 C1GlobalBar
@@ -286,7 +284,7 @@ C3Collect2Bar
 C1Local2Bar
 C1Collect2Bar
 """
-    assert ref.current.render_collected("default", with_tag=False) == """\
+        assert ref.current.render_collected("default", with_tag=False) == """\
 C1GlobalDefault
 C1Local1Default
 C2GlobalDefault
@@ -318,27 +316,28 @@ def test_reuse():
         str(<CSSCollector ref={ref2} reuse={main_collector} {**kwargs}><Component1 id=2 /></CSSCollector>)
         return main_collector, ref1, ref2
 
+    with override_default_mode(Modes.COMPRESSED):
 
-    main_collector, ref1, ref2 = run_comp1()
-    assert ref1.current.reuse_global is True
-    assert ref1.current.reuse_non_global is True
-    assert main_collector.render_collected(with_tag=False) == "Global.Local1.Local2."
-    assert ref1.current.render_collected(with_tag=False) == ""
-    assert ref2.current.render_collected(with_tag=False) == ""
+        main_collector, ref1, ref2 = run_comp1()
+        assert ref1.current.reuse_global is True
+        assert ref1.current.reuse_non_global is True
+        assert main_collector.render_collected(with_tag=False) == "Global.Local1.Local2."
+        assert ref1.current.render_collected(with_tag=False) == ""
+        assert ref2.current.render_collected(with_tag=False) == ""
 
-    main_collector, ref1, ref2 = run_comp1(reuse_non_global=False)
-    assert ref1.current.reuse_global is True
-    assert ref1.current.reuse_non_global is False
-    assert main_collector.render_collected(with_tag=False) == "Global."
-    assert ref1.current.render_collected(with_tag=False) == "Local1."
-    assert ref2.current.render_collected(with_tag=False) == "Local2."
+        main_collector, ref1, ref2 = run_comp1(reuse_non_global=False)
+        assert ref1.current.reuse_global is True
+        assert ref1.current.reuse_non_global is False
+        assert main_collector.render_collected(with_tag=False) == "Global."
+        assert ref1.current.render_collected(with_tag=False) == "Local1."
+        assert ref2.current.render_collected(with_tag=False) == "Local2."
 
-    main_collector, ref1, ref2 = run_comp1(reuse_global=False)
-    assert ref1.current.reuse_global is False
-    assert ref1.current.reuse_non_global is True
-    assert main_collector.render_collected(with_tag=False) == "Local1.Local2."
-    assert ref1.current.render_collected(with_tag=False) == "Global."
-    assert ref2.current.render_collected(with_tag=False) == "Global."
+        main_collector, ref1, ref2 = run_comp1(reuse_global=False)
+        assert ref1.current.reuse_global is False
+        assert ref1.current.reuse_non_global is True
+        assert main_collector.render_collected(with_tag=False) == "Local1.Local2."
+        assert ref1.current.render_collected(with_tag=False) == "Global."
+        assert ref2.current.render_collected(with_tag=False) == "Global."
 
     class Component2(Element):
 
@@ -360,24 +359,79 @@ def test_reuse():
         str(<CSSCollector ref={ref2} reuse={main_collector} {**kwargs}><Component2 id=2 /></CSSCollector>)
         return main_collector, ref1, ref2
 
-    main_collector, ref1, ref2 = run_comp2(reuse_non_global=False)
-    assert ref1.current.reuse_namespaces is None
-    assert main_collector.render_collected(with_tag=False) == "GlobalFoo.GlobalBar."
-    assert ref1.current.render_collected(with_tag=False) == "Local1Foo."
-    assert ref2.current.render_collected(with_tag=False) == "Local2Foo."
+    with override_default_mode(Modes.COMPRESSED):
 
-    main_collector, ref1, ref2 = run_comp2(reuse_namespaces=["foo", "default"])
-    assert ref1.current.reuse_namespaces == {"foo", "default"}
-    assert main_collector.render_collected(with_tag=False) == "GlobalFoo.Local1Foo.Local2Foo."
-    assert ref1.current.render_collected(with_tag=False) == "GlobalBar."
-    assert ref2.current.render_collected(with_tag=False) == "GlobalBar."
+        main_collector, ref1, ref2 = run_comp2(reuse_non_global=False)
+        assert ref1.current.reuse_namespaces is None
+        assert main_collector.render_collected(with_tag=False) == "GlobalFoo.GlobalBar."
+        assert ref1.current.render_collected(with_tag=False) == "Local1Foo."
+        assert ref2.current.render_collected(with_tag=False) == "Local2Foo."
 
-    main_collector, ref1, ref2 = run_comp2(reuse_namespaces=["foo", "default"], reuse_non_global=False)
-    assert main_collector.render_collected(with_tag=False) == "GlobalFoo."
-    assert ref1.current.render_collected(with_tag=False) == "GlobalBar.Local1Foo."
-    assert ref2.current.render_collected(with_tag=False) == "GlobalBar.Local2Foo."
+        main_collector, ref1, ref2 = run_comp2(reuse_namespaces=["foo", "default"])
+        assert ref1.current.reuse_namespaces == {"foo", "default"}
+        assert main_collector.render_collected(with_tag=False) == "GlobalFoo.Local1Foo.Local2Foo."
+        assert ref1.current.render_collected(with_tag=False) == "GlobalBar."
+        assert ref2.current.render_collected(with_tag=False) == "GlobalBar."
 
-    main_collector, ref1, ref2 = run_comp2(reuse_namespaces=["foo", "default"], reuse_global=False)
-    assert main_collector.render_collected(with_tag=False) == "Local1Foo.Local2Foo."
-    assert ref1.current.render_collected(with_tag=False) == "GlobalFoo.GlobalBar."
-    assert ref2.current.render_collected(with_tag=False) == "GlobalFoo.GlobalBar."
+        main_collector, ref1, ref2 = run_comp2(reuse_namespaces=["foo", "default"], reuse_non_global=False)
+        assert main_collector.render_collected(with_tag=False) == "GlobalFoo."
+        assert ref1.current.render_collected(with_tag=False) == "GlobalBar.Local1Foo."
+        assert ref2.current.render_collected(with_tag=False) == "GlobalBar.Local2Foo."
+
+        main_collector, ref1, ref2 = run_comp2(reuse_namespaces=["foo", "default"], reuse_global=False)
+        assert main_collector.render_collected(with_tag=False) == "Local1Foo.Local2Foo."
+        assert ref1.current.render_collected(with_tag=False) == "GlobalFoo.GlobalBar."
+        assert ref2.current.render_collected(with_tag=False) == "GlobalFoo.GlobalBar."
+
+
+def test_all_css_render_at_once():
+
+    class CssLib(Element):
+        @classmethod
+        def render_css_global(cls, context):
+            return CssDict({
+                "%ext": {"ext": "end"}
+            })
+
+    class Foo(Element):
+
+        @classmethod
+        def render_css_global(cls, context):
+            return CssDict({
+                ".foo": extend("ext", css={
+                    "color": "FOO",
+                })
+            })
+
+    class Bar(Element):
+
+        @classmethod
+        def render_css_global(cls, context):
+            return CssDict({
+                ".bar": extend("ext", css={
+                    "color": "BAR",
+                })
+            })
+
+
+    class App(Element):
+        def render(self, context):
+            return <CSSCollector render_position="before">
+                <CssLib />
+                <Foo />
+                <Bar />
+            </CSSCollector>
+
+    with override_default_mode(Modes.NORMAL):
+        assert str(App()) == """\
+<style type="text/css">
+.foo, .bar {
+  ext: end;
+}
+.foo {
+  color: FOO;
+}
+.bar {
+  color: BAR;
+}
+</style>"""

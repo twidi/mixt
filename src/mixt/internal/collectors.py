@@ -345,8 +345,8 @@ Usage (we'll use ``CSSCollector`` in these examples but it works the same with `
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Type, Union, cast
 
-from mixt.contrib.css import CssDict, render_css
-from mixt.contrib.css.vars import Combine
+from mixt.contrib.css import CssDict, get_default_mode, render_css
+from mixt.contrib.css.vars import Combine, combine
 
 from ..element import Element
 from ..exceptions import InvalidPropValueError, MixtException
@@ -670,7 +670,7 @@ class Collector(Element, metaclass=CollectorMetaclass):
             for collected in self.__collected__[name]:
                 self.render_one_collected(collected, acc)
 
-        return self._str_list_to_string(acc)
+        return self.render_accumulated_collected_to_string(acc)
 
     def render_one_collected(self, collected: AnElement, acc: List) -> None:
         """Convert a collected thing and add it the the `acc` accumulator.
@@ -690,6 +690,22 @@ class Collector(Element, metaclass=CollectorMetaclass):
             acc.append(collected)
         else:
             self._render_element_to_list(collected, acc)
+
+    def render_accumulated_collected_to_string(self, acc: List) -> str:
+        """Render the colected things accumulated in `acc` to a sting.
+
+        Parameters
+        ----------
+        acc : List
+            The list where the collected things where accumulated.
+
+        Returns
+        -------
+        str
+            The final string to display.
+
+        """
+        return self._str_list_to_string(acc)
 
     def render(self, context: OptionalContext) -> Optional[OneOrManyElements]:
         """Return elements to be rendered as html.
@@ -770,9 +786,33 @@ class CSSCollector(Collector):
         For the parameters, see ``Collector.render_one_collected``.
         """
         if isinstance(collected, (CssDict, Combine)):
-            acc.append(render_css(collected))
+            acc.append(collected)
         else:
             super().render_one_collected(collected, acc)
+
+    def render_accumulated_collected_to_string(self, acc: List) -> str:
+        """Render the accumulated CSS parts to a string.
+
+        All the parts are aggregated in a ``Combine``, that will convert strings to ``Raw``.
+        This allow any parts to use "extends" defined previously.
+
+        For the parameters, see ``Collector.render_accumulated_collected_to_string``.
+
+        Returns
+        -------
+        str
+            The final CSS to display.
+
+        """
+        final_list: List = []
+        for item in acc:
+            if isinstance(item, Combine) or not callable(item):
+                final_list.append(item)
+                continue
+
+            self.render_one_collected(item(), final_list)
+
+        return get_default_mode().value["endline"] + render_css(combine(*final_list))
 
 
 class JSCollector(Collector):
