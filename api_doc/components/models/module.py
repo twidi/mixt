@@ -28,7 +28,7 @@ class Module(_BaseContainer):
         _target = "&:hover, &:target, &.focus-within"
         _focus = "&:hover, &:focus, &.focus-within"
 
-        return merge({
+        return combine({
             comment(): f"<{cls.__module__}.{cls.__name__}>",
         }, super().render_css_global(context), {
             ".module": {

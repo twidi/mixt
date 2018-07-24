@@ -277,6 +277,49 @@ def test_merge():
     }
 
 
+def test_combine():
+    assert vars.combine == "combine"
+
+    css = vars.combine()
+    assert isinstance(css, dict)
+    assert css == {}
+
+    css1 = {"a": "b"}
+    css = vars.combine(css1)
+    assert isinstance(css, dict)
+    assert css == {"a": "b"}
+
+
+    css1 = {"a": "b"}
+    css2 = {"aa": "bb"}
+    css3 = {"aaa": "bbb"}
+    css = vars.combine(css1, css2, css3)
+    assert isinstance(css, dict)
+    assert css == {
+        "a": "b",
+        "aa": "bb",
+        "aaa": "bbb"
+    }
+
+    css2 = {"a": "bb"}
+    css = vars.combine(css1, css2, css3)
+    assert isinstance(css, vars.Combine)
+    assert css.dicts == [
+        {"a": "b"},
+        {"a": "bb"},
+        {"aaa": "bbb"},
+    ]
+
+    css4 = {"a": "bbbb"}
+    css = vars.combine(css, css4)
+    assert isinstance(css, vars.Combine)
+    assert css.dicts == [
+        {"a": "b"},
+        {"a": "bb"},
+        {"aaa": "bbb"},
+        {"a": "bbbb"},
+    ]
+
 def test_add_css_var():
     def render_dict(d):
         return {
@@ -365,6 +408,7 @@ def test_defaults():
         assert _not is vars.negate
         assert Not is vars.negate
         assert merge is vars.merge
+        assert combine is vars.combine
         assert b is vars.builtins
         assert builtins is vars.builtins
 

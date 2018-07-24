@@ -50,7 +50,7 @@ class MainMenuCollector(MenuCollector):
                 }
             },
             tagged: {
-                "&:after": merge(
+                "&:after": combine(
                     context.styles.snippets['TAG'],
                     context.styles.snippets['HL'],
                 ),

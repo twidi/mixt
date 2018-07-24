@@ -6,16 +6,16 @@ from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Tuple, Union
 from .modes import Modes, get_default_mode
 from .units import QuantifiedUnit
 from .utils import dict_hash
-from .vars import Comment, Extend, Override, Raw, join, many, merge
+from .vars import Combine, Comment, Extend, Override, Raw, combine, join, many
 
 
-def render_css(css: Dict, mode: Optional[Modes] = None) -> str:
+def render_css(css: Union[Dict, Combine], mode: Optional[Modes] = None) -> str:
     """Convert some CSS given as a dict, to a string.
 
     Parameters
     ----------
-    css : Dict
-        The CSS, as a dict, to render.
+    css : Union[Dict, Combine]
+        The CSS, as a dict or an instance of ``Combine``, to render.
     mode : Modes
         The rendering mode to use. When not set/set to ``None``, the "default mode" will be used.
         See ``set_default_mode`` and ``override_default_mode`` to change it.
@@ -234,12 +234,12 @@ def _compose_selector(parent_key: str, child_key: Union[str, Sequence[str]]) -> 
     return ", ".join(key_part.strip().replace("&", "") for key_part in child_key)
 
 
-def _contains_properties(css: Dict[str, Any]) -> bool:
+def _contains_properties(css: Union[Dict[str, Any], Combine]) -> bool:
     """Check if the css has some properties or only other selectors.
 
     Parameters
     ----------
-    css : Dict[str, Any]
+    css : Union[Dict[str, Any], Combine]
         The css to check for properties
 
     Returns
@@ -260,13 +260,13 @@ class RenderingExtend(NamedTuple):
     """Data structure to save an extend during the rendering process."""
 
     name: str
-    css: Dict[str, Any]
+    css: Union[Dict[str, Any], Combine]
     selectors: List[str]
 
 
 def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-locals
     selector: str,
-    css: Dict,
+    css: Union[Dict, Combine],
     conf: Dict,
     level: int = -1,
     force_indent: str = "",
@@ -280,7 +280,7 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
     selector : str
         The base selector. Will be present before the opening ``{``.
     css : Dict
-        The CSS, as a dict, to render.
+        The CSS, as a dict or an instance of ``Combine``, to render.
     conf : Dict
         Configuration on how to render the css.
     level : int
@@ -323,7 +323,9 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
 
     stack: List[Tuple[str, Union[Dict, str]]] = list(css.items())
 
-    def register_extend(dct: Dict[str, Any], name: Optional[str] = None) -> str:
+    def register_extend(
+        dct: Union[Dict[str, Any], Combine], name: Optional[str] = None
+    ) -> str:
         """Register a new extend.
 
         A registered extend can then by used by the hash of the dict (obtained by calling
@@ -331,15 +333,15 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
 
         Parameters
         ----------
-        dct : Dict[str, Any]
-            The dict to use as a new extend.
+        dct : Union[Dict[str, Any], Combine]
+            The dict, or an instance of ``Combine``, to use as a new extend.
         name : str
             If given, this extend can be used by this name.
 
         Returns
         -------
         str
-            The hash of ``dtc`` (obtained by calling ``dict_hash(dct)``)
+            The hash of ``dtc`.
 
         Raises
         ------
@@ -354,7 +356,7 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
             if name in _extends:
                 raise ValueError(f"The extend `{name}` already exists")
 
-        dct_hash = str(dict_hash(dct))
+        dct_hash = str(dict_hash(dct) if isinstance(dct, dict) else hash(dct))
         if dct_hash not in _extends:
             _extends[dct_hash] = RenderingExtend("", dct, [])
 
@@ -370,14 +372,16 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
 
         return dct_hash
 
-    def use_extend(selector: str, extend: Union[str, Dict[str, Any], Extend]) -> None:
+    def use_extend(
+        selector: str, extend: Union[str, Dict[str, Any], Combine, Extend]
+    ) -> None:
         """Use the `extend` for the given `selector`.
 
         Parameters
         ----------
         selector : str
             The selector for which to use the given `extend`.
-        extend : Union[str, Dict[str, Any], Extend]
+        extend : Union[str, Dict[str, Any], Combine, Extend]
             The extend to use.
 
         Raises
@@ -386,7 +390,7 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
             If `extend` is given as a name and there is no extend with this name.
 
         """
-        if isinstance(extend, dict):
+        if isinstance(extend, (dict, Combine)):
             key = register_extend(extend)
 
         elif isinstance(extend, Extend):
@@ -431,11 +435,11 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
 
     while stack:  # pylint: disable=too-many-nested-blocks
         key: Union[str, Sequence[str]]
-        value: Union[Dict, str]
+        value: Any
 
         key, value = stack.pop(0)
 
-        if isinstance(value, dict):
+        if isinstance(value, (dict, Combine)):
             render_current_stack(merge_comments=False)
 
             if isinstance(key, GeneratorType):
@@ -449,7 +453,7 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
 
             elif isinstance(key, str) and key.startswith("@"):
                 if _extends:
-                    value = merge(
+                    value = combine(
                         {
                             ext.name or f"%{ext_key}": ext.css
                             for ext_key, ext in _extends.items()

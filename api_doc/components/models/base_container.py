@@ -38,7 +38,7 @@ class _BaseContainer(Element):
         return CssDict({
             comment(): f"<{cls.__module__}.BaseContainer.{cls.__name__}>",
             f".{_kind}": {
-                "> summary > .h:after": merge(
+                "> summary > .h:after": combine(
                     context.styles.snippets['TAG'],
                     context.styles.snippets['HL'],
                     {

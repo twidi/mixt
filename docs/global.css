@@ -528,6 +528,8 @@ details.docstring {
 .module-functions .value:hover, .module-functions .value:focus, .module-functions .value.focus-within {
     background: #4eb3d3 }
 
+/* </api_doc.components.models.module.BaseContainer.Module> */
+
 .module .class:hover, .module .class:target, .module .class.focus-within {
     background: #a8ddb5 }
 
@@ -546,7 +548,6 @@ details.docstring {
 .module .prop-types-props.doc-part .value {
     background: #2b8cbe }
 
-/* </api_doc.components.models.module.BaseContainer.Module> */
 /* </api_doc.components.models.module.Module> */
 
 /* <api_doc.components.manual.html_utils.HtmlUtils> */

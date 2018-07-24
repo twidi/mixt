@@ -84,7 +84,7 @@ Except for ``dummy`` and ``builtins``, they are normal CSS vars when used normal
 
                 {[
                     <Function obj={resolve_function(name, getattr(contrib_css.vars, name).__class__.__call__)} h_level={self.h_level+1} id_prefix="{id_prefix}-special_vars-" />
-                    for name in 'join many override extend raw comment string Not merge'.split()
+                    for name in 'join many override extend combine raw comment string Not merge'.split()
                 ]}
 
                 {self.render_dummy(f"{id_prefix}-special_vars", self.h_level+1)}

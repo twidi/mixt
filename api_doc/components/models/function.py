@@ -31,13 +31,13 @@ class Function(Element):
                 'classmethod'
             ]
         )
-        return merge({
+        return combine({
             comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".function-kind": {
                 display: none,
             },
             tagged: {
-                " > summary > .h:after": merge(
+                " > summary > .h:after": combine(
                     context.styles.snippets['TAG'],
                     context.styles.snippets['HL'],
                 ),

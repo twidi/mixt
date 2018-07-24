@@ -346,6 +346,7 @@ from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Type, Union, cast
 
 from mixt.contrib.css import CssDict, render_css
+from mixt.contrib.css.vars import Combine
 
 from ..element import Element
 from ..exceptions import InvalidPropValueError, MixtException
@@ -645,8 +646,8 @@ class Collector(Element, metaclass=CollectorMetaclass):
     def render_collected(self, *namespaces: str) -> str:
         """Render the content of all collected children at once.
 
-        It's done as if all the children of the collected ``Collect`` instances
-        were in the same ``Fragment``.
+        Will call ``render_one_collected`` for each collected part for the given
+        namespaces, then concat the rendered string.
 
         Parameters
         ----------
@@ -660,22 +661,35 @@ class Collector(Element, metaclass=CollectorMetaclass):
             All collected content stringified and concatenated.
 
         """
-        str_list: List[AnElement] = []
+        acc: List[AnElement] = []
 
         if not namespaces:
             namespaces = cast(tuple, self.__collected__.keys())
 
         for name in namespaces:
             for collected in self.__collected__[name]:
-                if isinstance(collected, Base) and not isinstance(collected, RawHtml):
-                    for child in collected.__children__:
-                        self._render_element_to_list(child, str_list)
-                elif isinstance(collected, str):
-                    str_list.append(collected)
-                else:
-                    self._render_element_to_list(collected, str_list)
+                self.render_one_collected(collected, acc)
 
-        return self._str_list_to_string(str_list)
+        return self._str_list_to_string(acc)
+
+    def render_one_collected(self, collected: AnElement, acc: List) -> None:
+        """Convert a collected thing and add it the the `acc` accumulator.
+
+        Parameters
+        ----------
+        collected : AnElement
+            A "thing" that was collected, to convert.
+        acc : List
+            The accumulator where to store the converted element
+
+        """
+        if isinstance(collected, Base) and not isinstance(collected, RawHtml):
+            for child in collected.__children__:
+                self._render_element_to_list(child, acc)
+        elif isinstance(collected, str):
+            acc.append(collected)
+        else:
+            self._render_element_to_list(collected, acc)
 
     def render(self, context: OptionalContext) -> Optional[OneOrManyElements]:
         """Return elements to be rendered as html.
@@ -748,12 +762,17 @@ class CSSCollector(Collector):
             Style(type=self.type)(Raw(str_collected)) if with_tag else str_collected
         )
 
-    @classmethod
-    def _render_element_to_list(cls, element: AnElement, acc: List) -> None:
-        if isinstance(element, CssDict):
-            acc.append(render_css(element))
+    def render_one_collected(self, collected: AnElement, acc: List) -> None:
+        """Convert a collected thing and add it the the `acc` accumulator.
+
+        For this ``CSSCollector``, manages ``CssDicts`` and ``Combine``.
+
+        For the parameters, see ``Collector.render_one_collected``.
+        """
+        if isinstance(collected, (CssDict, Combine)):
+            acc.append(render_css(collected))
         else:
-            super()._render_element_to_list(element, acc)
+            super().render_one_collected(collected, acc)
 
 
 class JSCollector(Collector):

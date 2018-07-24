@@ -162,10 +162,22 @@ Here is an example that resumes all the features:
 ...                         # the selector just before, so here it is for `nav ul li`.
 ...                         width: 5*em,
 ...
-...                         # And here it is for `nav ul li a`, still for the media query we defined
-...                         a: {
+...                         # And here it is for `nav ul li b`, still for the media query we defined
+...                         # We have to quote "b" because it's a shortcut for the `builtins` module
+...                         "b": {
 ...                             background: white,
-...                         }
+...                         },
+...
+...                         # Here the use of `combine` is not needed but it shows how you
+...                         # can pass many dicts (not limited to 2) for a selector.
+...                         # If no dicts share the same keys, a new dict will be returned, else
+...                         # it's a special object that will hold the dicts that will be rendered
+...                         # in order. It is useful if you want to compose dicts on the fly, or
+...                         # you want to use some "mixins"
+...                         a: combine(
+...                             {background: white},
+...                             {text-decoration: underline}
+...                         )
 ...                     }
 ...                 }
 ...             }
@@ -276,7 +288,7 @@ Here is an example that resumes all the features:
 ...
 ...         # If you don't want to bother with the different keys, you can use, like for comments,
 ...         # the `raw()` function that will produce a different string key each time.
-...         raw() ".baz { color: red; }"
+...         raw(): ".baz { color: red; }"
 ...     }
 
 >>> # Now we can render this css
@@ -318,8 +330,12 @@ Here is an example that resumes all the features:
       nav ul li {
         width: 5em;
       }
+      nav ul li b {
+        background: white;
+      }
       nav ul li a {
         background: white;
+        text-decoration: underline;
       }
     }
     header {
