@@ -1,7 +1,7 @@
 # coding: mixt
 
 from mixt import Element, Required, html
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, CssDict
 
 from .generic import Details, H
 
@@ -17,8 +17,9 @@ class DocPart(Element):
     # noinspection PyUnresolvedReferences
     @css_vars(globals())
     @classmethod
-    def render_pycss_global(cls, context):
-        return {
+    def render_css_global(cls, context):
+        return CssDict({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             ".doc-part": {
                 padding: (5*px, 0, 5*px, 5*px),
                 border-radius: (7*px, 0, 0, 7*px),
@@ -28,17 +29,9 @@ class DocPart(Element):
                 "&[open] > summary > .h": {
                     text-decoration: underline
                 }
-            }
-        }
-
-    @classmethod
-    def render_css_global(cls, context):
-        css = render_css((cls.render_pycss_global(context)))
-        return f"""
-/* <{cls.__module__}.{cls.__name__}> */
-{css}
-/* </{cls.__module__}.{cls.__name__}> */
-"""
+            },
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
+        })
 
     @classmethod
     def render_js_global(cls, context):

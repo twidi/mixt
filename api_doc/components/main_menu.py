@@ -1,4 +1,4 @@
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars
 
 from .generic import MenuCollector
 
@@ -8,7 +8,7 @@ class MainMenuCollector(MenuCollector):
     # noinspection PyUnresolvedReferences
     @css_vars(globals())
     @classmethod
-    def render_pycss_global(cls, context):
+    def render_css_global(cls, context):
         colors = context.styles.colors
 
         tagged = tuple(
@@ -22,7 +22,8 @@ class MainMenuCollector(MenuCollector):
             ]
         )
 
-        return merge({
+        return combine({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
             "#main-menu": {
                 background: colors[9],
                 color: white,
@@ -49,16 +50,13 @@ class MainMenuCollector(MenuCollector):
                 }
             },
             tagged: {
-                "&:after": merge(
-                    context.styles.snippets['TAG'],
-                    context.styles.snippets['HL'],
-                ),
+                "&:after": extend('TAG', 'HL')
             },
             "li:not(:hover)": {
-                "> .menu-class:after": context.styles.snippets['HL_REVERSE'],
+                "> .menu-class:after": extend('HL_REVERSE'),
                 "> details > summary:not(.current)": {
                     (f"> {t}" for t in tagged): {
-                        "&:after": context.styles.snippets['HL_REVERSE']
+                        "&:after": extend('HL_REVERSE')
                     },
                 }
             },
@@ -84,16 +82,9 @@ class MainMenuCollector(MenuCollector):
                 content: str(t.split('-')[-1])
             }
             for t in tagged
+        }, {
+            comment(): f"</{cls.__module__}.{cls.__name__}>"
         })
-
-    @classmethod
-    def render_css_global(cls, context):
-        css = render_css((cls.render_pycss_global(context)))
-        return f"""
-/* <{cls.__module__}.{cls.__name__}> */
-{css}
-/* </{cls.__module__}.{cls.__name__}> */
-"""
 
     @classmethod
     def render_js_global(cls, context):

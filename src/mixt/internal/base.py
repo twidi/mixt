@@ -1170,8 +1170,8 @@ class Base(object, metaclass=BaseMetaclass):
         """
         return self.to_string()
 
-    @staticmethod
-    def _render_element_to_list(element: AnElement, acc: List) -> None:
+    @classmethod
+    def _render_element_to_list(cls, element: AnElement, acc: List) -> None:
         """Fill the list `acc` with html string part of the given element.
 
         Parameters

@@ -1,6 +1,6 @@
 from typing import Callable, List, Dict
 
-from mixt import CSSCollector as DefaultCSSCollector, Element, html, Required
+from mixt import Element, html, Required
 from mixt.contrib.css import css_vars
 from mixt.contrib.css.units import QuantifiedUnit
 from mixt.contrib.css.vars import CSS_VARS
@@ -23,9 +23,9 @@ __colors__: List[str] = [
 
 # noinspection PyUnresolvedReferences
 @css_vars(globals())
-def create_snippets():
+def get_extends():
     return {
-        "TAG": {
+        "%TAG": {
             font-weight: normal,
             font-size: smaller,
             margin-left: 1*em,
@@ -34,11 +34,11 @@ def create_snippets():
             position: relative,
             top: -1*px,
         },
-        "HL": {
+        "%HL": {
             background: __colors__[9],
             color: white,
         },
-        "HL_REVERSE": {
+        "%HL_REVERSE": {
             background: white,
             color: __colors__[9],
         },
@@ -47,8 +47,7 @@ def create_snippets():
 
 class Styles:
     colors: List[str] = __colors__
-    snippets: Dict[str, Dict] = create_snippets()
-    breakpoint: QuantifiedUnit = CSS_VARS.rem(40)
+    breakpoint: QuantifiedUnit = CSS_VARS.rem(50)
 
 
 class StyleContext(BaseContext):
@@ -358,8 +357,3 @@ class TypesetStyle(Element):
     def render(self, context):
         css = html.Raw(TYPESET_CSS)
         return html.Style(type="text/css")(css) if self.with_tag else css
-
-
-class CSSCollector(DefaultCSSCollector):
-    def call_collected_method(self, method: Callable, context: OptionalContext, is_global: bool) -> str:
-        return super().call_collected_method(method, context, is_global)

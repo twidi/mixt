@@ -8,8 +8,8 @@ from mixt.contrib.css.loading import CSS_VARS, css_vars, import_css, load_css_ke
 from .test_vars import test_defaults
 
 
-DEFAULT_CSS_VARS_LEN = 137
-LOADED_CSS_VARS_LEN = 4977
+DEFAULT_CSS_VARS_LEN = 147
+LOADED_CSS_VARS_LEN = 4982
 
 
 def len_css_vars():

@@ -1,7 +1,7 @@
 # coding: mixt
 
 from mixt import DefaultChoices, Element, html
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, CssDict
 
 from ..doc import DocPart, DocHeader
 
@@ -24,7 +24,10 @@ class _BaseContainer(Element):
     # noinspection PyUnresolvedReferences
     @css_vars(globals())
     @classmethod
-    def render_pycss_global(cls, context):
+    def render_css_global(cls, context):
+        if cls is _BaseContainer:
+            return None
+
         colors = context.styles.colors
 
         _kind = cls.__kind__
@@ -32,12 +35,11 @@ class _BaseContainer(Element):
         _target = "&:hover, &:target, &.focus-within"
         _focus = "&:hover, &:focus, &.focus-within"
 
-        return {
+        return CssDict({
+            comment(): f"<{cls.__module__}.BaseContainer.{cls.__name__}>",
             f".{_kind}": {
-                "> summary > .h:after": merge(
-                    context.styles.snippets['TAG'],
-                    context.styles.snippets['HL'],
-                    {
+                "> summary > .h:after": extend('TAG', 'HL',
+                    css={
                         content: str(_kind),
                     }
                 ),
@@ -65,19 +67,8 @@ class _BaseContainer(Element):
                     }
                 },
             },
-        }
-
-    @classmethod
-    def render_css_global(cls, context):
-        if cls is _BaseContainer:
-            return ""
-
-        css = render_css((cls.render_pycss_global(context)))
-        return f"""
-/* <{cls.__module__}.BaseContainer.{cls.__name__}> */
-{css}
-/* </{cls.__module__}.BaseContainer.{cls.__name__}> */
-"""
+            comment(): f"</{cls.__module__}.BaseContainer.{cls.__name__}>",
+        })
 
     def render_content(self, id_prefix, context):
         obj = self.obj

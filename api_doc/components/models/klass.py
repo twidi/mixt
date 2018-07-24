@@ -1,6 +1,7 @@
 # coding: mixt
 
 from mixt import Required, html
+from mixt.contrib.css import css_vars, CssDict
 
 from ... import datatypes
 from . import PropTypes
@@ -16,9 +17,15 @@ class Class(_BaseContainer):
         _class: str = "doc-part class"
         obj: Required[datatypes.Class]
 
+    # noinspection PyUnresolvedReferences
+    @css_vars(globals())
     @classmethod
     def render_css_global(cls, context):
-        return super().render_css_global(context)
+        return combine({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
+        }, super().render_css_global(context), {
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
+        })
 
     def render_content(self, id_prefix, context):
         children_before, content, children_after = super().render_content(id_prefix, context)

@@ -11,11 +11,14 @@ class Modes(Enum):
     ----------
     COMPRESSED : dict
         The minimal mode, reduces the white space at the minimum, on one line.
+        Comments are not rendered.
     COMPACT : dict
         Render each selector on its own line, without indentation except for @ rules content.
+        Comments are not rendered.
     NORMAL : dict
         Each selector and each declaration is on its own line. Declarations are indented.
         Selectors are not, except in @ rules.
+        Comments are rendered.
     INDENT : dict
         Same as ``NORMAL`` but with each "sub" selector indented from is parent (".foo bar" is
         indented one more level than ".foo").
@@ -38,28 +41,26 @@ class Modes(Enum):
     ...         "@media(all and (max-width: 600px)": {
     ...             "": {
     ...                 "color": "red",
+    ...                 "/*": "a comment",
     ...                 "font-weight": "normal",
     ...                 ".foo": {
     ...                     "color": "yellow",
     ...                 }
     ...             }
     ...         },
+    ...         ":raw:": ".foo-bar {color: black}",
     ...         ".bar": {
     ...             "color": "orange",
     ...         },
     ...         "z-index": 1,
     ...     },
-    ...     ".baz": {
-    ...         "a": {"margin": "1px"},
-    ...         "b": {"margin": "2px"},
-    ...     }
     ... }
 
     >>> from mixt.contrib.css import Modes, render_css
     >>> print(render_css(css, Modes.COMPRESSED))
     .content{color:blue;font-weight:bold;background:green}.content .foo{color:green}@media(all and (
-    max-width: 600px){.content{color:red;font-weight:normal}.content .foo{color:yellow}}.content .ba
-    r{color:orange}.content{z-index:1}
+    max-width: 600px){.content{color:red;font-weight:normal}.content .foo{color:yellow}}.foo-bar {
+    color: black}.content .bar{color:orange}.content{z-index:1}
 
     >>> print(render_css(css, Modes.COMPACT))
     .content {color: blue; font-weight: bold; background: green}
@@ -68,6 +69,7 @@ class Modes(Enum):
      .content {color: red; font-weight: normal}
      .content .foo {color: yellow}
     }
+    .foo-bar {color: black}
     .content .bar {color: orange}
     .content {z-index: 1}
 
@@ -83,12 +85,14 @@ class Modes(Enum):
     @media(all and (max-width: 600px) {
       .content {
         color: red;
+        /* a comment */
         font-weight: normal;
       }
       .content .foo {
         color: yellow;
       }
     }
+    .foo-bar {color: black}
     .content .bar {
       color: orange;
     }
@@ -111,6 +115,7 @@ class Modes(Enum):
 
             .content {
                 color: red;
+                /* a comment */
                 font-weight: normal;
             }
 
@@ -118,6 +123,8 @@ class Modes(Enum):
                     color: yellow;
                 }
         }
+
+        .foo-bar {color: black}
 
         .content .bar {
             color: orange;
@@ -142,6 +149,7 @@ class Modes(Enum):
 
             .content {
                     color: red;
+                    /* a comment */
                     font-weight: normal;
                 }
 
@@ -149,6 +157,8 @@ class Modes(Enum):
                         color: yellow;
                     }
             }
+
+        .foo-bar {color: black}
 
         .content .bar {
                 color: orange;
@@ -171,10 +181,13 @@ class Modes(Enum):
 
             .content {
                 color: red;
+                /* a comment */
                 font-weight: normal }
 
                 .content .foo {
                     color: yellow } }
+
+        .foo-bar {color: black}
 
         .content .bar {
             color: orange }
@@ -197,6 +210,7 @@ class Modes(Enum):
         "indent_children": False,
         "force_indent_rule_children": "",
         "last_semi": False,
+        "display_comments": False,
     }
     COMPACT: Dict = {
         "indent": "",
@@ -211,6 +225,7 @@ class Modes(Enum):
         "indent_children": False,
         "force_indent_rule_children": " ",
         "last_semi": False,
+        "display_comments": False,
     }
     NORMAL: Dict = {
         "indent": "  ",
@@ -225,6 +240,7 @@ class Modes(Enum):
         "indent_children": False,
         "force_indent_rule_children": "",
         "last_semi": True,
+        "display_comments": True,
     }
     INDENT: Dict = {
         "indent": "    ",
@@ -239,6 +255,7 @@ class Modes(Enum):
         "indent_children": True,
         "force_indent_rule_children": "",
         "last_semi": True,
+        "display_comments": True,
     }
     INDENT2: Dict = {
         "indent": "    ",
@@ -253,6 +270,7 @@ class Modes(Enum):
         "indent_children": True,
         "force_indent_rule_children": "",
         "last_semi": True,
+        "display_comments": True,
     }
     INDENT3: Dict = {
         "indent": "    ",
@@ -267,6 +285,7 @@ class Modes(Enum):
         "indent_children": True,
         "force_indent_rule_children": "",
         "last_semi": False,
+        "display_comments": True,
     }
 
 

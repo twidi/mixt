@@ -1,5 +1,5 @@
 from mixt.contrib.css import Modes, render_css
-from mixt.contrib.css.vars import Var, dummy as _, join, many, media, override
+from mixt.contrib.css.vars import Var, dummy as _, join, many, media, override, combine
 
 
 # basic rendering (from dict of strings) is tested in ``test_modes.py``
@@ -358,6 +358,48 @@ def test_declaration_without_value():
 @charset 'UTF-8';
 .bar {
   padding: 1px;
+}
+"""
+    )
+
+
+def test_combine():
+    css = combine(
+        {
+            ".foo": {"a": {"color": "blue"}}
+        },
+        {
+            ".bar": {"color": "white"},
+            ".foo":
+                {
+                    "color": "red",
+                    "a": combine(
+                        {"color": "yellow"},
+                        {
+                            "text-decoration": "underline",
+                            "color": "pink",
+                        }
+                    )
+                },
+        }
+    )
+
+    assert (
+        render_css(css, mode=Modes.NORMAL)
+        == """\
+.foo a {
+  color: blue;
+}
+.bar {
+  color: white;
+}
+.foo {
+  color: red;
+}
+.foo a {
+  color: yellow;
+  text-decoration: underline;
+  color: pink;
 }
 """
     )

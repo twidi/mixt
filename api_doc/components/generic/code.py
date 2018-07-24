@@ -3,7 +3,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import PythonLexer, get_lexer_by_name
 
 from mixt import Element, Required, h
-from mixt.contrib.css import css_vars, render_css, Modes
+from mixt.contrib.css import css_vars, CssDict
 from mixt.exceptions import InvalidChildrenError
 
 
@@ -14,8 +14,10 @@ class SourceCode(Element):
     # noinspection PyUnresolvedReferences
     @css_vars(globals())
     @classmethod
-    def render_pycss_global(cls, context):
-        return {
+    def render_css_global(cls, context):
+        return CssDict({
+            comment(): f"<{cls.__module__}.{cls.__name__}>",
+            raw(): HtmlFormatter().get_style_defs(".code"),
             ".code": {
                 display: block,
                 background: transparent,
@@ -27,17 +29,8 @@ class SourceCode(Element):
                     white-space: pre,
                 }
             },
-        }
-
-    @classmethod
-    def render_css_global(cls, context):
-        css = render_css((cls.render_pycss_global(context)))
-        return f"""
-/* <{cls.__module__}.{cls.__name__}> */
-{HtmlFormatter().get_style_defs(".code")}
-{css}
-/* </{cls.__module__}.{cls.__name__}> */
-"""
+            comment(): f"</{cls.__module__}.{cls.__name__}>",
+        })
 
     def append(self, child_or_children):
         if len(self.__children__):

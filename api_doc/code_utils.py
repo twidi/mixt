@@ -381,7 +381,9 @@ def simplify_type(type_):
         .replace("mixt.internal.base.", "")\
         .replace("mixt.internal.html.", "")\
         .replace("mixt.element.", "")\
-        .replace("mixt.proptypes.", "")
+        .replace("mixt.proptypes.", "")\
+        .replace("mixt.contrib.css.vars.", "")\
+        .replace("mixt.contrib.css.utils.", "")
     for regexp in type_simplify_regexps:
         result = regexp.sub("\g<1>", result)
     return result\
