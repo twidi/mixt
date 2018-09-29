@@ -1,15 +1,18 @@
 """Provide the ``Element`` class to create reusable components."""
+from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
 
-from typing import List, Optional, Type, Union
+from mixt.exceptions import ElementError
 
 from .html import Fragment
 from .internal.base import (
     AnElement,
     Base,
+    BaseMetaclass,
     EmptyContext,
     ManyElements,
     OneOrManyElements,
     OptionalContext,
+    Props,
     WithClass,
 )
 
@@ -40,7 +43,7 @@ class Element(WithClass):
     # Notes: "html in python" does not work in a python shell, only in files.
     # And you must import ``html`` from ``mixt`` to use normal html tags.
 
-    >>> # coding: mixt
+    >>> #  coding: mixt
 
     >>> from mixt import Element, Required, html
 
@@ -173,11 +176,11 @@ class Element(WithClass):
 
             # filter by id
             elif selector[0] == "#":
-                select = lambda x: hasattr(x, 'get_id') and compare_str == x.get_id()
+                select = lambda x: hasattr(x, "get_id") and compare_str == x.get_id()
 
             # filter by tag name
             else:
-                select = lambda x: hasattr(x, '__tag__') and selector == x.__tag__
+                select = lambda x: hasattr(x, "__tag__") and selector == x.__tag__
 
         elif issubclass(selector, Base):
             select = lambda x: isinstance(x, selector)  # type: ignore
@@ -414,3 +417,295 @@ class Element(WithClass):
 
         """
         pass
+
+    def props_for(self, component: Type["Base"]) -> Props:
+        """Get the props defined for the given component.
+
+        Used when using ``ElementProxy`` to get the props of the proxied and the base.
+
+        Parameters
+        ----------
+        component : Type[Base]
+            The component for which we want to restrict the props
+
+        Returns
+        -------
+        Props
+            The dict of properties limited to the one of the given component.
+
+        Examples
+        --------
+        >>> class Component(ElementProxy):
+        ...     class PropTypes:
+        ...         val: int
+        >>> ComponentForCanvas = Component.For(html.Canvas)
+        >>> obj = ComponentForCanvas(val=3, height=300)
+        >>> obj.props
+        {'val': 3, 'height': 300}
+        >>> obj.props_for(html.Canvas)
+        {'height': 300}
+        >>> obj.props_for(Component)
+        {'val': 3}
+
+        Raises
+        ------
+        ElementError
+            If the component is not an Element or an HtmlElement
+
+        """
+        if not isinstance(component, type) or not issubclass(component, Base):
+            raise ElementError(
+                self.__display_name__,
+                f".props_for: the argument must be a subclass of `Base`",
+            )
+
+        return {
+            name: value
+            for name, value in self.props.items()
+            if name in component.PropTypes.__types__
+        }
+
+
+class ElementProxyMetaclass(BaseMetaclass):
+    """Metaclass of the ``ElementProxy`` class to manage base proxy."""
+
+    def __new__(
+        mcs, name: str, parents: Tuple[type, ...], attrs: Dict[str, Any]  # noqa: B902
+    ) -> Type["ElementProxy"]:
+        """Create a new ElementProxy subclass, with an intermediate "base proxy" if needed.
+
+        Parameters
+        ----------
+        mcs: type
+            The metaclass
+        name : str
+            The name of the class to construct.
+        parents : Sequence[type]
+            A tuple with the direct parent classes of the class to construct.
+        attrs : Dict[str, Any]
+            Dict with the attributes defined in the class.
+
+        Returns
+        -------
+        Type[ElementProxy]
+            The newly created ElementProxy subclass
+
+        Raises
+        ------
+        ElementError
+            If `parents` contain more than one class based on ``ElementProxy``.
+
+        """
+        attrs["__proxied_classes__"] = {}
+        if "proxied" not in attrs:
+            attrs["proxied"] = None
+
+        try:
+            proxies = [klass for klass in parents if issubclass(klass, ElementProxy)]
+        except NameError:
+            # we are creating the ElementProxy class
+            pass
+        else:
+            # only one ElementProxy in parents
+            if len(proxies) > 1:
+                raise ElementError(
+                    "ElementProxy", f" can only be present once in the inheritance tree"
+                )
+
+            proxy_parent = cast(ElementProxy, proxies[0])
+            if proxy_parent.__proxy_base__ != proxy_parent:
+                # the proxy parent is `proxy_parent.For(proxied)`
+                # so we create a class using __proxy_base__ instead of the parent
+                base_parents = tuple(
+                    proxy_parent.__proxy_base__
+                    if proxy_parent is proxy_parent
+                    else parent
+                    for parent in parents
+                )
+                new_base = cast(Type["ElementProxy"], mcs(name, base_parents, attrs))
+                # and we return a new class for this proxied
+                return new_base._For(proxy_parent.proxied, is_source=True)
+
+        cls = cast(Type["ElementProxy"], super().__new__(mcs, name, parents, attrs))
+
+        if not attrs.get("__proxy_base__"):
+            cls.__proxy_base__ = cls
+        return cls
+
+
+class ElementProxy(Element, metaclass=ElementProxyMetaclass):
+    """A subclass of ``Element`` that is a proxy to another.
+
+    Attributes
+    ----------
+    proxied : Type[Base]
+        The proxied component to be used in ``render``. It's the one passed to the ``For``
+        method.
+
+    Examples
+    --------
+    # You can define a proxy for an html element. Using `ElementProxy.For` allows to have
+    # a default proxied element. Without `.For`, the new proxy will need to be called later
+    # with `.For`.
+
+    >>> class Button(ElementProxy.For(html.Button)):
+    ...     class PropTypes:
+    ...         label: str = 'button'
+    ...     def render(self, context):
+    ...         # we pass the the proxied element its own props
+    ...         return self.proxied(**self.proxied_props)(
+    ...             html.Span()(self.label)
+    ...         )
+
+    # The "props" value is for the button element.
+    >>> str(Button(value=1)) == '<button value="1"><span>button</span></button>'
+
+    # To change the proxied element, use `For`:
+    >>> str(Button.For(html.Div)("ok")) == '<div><span>ok</span></div>'
+
+    """
+
+    proxied: Type[Base]
+    __proxy_base__: Type["ElementProxy "]
+    __proxied_classes__: Dict[Type[Base], Type["ElementProxy"]] = {}
+    __not_an_html_tag__: bool = True
+
+    @classmethod
+    def For(cls, component: Type[Base]) -> Type["ElementProxy"]:
+        """Return a new version of this proxy, for the given element to proxy.
+
+        Parameters
+        ----------
+        component : Type[Base]
+            The element be be proxied
+
+        Returns
+        -------
+        Type[ElementProxy]
+            A new version of this proxy
+
+        """
+        return cls._For(component, is_source=False)
+
+    @classmethod
+    def _For(cls, component: Type[Base], is_source: bool) -> Type["ElementProxy"]:
+        """Return a new version of this proxy, for the given element to proxy.
+
+        Parameters
+        ----------
+        component : Type[Base]
+            The element be be proxied
+        is_source : bool
+            If ``True``, the name will be the name of the proxy base, because this proxy base
+            class was created by inheriting from a call to `For` of another proxy.
+            If ``False``, it's for all other cases, and we compose the new name based on the
+            current proxy base and the given component.
+
+        Returns
+        -------
+        Type[ElementProxy]
+            A new version of this proxy
+
+        Raises
+        ------
+        ElementError
+            If the `component` is not a subclass of ``Base``
+
+        """
+        if not isinstance(component, type) or not issubclass(component, Base):
+            raise ElementError(
+                cls.__display_name__, f".For: the argument must be a subclass of `Base`"
+            )
+
+        if component not in cls.__proxy_base__.__proxied_classes__:
+
+            if is_source:
+                name = cls.__proxy_base__.__tag__
+            else:
+                name = (
+                    f"{cls.__proxy_base__.__tag__}"
+                    "For"
+                    f"{component.__tag__[0].upper()}{component.__tag__[1:]}"
+                )
+
+            cls.__proxy_base__.__proxied_classes__[component] = cast(
+                Type[ElementProxy],
+                ElementProxyMetaclass(
+                    name,
+                    (cls.__proxy_base__,),
+                    {
+                        "__proxy_base__": cls.__proxy_base__,
+                        "PropTypes": type(
+                            "PropTypes",
+                            (component.PropTypes, cls.__proxy_base__.PropTypes),
+                            {},
+                        ),
+                        "proxied": component,
+                        "__tag__": name,
+                        "__display_name__": name,
+                    },
+                ),
+            )
+
+        return cls.__proxy_base__.__proxied_classes__[component]
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Check that an ``ElementProxy`` can only be used if it actually proxy something.
+
+        For the parameters, see ``Element.__init__``.
+
+        """
+        if not self.proxied:
+            raise ElementError(
+                self.__display_name__,
+                f" has nothing to proxy. `{self.__class__.__name__}.For(...)` must be used",
+            )
+        super().__init__(**kwargs)
+
+    @property
+    def proxied_props(self) -> Props:
+        """Get he props for the proxied element.
+
+        Returns
+        -------
+        Props
+            The props limited to the one for the proxied element.
+
+        Examples
+        --------
+        >>> class Component(ElementProxy):
+        ...     class PropTypes:
+        ...         val: int
+        >>> ComponentForCanvas = Component.For(html.Canvas)
+        >>> obj = ComponentForCanvas(val=3, height=300)
+        >>> obj.props
+        {'val': 3, 'height': 300}
+        >>> obj.proxied_props
+        {'height': 300}
+
+        """
+        return self.props_for(self.proxied)
+
+    @property
+    def own_props(self) -> Props:
+        """Get he props for the base proxy element.
+
+        Returns
+        -------
+        Props
+            The props limited to the one for the base proxy element.
+
+        Examples
+        --------
+        >>> class Component(ElementProxy):
+        ...     class PropTypes:
+        ...         val: int
+        >>> ComponentForCanvas = Component.For(html.Canvas)
+        >>> obj = ComponentForCanvas(val=3, height=300)
+        >>> obj.props
+        {'val': 3, 'height': 300}
+        >>> obj.own_props
+        {'val': 3}
+
+        """
+        return self.props_for(self.__proxy_base__)

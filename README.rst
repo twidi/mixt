@@ -80,7 +80,9 @@ Yes it is inspired by React (in fact, mainly JSX) and we borrow some of the conc
 
 And we added:
 
+- write css using python
 - css/js collectors
+- proxy components
 
 
 ************
