@@ -95,7 +95,7 @@ class BaseMetaclass(type):
         proptypes_classes.extend(
             [
                 parent.PropTypes  # type: ignore
-                for parent in parents[::-1]
+                for parent in parents
                 if hasattr(parent, "PropTypes")
             ]
         )

@@ -9,6 +9,7 @@ from .base import (  # noqa: F401  # isort: skip  # pylint: disable=unused-impor
     BaseMetaclass,
     Fragment,
     OneOrManyElements,
+    Props,
     WithClass,
     escape,
 )
@@ -54,9 +55,10 @@ class HtmlElementMetaclass(BaseMetaclass):
             Dict with the attributes defined in the class.
 
         """
-        if not attrs.get("__tag__"):
-            attrs["__tag__"] = name.lower()
-        __tags__[attrs["__tag__"]] = name
+        if not getattr(cls, "__not_an_html_tag__", False):
+            if not attrs.get("__tag__"):
+                attrs["__tag__"] = name.lower()
+            __tags__[attrs["__tag__"]] = name
 
         super().__init__(name, parents, attrs)
 
@@ -150,6 +152,19 @@ class HtmlBaseElement(WithClass, metaclass=HtmlElementMetaclass):
         onvolumechange: str
         onwaiting: str
 
+    def _get_attribute_props(self) -> Props:
+        """Get the props to render as attributes.
+
+        All props by default, but can be overridden.
+
+        Returns
+        -------
+        Props
+            The props to render as attributes.
+
+        """
+        return self.props
+
     def _render_attributes(self) -> List[str]:
         """Return a string of the current instance attributes, from props, ready for html.
 
@@ -162,7 +177,7 @@ class HtmlBaseElement(WithClass, metaclass=HtmlElementMetaclass):
 
         """
         result: List[str] = []
-        for name, value in self.props.items():
+        for name, value in self._get_attribute_props().items():
             html_name = BasePropTypes.__to_html__(name)
             if self.PropTypes.__is_bool__(name):  # type: ignore
                 if value:
