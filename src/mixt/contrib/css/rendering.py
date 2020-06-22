@@ -352,7 +352,7 @@ def _render_css(  # noqa: 37  # pylint: disable=too-many-branches,too-many-local
         if name is not None:
             name = name.strip()
             if not name[1:]:
-                raise ValueError(f"An extend must have a name: it cannot be `%` alone")
+                raise ValueError("An extend must have a name: it cannot be `%` alone")
             if name in _extends:
                 raise ValueError(f"The extend `{name}` already exists")
 

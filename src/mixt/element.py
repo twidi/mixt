@@ -239,8 +239,8 @@ class Element(WithClass):
             parent = self.__parent__
             while parent:
                 if isinstance(parent, Element):
-                    parent.postrender_child_element(  # type: ignore
-                        self, self._element, context
+                    parent.postrender_child_element(
+                        self, self._element, context  # type: ignore
                     )
                 parent = parent.__parent__
 
@@ -357,7 +357,6 @@ class Element(WithClass):
         ...         print(f"Rendered <{self.__display_name__}> in {duration}")
 
         """
-        pass
 
     def postrender(self, element: AnElement, context: OptionalContext) -> None:
         """Provide a hook to do things after the element is rendered.
@@ -372,7 +371,6 @@ class Element(WithClass):
             The context passed through the tree.
 
         """
-        pass
 
     def postrender_child_element(
         self, child: "Element", child_element: AnElement, context: OptionalContext
@@ -416,7 +414,6 @@ class Element(WithClass):
         <strong>John</strong></div>
 
         """
-        pass
 
     def props_for(self, component: Type["Base"]) -> Props:
         """Get the props defined for the given component.
@@ -456,7 +453,7 @@ class Element(WithClass):
         if not isinstance(component, type) or not issubclass(component, Base):
             raise ElementError(
                 self.__display_name__,
-                f".props_for: the argument must be a subclass of `Base`",
+                ".props_for: the argument must be a subclass of `Base`",
             )
 
         return {
@@ -471,7 +468,7 @@ class ElementProxyMetaclass(BaseMetaclass):
 
     def __new__(
         mcs, name: str, parents: Tuple[type, ...], attrs: Dict[str, Any]  # noqa: B902
-    ) -> Type["ElementProxy"]:
+    ) -> "ElementProxyMetaclass":
         """Create a new ElementProxy subclass, with an intermediate "base proxy" if needed.
 
         Parameters
@@ -509,7 +506,7 @@ class ElementProxyMetaclass(BaseMetaclass):
             # only one ElementProxy in parents
             if len(proxies) > 1:
                 raise ElementError(
-                    "ElementProxy", f" can only be present once in the inheritance tree"
+                    "ElementProxy", " can only be present once in the inheritance tree"
                 )
 
             proxy_parent = cast(ElementProxy, proxies[0])
@@ -517,9 +514,7 @@ class ElementProxyMetaclass(BaseMetaclass):
                 # the proxy parent is `proxy_parent.For(proxied)`
                 # so we create a class using __proxy_base__ instead of the parent
                 base_parents = tuple(
-                    proxy_parent.__proxy_base__
-                    if proxy_parent is proxy_parent
-                    else parent
+                    proxy_parent.__proxy_base__ if parent is proxy_parent else parent
                     for parent in parents
                 )
                 new_base = cast(Type["ElementProxy"], mcs(name, base_parents, attrs))
@@ -614,7 +609,7 @@ class ElementProxy(Element, metaclass=ElementProxyMetaclass):
         """
         if not isinstance(component, type) or not issubclass(component, Base):
             raise ElementError(
-                cls.__display_name__, f".For: the argument must be a subclass of `Base`"
+                cls.__display_name__, ".For: the argument must be a subclass of `Base`"
             )
 
         if component not in cls.__proxy_base__.__proxied_classes__:

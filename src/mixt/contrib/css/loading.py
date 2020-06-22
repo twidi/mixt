@@ -176,13 +176,15 @@ def load_css_keywords(keywords: Optional[List[str]] = None) -> None:
         full list from ``mixt.contrib.css.css_keywords_list``.
 
     """
-    from .units import load_css_units
+    from .units import load_css_units  # pylint: disable=import-outside-toplevel
 
     if keywords is None:
         if load_css_keywords.main_is_done:  # type: ignore
             return
         load_css_keywords.main_is_done = True  # type: ignore
-        from .css_keywords_list import KEYWORDS
+        from .css_keywords_list import (  # pylint: disable=import-outside-toplevel
+            KEYWORDS,
+        )
 
         keywords = KEYWORDS
 

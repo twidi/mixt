@@ -800,7 +800,7 @@ class Comment(Raw):
     prefix = "/*"
 
     def __call__(  # type: ignore  # pylint: disable=useless-super-delegation
-        self
+        self,
     ) -> str:
         """Generate a new unique key starting with ``/*``, to be used as a CSS key.
 
@@ -1239,7 +1239,7 @@ class Combine(Var):
             yield from dct.items()
 
 
-CSS_VALUES_TYPE = Dict[Tuple[Any, Any], Any]
+CssValuesType = Dict[Tuple[Any, Any], Any]
 
 
 class CssVarsDict(dict):
@@ -1247,7 +1247,7 @@ class CssVarsDict(dict):
 
     Attributes
     ----------
-    __values__ : CSS_VALUES_TYPE
+    __values__ : CssValuesType
         Will hold "unique" values. Used to create new vars that have different keys but the same
         values.
 
@@ -1275,7 +1275,7 @@ class CssVarsDict(dict):
 
         """
         super().__init__(**kwargs)
-        self.__values__: CSS_VALUES_TYPE = {}
+        self.__values__: CssValuesType = {}
 
     def __getattr__(self, name: str) -> Any:
         """Return the value stored for the key `name`.

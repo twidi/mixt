@@ -390,7 +390,6 @@ class Comment(Base):
             The list where to append nothing.
 
         """
-        pass
 
 
 class Doctype(Base):

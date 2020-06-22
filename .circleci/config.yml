@@ -2,13 +2,26 @@ version: 2
 
 references:
 
-  # docker container for python only jobs
-  python_only_config: &python_only_config
+  docker_python: &docker_python
     working_directory: ~/mixt
     docker:
-      - image: circleci/python:3.6.5
-        environment: &default_environ
+      - environment: &default_environ
           MIXT_DEBUG=True
+
+  docker_python_36: &docker_python_36
+    <<: *docker_python
+    docker:
+      - image: circleci/python:3.6
+
+  docker_python_37: &docker_python_37
+    <<: *docker_python
+    docker:
+      - image: circleci/python:3.7
+
+  docker_python_38: &docker_python_38
+    <<: *docker_python
+    docker:
+      - image: circleci/python:3.8
 
   # build steps to save/restore the directory used by pip to cache downloaded packages
   save_pip_cache: &save_pip_cache
@@ -29,12 +42,8 @@ references:
       at: "~/"
 
 
-# jobs definition: they are used in ``workflows``
-jobs:
-
   # get the code from git and save the repo to pass it to the next job
-  checkout_code:
-    <<: *python_only_config
+  job_checkout_code: &job_checkout_code
     steps:
       - checkout
       - persist_to_workspace:
@@ -43,14 +52,15 @@ jobs:
             - mixt
 
   # install the project code and dependencies and save the venv and pip cache
-  install_code:
-    <<: *python_only_config
+  # ssh config is needed because we actually use a git+ssh dependency on our setup.py
+  job_install_code: &job_install_code
     steps:
       - *attach_workspace
       - *restore_pip_cache
       - run:
           name: Install code
           command: |
+            mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
             python -m venv ~/venv
             source ~/venv/bin/activate
             pip install --upgrade pip
@@ -62,10 +72,9 @@ jobs:
             - venv
             - mixt
 
-  # 4 next jobs are linters: mypy, black, flake8 and pylint
+  # 5 next jobs are linters: mypy, isort, black, flake8 and pylint
   # they all use the workspace
-  linter_mypy:
-    <<: *python_only_config
+  job_linter_mypy: &job_linter_mypy
     steps:
       - *attach_workspace
       - run:
@@ -74,8 +83,7 @@ jobs:
             source ~/venv/bin/activate
             make mypy
 
-  linter_isort:
-    <<: *python_only_config
+  job_linter_isort: &job_linter_isort
     steps:
       - *attach_workspace
       - run:
@@ -84,8 +92,7 @@ jobs:
             source ~/venv/bin/activate
             make check-isort
 
-  linter_black:
-    <<: *python_only_config
+  job_linter_black: &job_linter_black
     steps:
       - *attach_workspace
       - run:
@@ -94,8 +101,7 @@ jobs:
             source ~/venv/bin/activate
             make check-black
 
-  linter_flake8:
-    <<: *python_only_config
+  job_linter_flake8: &job_linter_flake8
     steps:
       - *attach_workspace
       - run:
@@ -104,8 +110,7 @@ jobs:
             source ~/venv/bin/activate
             make flake8
 
-  linter_pylint:
-    <<: *python_only_config
+  job_linter_pylint: &job_linter_pylint
     steps:
       - *attach_workspace
       - run:
@@ -114,9 +119,8 @@ jobs:
             source ~/venv/bin/activate
             make pylint
 
-  # run the tests
-  run_tests:
-    <<: *python_only_config
+  # run the tests suite
+  job_run_tests: &job_run_tests
     steps:
       - *attach_workspace
       - run:
@@ -125,10 +129,8 @@ jobs:
             source ~/venv/bin/activate
             make test
 
-
   # run check and tests for every commit in the history for which it is not already done
-  check_every_commit:
-    <<: *python_only_config
+  job_check_every_commit: &job_check_every_commit
     steps:
       - *attach_workspace
       - *restore_pip_cache
@@ -142,8 +144,7 @@ jobs:
             .circleci/check-every-commit.sh
 
   # will build the python package, using the tag as the base version, suffixed with info from git describe if not a tag
-  build_python_package:
-    <<: *python_only_config
+  job_build_python_package: &job_build_python_package
     steps:
       - *attach_workspace
       - run:
@@ -160,8 +161,7 @@ jobs:
             - ~/mixt/dist
 
   # will test that the python wheel package is installable and works
-  test_python_package_whl:
-    <<: *python_only_config
+  job_test_python_package_whl: &job_test_python_package_whl
     steps:
       - checkout
       - *restore_pip_cache
@@ -171,6 +171,7 @@ jobs:
       - run:
           name: Check package
           command: |
+            mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
             ls -la
             mv dist _dist
             rm -r src
@@ -185,8 +186,7 @@ jobs:
             make tests
 
   # will test that the python tar.gz package is installable and works
-  test_python_package_targz:
-    <<: *python_only_config
+  job_test_python_package_targz: &job_test_python_package_targz
     steps:
       - checkout
       - *restore_pip_cache
@@ -196,6 +196,7 @@ jobs:
       - run:
           name: Check package
           command: |
+            mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
             ls -la
             python -m venv ~/venv
             source ~/venv/bin/activate
@@ -213,8 +214,7 @@ jobs:
             make tests
 
   # will check that documentation is up to date
-  check_doc:
-    <<: *python_only_config
+  job_check_doc: &job_check_doc
     steps:
       - *attach_workspace
       - run:
@@ -229,55 +229,176 @@ jobs:
           paths:
             - mixt/docs
 
+
+# jobs definition: they are used in ``workflows``
+jobs:
+
+  checkout_code-py36:
+    <<: *docker_python_36
+    <<: *job_checkout_code
+  install_code-py36:
+    <<: *docker_python_36
+    <<: *job_install_code
+  run_tests-py36:
+    <<: *docker_python_36
+    <<: *job_run_tests
+  build_python_package-py36:
+    <<: *docker_python_36
+    <<: *job_build_python_package
+  test_python_package_whl-py36:
+    <<: *docker_python_36
+    <<: *job_test_python_package_whl
+  test_python_package_targz-py36:
+    <<: *docker_python_36
+    <<: *job_test_python_package_targz
+
+  checkout_code-py37:
+    <<: *docker_python_37
+    <<: *job_checkout_code
+  install_code-py37:
+    <<: *docker_python_37
+    <<: *job_install_code
+  run_tests-py37:
+    <<: *docker_python_37
+    <<: *job_run_tests
+  build_python_package-py37:
+    <<: *docker_python_37
+    <<: *job_build_python_package
+  test_python_package_whl-py37:
+    <<: *docker_python_37
+    <<: *job_test_python_package_whl
+  test_python_package_targz-py37:
+    <<: *docker_python_37
+    <<: *job_test_python_package_targz
+
+  checkout_code-py38:
+    <<: *docker_python_38
+    <<: *job_checkout_code
+  install_code-py38:
+    <<: *docker_python_38
+    <<: *job_install_code
+  linter_mypy-py38:
+    <<: *docker_python_38
+    <<: *job_linter_mypy
+  linter_isort-py38:
+    <<: *docker_python_38
+    <<: *job_linter_isort
+  linter_black-py38:
+    <<: *docker_python_38
+    <<: *job_linter_black
+  linter_flake8-py38:
+    <<: *docker_python_38
+    <<: *job_linter_flake8
+  linter_pylint-py38:
+    <<: *docker_python_38
+    <<: *job_linter_pylint
+  run_tests-py38:
+    <<: *docker_python_38
+    <<: *job_run_tests
+  check_every_commit-py38:
+    <<: *docker_python_38
+    <<: *job_check_every_commit
+  build_python_package-py38:
+    <<: *docker_python_38
+    <<: *job_build_python_package
+  test_python_package_whl-py38:
+    <<: *docker_python_38
+    <<: *job_test_python_package_whl
+  test_python_package_targz-py38:
+    <<: *docker_python_38
+    <<: *job_test_python_package_targz
+  check_doc-py38:
+    <<: *docker_python_38
+    <<: *job_check_doc
+
+
 workflows:
   version: 2
 
-  mixt:
+  mixt-py36:
     jobs:
-      - checkout_code
-      - install_code:
+      - checkout_code-py36
+      - install_code-py36:
           requires:
-            - checkout_code
-      - linter_mypy:
+            - checkout_code-py36
+      - run_tests-py36:
           requires:
-            - install_code
-      - linter_isort:
+            - install_code-py36
+      - build_python_package-py36:
           requires:
-            - install_code
-      - linter_black:
+            - run_tests-py36
+      - test_python_package_whl-py36:
           requires:
-            - install_code
-      - linter_flake8:
+            - build_python_package-py36
+      - test_python_package_targz-py36:
           requires:
-            - install_code
-      - linter_pylint:
+            - build_python_package-py36
+
+  mixt-py37:
+    jobs:
+      - checkout_code-py37
+      - install_code-py37:
           requires:
-            - install_code
-      - run_tests:
+            - checkout_code-py37
+      - run_tests-py37:
           requires:
-            - install_code
-      - check_every_commit:
+            - install_code-py37
+      - build_python_package-py37:
           requires:
-            - install_code
-      - build_python_package:
+            - run_tests-py37
+      - test_python_package_whl-py37:
           requires:
-            - linter_mypy
-            - linter_isort
-            - linter_black
-            - linter_flake8
-            - linter_pylint
-            - run_tests
-      - check_doc:
+            - build_python_package-py37
+      - test_python_package_targz-py37:
           requires:
-            - linter_mypy
-            - linter_isort
-            - linter_black
-            - linter_flake8
-            - linter_pylint
-            - run_tests
-      - test_python_package_whl:
+            - build_python_package-py37
+
+  mixt-py38:
+    jobs:
+      - checkout_code-py38
+      - install_code-py38:
           requires:
-            - build_python_package
-      - test_python_package_targz:
+            - checkout_code-py38
+      - linter_mypy-py38:
           requires:
-            - build_python_package
+            - install_code-py38
+      - linter_isort-py38:
+          requires:
+            - install_code-py38
+      - linter_black-py38:
+          requires:
+            - install_code-py38
+      - linter_flake8-py38:
+          requires:
+            - install_code-py38
+      - linter_pylint-py38:
+          requires:
+            - install_code-py38
+      - run_tests-py38:
+          requires:
+            - install_code-py38
+      - check_every_commit-py38:
+          requires:
+            - install_code-py38
+      - build_python_package-py38:
+          requires:
+            - linter_mypy-py38
+            - linter_isort-py38
+            - linter_black-py38
+            - linter_flake8-py38
+            - linter_pylint-py38
+            - run_tests-py38
+      - check_doc-py38:
+          requires:
+            - linter_mypy-py38
+            - linter_isort-py38
+            - linter_black-py38
+            - linter_flake8-py38
+            - linter_pylint-py38
+            - run_tests-py38
+      - test_python_package_whl-py38:
+          requires:
+            - build_python_package-py38
+      - test_python_package_targz-py38:
+          requires:
+            - build_python_package-py38

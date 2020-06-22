@@ -276,10 +276,10 @@ def enhance_return(doc, name, types=None):
         elif len(doc["Returns"]) == 1:
             return_types = [simplify_type(return_type)]
     if not return_types:
-        return_types = [simplify_type(ret_type) for ret_type, *__ in doc[name]]
+        return_types = [simplify_type(ret.type) for ret in doc[name]]
     result = []
-    for index, (*__, ret_doc) in enumerate(doc[name]):
-        return_result = {"type": return_types[index], "doc": ret_doc}
+    for index, ret_doc in enumerate(doc[name]):
+        return_result = {"type": return_types[index], "doc": ret_doc.desc}
         enhance_multilines_doc(return_result, "doc")
         return_result["doc"] = [return_result["doc"][0], return_result["doc"][1:]]
         result.append(return_result)
@@ -354,7 +354,7 @@ def load_docstring(obj):
                     for name in base_doc["Parameters"].keys():
                         if name not in doc["Parameters"]:
                             doc["Parameters"][name] = base_doc["Parameters"][name]
-            enhance_return(doc, "Returns",annotations)
+            enhance_return(doc, "Returns", annotations)
             enhance_raises(doc, "Raises")
 
         if doc.get("Examples"):
@@ -369,7 +369,7 @@ load_docstring.cache = {}
 
 
 type_simplify_regexps = [
-    re.compile("_ForwardRef\('([^']*)'\)"),
+    re.compile("ForwardRef\(([^)]*)\)"),
     re.compile("<class '([^']*)'>"),
 ]
 
@@ -430,7 +430,7 @@ def get_class_that_defined_method(method):
 
 
 def method_type(klass, name):
-    from .inspect_mate import is_class_method, is_property_method, is_regular_method, is_static_method
+    from inspect_mate import is_class_method, is_property_method, is_regular_method, is_static_method
     if is_regular_method(klass, name):
         return 'method'
     if is_class_method(klass, name):

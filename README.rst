@@ -2222,7 +2222,7 @@ And now it works:
 User guide conclusion
 =====================
 
-Hurray we made it! All the main features of ``mixt`` explained. You can now use ``mixt`` in your ovn projects.
+Hurray we made it! All the main features of ``mixt`` explained. You can now use ``mixt`` in your own projects.
 
 ***
 API

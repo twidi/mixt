@@ -316,7 +316,7 @@ def set_default_mode(mode: Modes) -> None:
 
 @contextmanager
 def override_default_mode(  # pylint: disable=missing-yield-doc,missing-yield-type-doc
-    mode: Modes
+    mode: Modes,
 ) -> Any:
     """Create a context manager to change the default rendering mode in a ``with`` block.
 

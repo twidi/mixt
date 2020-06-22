@@ -251,7 +251,7 @@ class Page(Element):
         title: Required[str]
         h_title: Optional[str]
         slug: Required[str]
-        conf: Required[List[Dict]]
+        conf: Required[list]
         global_css_collector: Required[CSSCollector]
         global_js_collector: Required[JSCollector]
 
@@ -346,7 +346,7 @@ def files_to_render():
         files.append([
             f"{page['slug']}.html",
             page['title'],
-            lambda **args: StyleContext(styles=Styles)(Page(**args)),
+            lambda **args: StyleContext(styles=Styles())(Page(**args)),
             {
                 'title': page['title'],
                 'h_title': page.get('h_title'),

@@ -85,8 +85,6 @@ class PropTypeError(PropError):
     Base: ``PropError``.
     """
 
-    pass
-
 
 class PropTypeChoicesError(PropTypeError):
     """Exception related to prop-types definition for type "choices".
@@ -94,16 +92,12 @@ class PropTypeChoicesError(PropTypeError):
     Base: ``PropTypeError``.
     """
 
-    pass
-
 
 class PropTypeRequiredError(PropTypeError):
     """Exception related to prop-types definition for required props.
 
     Base: ``PropTypeError``.
     """
-
-    pass
 
 
 class InvalidPropNameError(PropError, AttributeError):
@@ -245,8 +239,6 @@ class InvalidChildrenError(ElementError):
 
     Base: ``ElementError``.
     """
-
-    pass
 
 
 class GeneralParserError(Exception):

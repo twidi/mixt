@@ -10,7 +10,7 @@
     <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">return</span> <span class="o">&lt;</span><span class="n">div</span><span class="o">&gt;</span><span class="n">Hello</span><span class="p">,</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">}</span><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
 
-<span class="k">print</span><span class="p">(</span><span class="o">&lt;</span><span class="n">Hello</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;World&quot;</span><span class="o">/&gt;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="o">&lt;</span><span class="n">Hello</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;World&quot;</span><span class="o">/&gt;</span><span class="p">)</span>
 </pre></div>
 <p>And execute it:</p><div class="code"><pre><span></span>$ python example.py
 &lt;div&gt;Hello, World&lt;/div&gt;
@@ -24,7 +24,7 @@
     <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">()(</span><span class="s2">&quot;Hello, &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-<span class="k">print</span><span class="p">(</span><span class="n">Hello</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;World&quot;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">Hello</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;World&quot;</span><span class="p">))</span>
 </pre></div>
 </div></details><details id="features" class="doc-part rst-section" tabindex="-1" open><summary><h2 class="h">Features</h2><a class="permalink" href="#features" title="Permalink to here">¶</a></summary><div class="content"><p>Yes it is inspired by React (in fact, mainly JSX) and we borrow some of the concept:</p><ul><li><p>props and PropTypes with validation</p></li><li><p>dev-mode to validate props in dev but not in production to speed things up (your tests should have tested that everything is ok)</p></li><li><p>context</p></li><li><p>class components or simple function components</p></li><li><p>high order components</p></li></ul><p>And we added:</p><ul><li><p>write css using python</p></li><li><p>css/js collectors</p></li><li><p>proxy components</p></li></ul></div></details><details id="installation" class="doc-part rst-section" tabindex="-1" open><summary><h2 class="h">Installation</h2><a class="permalink" href="#installation" title="Permalink to here">¶</a></summary><div class="content"><p>Run these two commands. The second one will tell python how to understand files with html inside.</p><div class="code"><pre><span></span>pip install mixt
 mixt-post-install

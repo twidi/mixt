@@ -41,7 +41,10 @@ class Required(Generic[RequiredType]):
     ...
 
 
-class Choices(Sequence):
+SequenceItem = TypeVar("SequenceItem", covariant=True)
+
+
+class Choices(Sequence[SequenceItem]):
     """For PropTypes that must be chosen from a list of values.
 
     Examples
