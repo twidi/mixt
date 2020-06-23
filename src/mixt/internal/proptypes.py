@@ -5,11 +5,6 @@ from contextlib import contextmanager
 import keyword
 from typing import Any, Dict, Set, Type, get_type_hints
 
-from pytypes import (  # we use "pytypes" to check complex types
-    TypeCheckError,
-    typechecked,
-)
-
 from ..exceptions import (
     InvalidPropBoolError,
     InvalidPropChoiceError,
@@ -19,6 +14,10 @@ from ..exceptions import (
     RequiredPropError,
 )
 from ..proptypes import Choices, DefaultChoices, NotProvided, Required
+from ..vendor.pytypes import (  # we use "pytypes" to check complex types
+    TypeCheckError,
+    typechecked,
+)
 
 
 FUTURE_KEYWORDS: Set[str] = {
