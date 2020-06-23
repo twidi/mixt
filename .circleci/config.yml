@@ -140,6 +140,7 @@ references:
       - run:
           name: Check every commits
           command: |
+            mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
             source ~/venv/bin/activate
             .circleci/check-every-commit.sh
 
