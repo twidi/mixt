@@ -112,3 +112,10 @@ def test4():
                    <else>b</else>
                    {count[0]}
                </Fragment>) == "b1"
+
+def test5():
+    assert str(<div>
+      <if cond="{True if True else False}">
+      whatever
+      </if>
+      </div>) == '<div>whatever</div>'

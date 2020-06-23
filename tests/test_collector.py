@@ -52,12 +52,12 @@ def test_collector():
     assert len(collector.__collected__["default"]) == 5
 
     assert len(collector.__collected__["default"][0].__children__) == 2
-    assert collector.__collected__["default"][0].__children__[0].prop("text") == "PARENT"
+    assert collector.__collected__["default"][0].__children__[0] == "PARENT"
     assert isinstance(collector.__collected__["default"][0].__children__[1], html.Div)
 
     for index, text in [(1, "CHILD"), (2, "CHILD"), (4, "CHILD")]:
         assert len(collector.__collected__["default"][index].__children__) == 1
-        assert collector.__collected__["default"][index].__children__[0].prop("text") == text
+        assert collector.__collected__["default"][index].__children__[0] == text
 
     assert len(collector.__collected__["default"][3].__children__) == 1
     assert collector.__collected__["default"][3].__children__[0] == """
