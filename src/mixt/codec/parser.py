@@ -2,6 +2,7 @@ import tokenize
 
 from mixt import html
 from mixt.exceptions import ParserStateError, ParserError, RequiredPropError, InvalidPropNameError
+from mixt.internal.base import escape
 from mixt.internal.html import __tags__
 from mixt.internal.proptypes import BasePropTypes
 from .html_tokenizer import HTMLTokenizer
@@ -341,7 +342,10 @@ class PyxlParser(HTMLTokenizer):
         # XXX XXX mimics old pyxl, but this is gross and likely wrong. I'm pretty sure we actually
         # want %r instead of this crazy quote substitution and "%s".
         data = data.replace('"', '\\"')
-        self.output.append('html.Raw("%s"), ' % data)
+        if data != escape(data):
+            self.output.append('html.Raw("%s"), ' % data)
+        else:
+            self.output.append('"%s", ' % data)
 
         self.last_thing_was_python = False
         self.last_thing_was_close_if_tag = False
