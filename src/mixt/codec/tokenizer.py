@@ -120,9 +120,9 @@ def pyxl_untokenize(tokens):
     return ''.join(parts)
 
 def pyxl_tokenize(readline):
-    return transform_tokens(RewindableTokenStream(readline))
+    return transform_tokens(RewindableTokenStream(readline), str_function='str')
 
-def transform_tokens(tokens):
+def transform_tokens(tokens, str_function):
     last_nw_token = None
     prev_token = None
 
@@ -156,7 +156,7 @@ def transform_tokens(tokens):
              (last_nw_token[0] == tokenize.NAME and last_nw_token[1] == 'else') or
              (last_nw_token[0] == tokenize.NAME and last_nw_token[1] == 'yield') or
              (last_nw_token[0] == tokenize.NAME and last_nw_token[1] == 'return'))):
-            token = get_pyxl_token(token, tokens)
+            token = get_pyxl_token(token, tokens, str_function)
 
         if ttype not in (tokenize.INDENT,
                          tokenize.DEDENT,
@@ -197,9 +197,9 @@ def transform_tokens(tokens):
         prev_token = token
         yield token
 
-def get_pyxl_token(start_token, tokens):
+def get_pyxl_token(start_token, tokens, str_function):
     ttype, tvalue, tstart, tend, tline = start_token
-    pyxl_parser = PyxlParser(tstart[0], tstart[1])
+    pyxl_parser = PyxlParser(tstart[0], tstart[1], str_function)
     pyxl_parser.feed(start_token)
 
     for token in tokens:
@@ -211,7 +211,7 @@ def get_pyxl_token(start_token, tokens):
                 division = get_end_pos(tstart, mid)
                 pyxl_parser.feed_position_only((ttype, mid, tstart, division, tline))
                 tokens.rewind_and_retokenize((ttype, right, division, tend, tline))
-                python_tokens = list(transform_tokens(tokens))
+                python_tokens = list(transform_tokens(tokens, str_function))
 
                 close_curly = next(tokens)
                 ttype, tvalue, tstart, tend, tline = close_curly

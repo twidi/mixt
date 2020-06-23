@@ -35,7 +35,6 @@ from .internal.html import (  # noqa: F401  # pylint: disable=unused-import
     Fragment,
     HtmlElement,
     HtmlElementNoChild,
-    IFStack,
     Raw,
     RawHtml,
 )
