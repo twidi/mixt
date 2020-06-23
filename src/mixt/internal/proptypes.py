@@ -1,11 +1,14 @@
 """Define the class that will handle everything about props."""
 
+from collections.abc import Sequence
 from contextlib import contextmanager
 import keyword
-from typing import Any, Dict, Sequence, Set, Type, get_type_hints
+from typing import Any, Dict, Set, Type, get_type_hints
 
-import enforce  # we use "enforce" to check complex types
-from enforce.exceptions import RuntimeTypeError
+from pytypes import (  # we use "pytypes" to check complex types
+    TypeCheckError,
+    typechecked,
+)
 
 from ..exceptions import (
     InvalidPropBoolError,
@@ -16,10 +19,6 @@ from ..exceptions import (
     RequiredPropError,
 )
 from ..proptypes import Choices, DefaultChoices, NotProvided, Required
-
-
-# Allow using a subclass of one defined in PropTypes
-enforce.config({"mode": "covariant"})
 
 
 FUTURE_KEYWORDS: Set[str] = {
@@ -217,7 +216,9 @@ class BasePropTypes:
         return name in cls.__required_props__
 
     @classmethod
-    def __validate_types__(cls: Type["BasePropTypes"]) -> None:
+    def __validate_types__(  # pylint: disable=too-many-branches; # noqa: C901
+        cls: Type["BasePropTypes"],
+    ) -> None:
         """Validate the types of the props defined in the current PropTypes class.
 
         Raises
@@ -246,8 +247,18 @@ class BasePropTypes:
         for name, prop_type in cls.__types__.items():
 
             is_required = False
-            if issubclass(prop_type, Required):
-                is_required = True
+
+            try:
+                if issubclass(prop_type, Required):
+                    is_required = True
+            except TypeError:
+                try:
+                    if prop_type.__origin__ is Required:
+                        is_required = True
+                except AttributeError:
+                    pass
+
+            if is_required:
                 prop_type = prop_type.__args__[0]
                 cls.__types__[name] = prop_type
                 cls.__required_props__.add(name)
@@ -262,6 +273,7 @@ class BasePropTypes:
                     )
 
                 choices = getattr(cls, name)
+
                 if not isinstance(choices, Sequence) or isinstance(choices, str):
                     raise PropTypeChoicesError(
                         cls.__owner_name__,
@@ -294,8 +306,8 @@ class BasePropTypes:
 
             cls.__default_props__[name] = cls.__validate__(name, default)
 
-    @classmethod  # noqa: C901
-    def __validate__(  # pylint: disable=too-many-return-statements,too-many-branches
+    @classmethod
+    def __validate__(  # pylint: disable=too-many-branches, too-many-return-statements; # noqa: C901
         cls, name: str, value: Any
     ) -> Any:
         """Validate the `value` for the prop defined by `name` and return it if ok.
@@ -389,16 +401,15 @@ class BasePropTypes:
 
         except TypeError:
 
-            @enforce.runtime_validation  # type: ignore
+            @typechecked  # type: ignore
             def check(  # type: ignore  # pylint: disable=missing-param-doc,missing-type-doc,unused-argument
-                prop_value: prop_type  # type: ignore
+                prop_value: prop_type,  # type: ignore
             ):
                 """Let ``enforce`` check that the value is valid."""
-                pass
 
             try:
                 check(value)
-            except RuntimeTypeError:
+            except TypeCheckError:
                 raise InvalidPropValueError(cls.__owner_name__, name, value, prop_type)
 
             return value

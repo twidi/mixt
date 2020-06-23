@@ -24,16 +24,15 @@ patchy.patch(
 @@ -1,4 +1,6 @@
  def _check_encoding(self, lineno, line, file_encoding):
 +    if file_encoding == 'mixt':
-+        return six.text_type(line)
++        return line.decode()
      try:
-         return six.text_type(line, file_encoding)
+         return line.decode(file_encoding)
      except UnicodeDecodeError as ex:
     """,
 )
 
 
 def register(  # pylint: disable=missing-param-doc,missing-type-doc,unused-argument
-    linter: Any
+    linter: Any,
 ) -> None:
     """Needed for pylint, even if we do nothing with it."""
-    pass

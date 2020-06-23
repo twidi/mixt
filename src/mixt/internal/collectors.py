@@ -405,7 +405,6 @@ class CollectorMetaclass(BaseMetaclass):
                         The context passed through the tree.
 
                     """
-                    pass
 
             cls.Collect = Collect
 

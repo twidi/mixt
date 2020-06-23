@@ -79,9 +79,9 @@ class BaseMetaclass(type):
         super().__init__(name, parents, attrs)  # type: ignore
 
         tag = attrs.get("__tag__") or name
-        setattr(cls, "__tag__", tag)
+        cls.__tag__ = tag
         display_name = attrs.get("__display_name__") or tag
-        setattr(cls, "__display_name__", display_name)
+        cls.__display_name__ = display_name
 
         proptypes_classes = []
         exclude: Set[str] = set()
@@ -95,7 +95,7 @@ class BaseMetaclass(type):
         proptypes_classes.extend(
             [
                 parent.PropTypes  # type: ignore
-                for parent in parents[::-1]
+                for parent in parents
                 if hasattr(parent, "PropTypes")
             ]
         )
@@ -117,7 +117,7 @@ class BaseMetaclass(type):
 
         PropTypes.__validate_types__()
 
-        setattr(cls, "PropTypes", PropTypes)
+        cls.PropTypes = PropTypes
 
 
 class Ref:
@@ -201,7 +201,7 @@ class Ref:
         self.__element__ = element
 
 
-class Base(object, metaclass=BaseMetaclass):
+class Base(metaclass=BaseMetaclass):
     """The base of all elements. Manage PropTypes, props, context and children.
 
     Attributes
@@ -723,12 +723,10 @@ class Base(object, metaclass=BaseMetaclass):
         except InvalidPropNameError:
             if allow_invalid:
                 return False
-            else:
-                raise
+            raise
         except UnsetPropError:
             return False
-        else:
-            return True
+        return True
 
     def set_prop(self, name: str, value: Any) -> Any:
         """Set the `value` of the prop defined by `name`, if it is valid.

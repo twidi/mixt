@@ -27,7 +27,7 @@ dev:  ## Install the project in the current environment, with its dependencies, 
 
 .PHONY: dev-upgrade
 dev-upgrade:  ## Upgrade all default+dev dependencies defined in setup.cfg
-	@pip install --upgrade `python -c 'import setuptools; o = setuptools.config.read_configuration("setup.cfg")["options"]; print(" ".join(o["install_requires"] + o["extras_require"]["dev"] + o["extras_require"]["doc"]))'`
+	@pip install --upgrade `python -c 'import setuptools; o = setuptools.config.read_configuration("setup.cfg")["options"]; print(" ".join(lib for lib in (o["install_requires"] + o["extras_require"]["dev"] + o["extras_require"]["doc"]) if "@" not in lib))'`
 	@pip install -e .
 
 .PHONY: lint

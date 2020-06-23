@@ -1,7 +1,7 @@
 """Utils for mixt.contrib.css."""
 
 import builtins
-import collections
+import collections.abc as collections
 from keyword import iskeyword as iskeyworld_default
 from typing import Callable, Dict, List, Mapping
 
@@ -108,5 +108,3 @@ def dict_hash(dct: Dict) -> int:
 
 class CssDict(dict):
     """A dict to help mixt CSS collector render css dicts itself."""
-
-    pass

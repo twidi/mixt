@@ -80,13 +80,9 @@ class A(_Hyperlink):  # pylint: disable=invalid-name
 class Abbr(HtmlElement):
     """Implement the ``abbr`` HTML tag."""
 
-    pass
-
 
 class Address(HtmlElement):
     """Implement the ``address`` HTML tag."""
-
-    pass
 
 
 class Area(_Hyperlink):
@@ -134,8 +130,6 @@ class _Media(HtmlElement):
 
 class Audio(_Media):
     """Implement the ``audio`` HTML tag."""
-
-    pass
 
 
 class B(HtmlElement):  # pylint: disable=invalid-name
@@ -245,8 +239,6 @@ class Canvas(HtmlElement):
 class Caption(HtmlElement):
     """Implement the ``caption`` HTML tag."""
 
-    pass
-
 
 class Cite(HtmlElement):
     """Implement the ``cite`` HTML tag."""
@@ -286,13 +278,9 @@ class Data(HtmlElement):
 class Datalist(HtmlElement):
     """Implement the ``datalist`` HTML tag."""
 
-    pass
-
 
 class Dd(HtmlElement):
     """Implement the ``dd`` HTML tag."""
-
-    pass
 
 
 class Del(HtmlElement):
@@ -334,8 +322,6 @@ class Dl(HtmlElement):
 
 class Dt(HtmlElement):
     """Implement the ``dt`` HTML tag."""
-
-    pass
 
 
 class Em(HtmlElement):
@@ -426,49 +412,33 @@ class H(HtmlElement):  # noqa: E742  # pylint: disable=invalid-name
 class _H(HtmlElement):
     """Base for normal H* elements."""
 
-    pass
-
 
 class H1(_H):
     """Implement the ``h1`` HTML tag."""
-
-    pass
 
 
 class H2(_H):
     """Implement the ``h2`` HTML tag."""
 
-    pass
-
 
 class H3(_H):
     """Implement the ``h3`` HTML tag."""
-
-    pass
 
 
 class H4(_H):
     """Implement the ``h4`` HTML tag."""
 
-    pass
-
 
 class H5(_H):
     """Implement the ``h5`` HTML tag."""
-
-    pass
 
 
 class H6(_H):
     """Implement the ``h6`` HTML tag."""
 
-    pass
-
 
 class Head(HtmlElement):
     """Implement the ``head`` HTML tag."""
-
-    pass
 
 
 class Header(HtmlElement):
@@ -1026,8 +996,6 @@ class Label(HtmlElement):
 class Legend(HtmlElement):
     """Implement the ``legend`` HTML tag."""
 
-    pass
-
 
 class Li(HtmlElement):
     """Implement the ``li`` HTML tag."""
@@ -1131,13 +1099,9 @@ class Meter(HtmlElement):
 class Nav(HtmlElement):
     """Implement the ``nav`` HTML tag."""
 
-    pass
-
 
 class Noscript(HtmlElement):
     """Implement the ``noscript`` HTML tag."""
-
-    pass
 
 
 class Object(HtmlElement):
@@ -1224,8 +1188,6 @@ class Param(HtmlElement):
 
 class Picture(HtmlElement):
     """Implement the ``picture`` HTML tag."""
-
-    pass
 
 
 class Pre(HtmlElement):
@@ -1438,8 +1400,6 @@ class Td(HtmlElement):
 class Template(HtmlElement):
     """Implement the ``template`` HTML tag."""
 
-    pass
-
 
 class Textarea(HtmlElement):
     """Implement the ``textarea`` HTML tag."""
@@ -1496,8 +1456,6 @@ class Time(HtmlElement):
 
 class Title(HtmlElement):
     """Implement the ``title`` HTML tag."""
-
-    pass
 
 
 class Tr(HtmlElement):

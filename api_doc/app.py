@@ -2,7 +2,7 @@
 
 from typing import Dict, List, Optional
 
-from mixt import Element, CSSCollector, JSCollector, Ref, Required, exceptions, html, __version__
+from mixt import Element, ElementProxy, CSSCollector, JSCollector, Ref, Required, exceptions, html, __version__
 from mixt.contrib.css import css_vars
 from mixt.internal import collectors, dev_mode
 
@@ -50,10 +50,18 @@ PAGES = [
                 'attributes': ['__tag__', '__display_name__'],
                 'methods': [
                     'prop', 'prop_name', 'has_prop', 'set_prop', 'unset_prop', 'prop_default',
-                    'is_prop_default', 'prop_type', 'is_prop_required', 'set_props', 'props', 'to_string',
-                    'children', 'append', 'prepend', 'remove', 'add_class', 'append_class', 'prepend_class',
-                    'remove_class', 'has_class', 'classes', 'render', 'prerender', 'postrender',
-                    'postrender_child_element', 'add_ref',
+                    'is_prop_default', 'prop_type', 'is_prop_required', 'set_props', 'props', 'props_for',
+                    'to_string', 'children', 'append', 'prepend', 'remove', 'add_class', 'append_class',
+                    'prepend_class', 'remove_class', 'has_class', 'classes', 'render', 'prerender',
+                    'postrender', 'postrender_child_element', 'add_ref',
+                ],
+            },
+            {
+                'type': "class",
+                'class': ElementProxy,
+                'attributes': ['proxied'],
+                'methods': [
+                    'For', 'proxied_props', 'own_props'
                 ],
             },
             {
@@ -243,7 +251,7 @@ class Page(Element):
         title: Required[str]
         h_title: Optional[str]
         slug: Required[str]
-        conf: Required[List[Dict]]
+        conf: Required[list]
         global_css_collector: Required[CSSCollector]
         global_js_collector: Required[JSCollector]
 
@@ -338,7 +346,7 @@ def files_to_render():
         files.append([
             f"{page['slug']}.html",
             page['title'],
-            lambda **args: StyleContext(styles=Styles)(Page(**args)),
+            lambda **args: StyleContext(styles=Styles())(Page(**args)),
             {
                 'title': page['title'],
                 'h_title': page.get('h_title'),
