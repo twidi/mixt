@@ -39,6 +39,12 @@ class PyxlParser(HTMLTokenizer):
             self.output.append(' else None, ')
             self.last_thing_was_close_if_tag = False
 
+    def start_element(self):
+        """Mark the start of an element.
+        This is to allow figuring out how many children exist.
+        """
+        if self.open_tags:
+            self.open_tags[-1]['children'] += 1
 
     def feed(self, token):
         ttype, tvalue, tstart, tend, tline = token
@@ -85,6 +91,7 @@ class PyxlParser(HTMLTokenizer):
             self.output.append("%s, " % Untokenizer().untokenize(tokens).rstrip())
             self.next_thing_is_python = False
             self.last_thing_was_python = True
+            self.start_element()
         elif self.state in [State.BEFORE_ATTRIBUTE_VALUE,
                             State.ATTRIBUTE_VALUE_DOUBLE_QUOTED,
                             State.ATTRIBUTE_VALUE_SINGLE_QUOTED,
@@ -216,7 +223,8 @@ class PyxlParser(HTMLTokenizer):
         return data
 
     def handle_starttag(self, tag, attrs, kwargs_attrs=None, call=True):
-        self.open_tags.append({'tag':tag, 'pos': self.end, 'attrs': attrs})
+        self.start_element()
+        self.open_tags.append({'tag':tag, 'pos': self.end, 'attrs': attrs, 'children': 0})
         if tag == 'if':
             self.handle_close_if()
 
@@ -227,6 +235,7 @@ class PyxlParser(HTMLTokenizer):
             if 'cond' not in attrs:
                 raise ParserError("Invalid <if> tag", self.end, RequiredPropError('if', 'cond'))
 
+            self.open_tags[-1]['open'] = len(self.output)  # track Fragment pos so it can be deleted
             self.output.append('html.Fragment()(')
             self.last_thing_was_python = False
             self.last_thing_was_close_if_tag = False
@@ -239,7 +248,9 @@ class PyxlParser(HTMLTokenizer):
                 raise ParserError("<else> tag must come right after </if>", self.end)
 
             self.delete_last_comma()
-            self.output.append('else html.Fragment()(')
+            self.output.append('else ')
+            self.open_tags[-1]['open'] = len(self.output)
+            self.output.append('html.Fragment()(')
             self.last_thing_was_python = False
             self.last_thing_was_close_if_tag = False
             return
@@ -308,6 +319,13 @@ class PyxlParser(HTMLTokenizer):
                 f"[line={self.end[0]}, col={self.end[1]}]", open_tag['pos']
             )
 
+        # If we are finishing an if or an else and it only had one child, we can safely
+        # remove the x_frag that opened it.
+        if tag_name in ('if', 'else') and call and open_tag['children'] == 1:
+            self.output[-1] = ''
+            self.delete_last_comma()
+            self.output[open_tag['open']] = ''
+
         if open_tag['tag'] == 'if':
             self.output.append(' if ')
             # If another if/else appears in the condition, we need to parenthesize it.
@@ -337,6 +355,7 @@ class PyxlParser(HTMLTokenizer):
         if not data:
             return
 
+        self.start_element()
         self.handle_close_if()
 
         # XXX XXX mimics old pyxl, but this is gross and likely wrong. I'm pretty sure we actually
