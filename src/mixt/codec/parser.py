@@ -11,7 +11,7 @@ from .pytokenize import Untokenizer
 
 
 class PyxlParser(HTMLTokenizer):
-    def __init__(self, row, col):
+    def __init__(self, row, col, str_function):
         super().__init__()
         self.start = self.end = (row, col)
         self.output = []
@@ -20,6 +20,7 @@ class PyxlParser(HTMLTokenizer):
         self.next_thing_is_python = False
         self.last_thing_was_python = False
         self.last_thing_was_close_if_tag = False
+        self.str_function = str_function
 
     def delete_last_comma(self):
         for i in reversed(range(len(self.output))):
@@ -199,7 +200,7 @@ class PyxlParser(HTMLTokenizer):
                 output.append('"".join((')
                 for part in attr_value:
                     if type(part) == list:
-                        output.append('str(')
+                        output.append('{}('.format(self.str_function))
                         output.append(Untokenizer().untokenize(part))
                         output.append(')')
                     else:
