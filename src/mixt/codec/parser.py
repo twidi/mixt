@@ -20,6 +20,25 @@ class PyxlParser(HTMLTokenizer):
         self.last_thing_was_python = False
         self.last_thing_was_close_if_tag = False
 
+    def delete_last_comma(self):
+        for i in reversed(range(len(self.output))):
+            stripped = self.output[i].rstrip()
+            if stripped and not stripped[0] == '#':
+                assert stripped[-1] == ',', (self.output, stripped, i)
+                self.output[i] = self.output[i][:len(stripped)-1] + self.output[i][len(stripped):]
+                return
+        assert False, "couldn't find a comma"
+
+    def handle_close_if(self):
+        """Clean up after an unpaired if statement.
+        Should be called at the beginning of any construct other than an else.
+        """
+        if self.last_thing_was_close_if_tag:
+            self.delete_last_comma()
+            self.output.append(' else None, ')
+            self.last_thing_was_close_if_tag = False
+
+
     def feed(self, token):
         ttype, tvalue, tstart, tend, tline = token
 
@@ -50,6 +69,8 @@ class PyxlParser(HTMLTokenizer):
             self.end = tend
 
     def feed_python(self, tokens):
+        self.handle_close_if()
+
         ttype, tvalue, tstart, tend, tline = tokens[0]
         assert tstart[0] >= self.end[0], "row went backwards"
         if tstart[0] > self.end[0]:
@@ -194,8 +215,10 @@ class PyxlParser(HTMLTokenizer):
         return data
 
     def handle_starttag(self, tag, attrs, kwargs_attrs=None, call=True):
-        self.open_tags.append({'tag':tag, 'pos': self.end})
+        self.open_tags.append({'tag':tag, 'pos': self.end, 'attrs': attrs})
         if tag == 'if':
+            self.handle_close_if()
+
             if len(attrs) != 1:
                 for attr in attrs:
                     if attr != 'cond':
@@ -203,9 +226,7 @@ class PyxlParser(HTMLTokenizer):
             if 'cond' not in attrs:
                 raise ParserError("Invalid <if> tag", self.end, RequiredPropError('if', 'cond'))
 
-            self.output.append('html.IFStack.push_condition(bool(')
-            self.output.extend(self._handle_attr_value(attrs['cond']))
-            self.output.append(')) and html.Fragment()(')
+            self.output.append('html.Fragment()(')
             self.last_thing_was_python = False
             self.last_thing_was_close_if_tag = False
             return
@@ -216,10 +237,13 @@ class PyxlParser(HTMLTokenizer):
             if not self.last_thing_was_close_if_tag:
                 raise ParserError("<else> tag must come right after </if>", self.end)
 
-            self.output.append('(not html.IFStack.last) and html.Fragment()(')
+            self.delete_last_comma()
+            self.output.append('else html.Fragment()(')
             self.last_thing_was_python = False
             self.last_thing_was_close_if_tag = False
             return
+
+        self.handle_close_if()
 
         tag_lower = tag.lower()
         if tag == tag_lower and tag_lower in __tags__:
@@ -268,6 +292,8 @@ class PyxlParser(HTMLTokenizer):
         self.last_thing_was_close_if_tag = False
 
     def handle_endtag(self, tag_name, call=True):
+        self.handle_close_if()
+
         if call:
             # finish call to __call__
             self.output.append(")")
@@ -282,7 +308,8 @@ class PyxlParser(HTMLTokenizer):
             )
 
         if open_tag['tag'] == 'if':
-            self.output.append(',html.IFStack.leave_if()')
+            self.output.append(' if ')
+            self.output.extend(self._handle_attr_value(open_tag['attrs']['cond']))
             self.last_thing_was_close_if_tag = True
         else:
             self.last_thing_was_close_if_tag = False
@@ -300,6 +327,8 @@ class PyxlParser(HTMLTokenizer):
                 data, self.last_thing_was_python, self.next_thing_is_python)
         if not data:
             return
+
+        self.handle_close_if()
 
         # XXX XXX mimics old pyxl, but this is gross and likely wrong. I'm pretty sure we actually
         # want %r instead of this crazy quote substitution and "%s".

@@ -1,6 +1,6 @@
 """Internal mixt code to help creating HTML tags. Also contains some special HTML "tags"."""
 
-from typing import Any, Dict, List, Optional, Sequence, cast
+from typing import Any, Dict, List, Sequence, cast
 
 from ..exceptions import InvalidChildrenError
 from ..proptypes import Choices, NotProvided, Required
@@ -518,41 +518,3 @@ class ConditionalNonComment(ConditionalComment):
         acc.extend(("<!--[if ", self._render_cond(), "]><!-->"))
         self._render_children_to_list(acc)
         acc.append("<!--<![endif]-->")
-
-
-class IFStack:
-    """Class used by the parser to handle stacked IF/ELSE and their conditions."""
-
-    stack: List[bool] = []
-    last: Optional[bool] = None
-
-    @staticmethod
-    def push_condition(cond: bool) -> bool:
-        """Add a condition in the IF stack. For <if>/<else> tags.
-
-        Parameters
-        ----------
-        cond : bool
-            The condition to add to the stack.
-
-        Returns
-        -------
-        bool
-            The given condition
-
-        """
-        IFStack.stack.append(cond)
-        return cond
-
-    @staticmethod
-    def leave_if() -> List:
-        """Leave a <if> tag so pop the last condition, now used.
-
-        Returns
-        -------
-        List
-            An empty list to be used as an empty list of children to add.
-
-        """
-        IFStack.last = IFStack.stack.pop()
-        return []
