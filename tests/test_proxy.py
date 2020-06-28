@@ -209,22 +209,36 @@ def test_proxy_proptypes():
     }
 
     # props from comp1 and comp2 should be allowed
-    obj = Comp2(foo="foo", bar='bar', baz=2, qux="qux")
+    obj = Comp2(foo="foo", bar='bar', baz=2, qux="qux", data_x="x", aria_y="y")
     assert obj.foo == "foo"
     assert obj.bar == "bar"
     assert obj.baz == 2
     assert obj.qux == "qux"
+    assert obj.data_x == "x"
+    assert obj.aria_y == "y"
 
-    obj = Comp2(foo="foo", qux="qux")
+    obj = Comp2(foo="foo", qux="qux", data_x="x", aria_y="y")
     assert obj.proxied_props == {
         "foo": "foo",
         "bar": "BAR",
         "baz": 1,
+        "data_x": "x",
+        "aria_y": "y",
     }
     assert obj.own_props == {
         "foo": "foo",
         "baz": 1,
         "qux": "qux",
+    }
+    assert obj.declared_props == {
+        "foo": "foo",
+        "bar": "BAR",
+        "baz": 1,
+        "qux": "qux",
+    }
+    assert obj.non_declared_props == {
+        "data_x": "x",
+        "aria_y": "y",
     }
     assert obj.props_for(Comp1) == {
         "foo": "foo",

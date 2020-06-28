@@ -84,9 +84,10 @@ def test_children_filtering():
         <span class="foo" id=2/>
         <div class="bar" id=3><div class="foo" id=3.1/></div>
         <Child class="bar" id=4 />
+        <div class="noid"></div>
     </Parent>
 
-    assert [child.__tag__ for child in el.children()] == ['div', 'div', 'span', 'div', 'Child']
+    assert [child.__tag__ for child in el.children()] == ['div', 'div', 'span', 'div', 'Child', 'div']
 
     def get_ids(children):
         return [child.get_id() for child in children]
@@ -95,27 +96,27 @@ def test_children_filtering():
     assert get_ids(el.children('.bar')) == ['3', '4']
     assert get_ids(el.children('.baz')) == []
 
-    assert get_ids(el.children('.foo', exclude=True)) == ['0', '3', '4']
-    assert get_ids(el.children('.bar', exclude=True)) == ['0', '1', '2']
-    assert get_ids(el.children('.baz', exclude=True)) == ['0', '1', '2', '3', '4']
+    assert get_ids(el.children('.foo', exclude=True)) == ['0', '3', '4', None]
+    assert get_ids(el.children('.bar', exclude=True)) == ['0', '1', '2', None]
+    assert get_ids(el.children('.baz', exclude=True)) == ['0', '1', '2', '3', '4', None]
 
     assert get_ids(el.children('#1')) == ['1']
     assert get_ids(el.children('#4')) == ['4']
     assert get_ids(el.children('#1000')) == []
 
-    assert get_ids(el.children('#1', exclude=True)) == ['0', '2', '3', '4']
-    assert get_ids(el.children('#1000', exclude=True)) == ['0', '1', '2', '3', '4']
+    assert get_ids(el.children('#1', exclude=True)) == ['0', '2', '3', '4', None]
+    assert get_ids(el.children('#1000', exclude=True)) == ['0', '1', '2', '3', '4', None]
 
     assert get_ids(el.children('span')) == ['2']
     assert get_ids(el.children('Child')) == ['4']
 
-    assert get_ids(el.children('span', exclude=True)) == ['0', '1', '3', '4']
-    assert get_ids(el.children('Child', exclude=True)) == ['0', '1', '2', '3']
+    assert get_ids(el.children('span', exclude=True)) == ['0', '1', '3', '4', None]
+    assert get_ids(el.children('Child', exclude=True)) == ['0', '1', '2', '3', None]
 
     assert get_ids(el.children(Element)) == ['4']
     assert get_ids(el.children(Child)) == ['4']
-    assert get_ids(el.children(Element, exclude=True)) == ['0', '1', '2', '3']
-    assert get_ids(el.children(Child, exclude=True)) == ['0', '1', '2', '3']
+    assert get_ids(el.children(Element, exclude=True)) == ['0', '1', '2', '3', None]
+    assert get_ids(el.children(Child, exclude=True)) == ['0', '1', '2', '3', None]
 
 
 def test_pre_post_render():
@@ -195,3 +196,20 @@ def test_element_can_be_simple_function():
     assert str(
            <Greeting title="Greetings" first_name="John" last_name="Smith" />
     ) == '<div title="Greetings">Hello <b>John Smith</b></div>'
+
+
+def test_repr():
+
+    assert repr(<div />) == '<div>'
+    assert repr(<div id=foo />) == '<div id="foo">'
+    assert repr(<div class="bar baz" />) == '<div class="bar baz">'
+    assert repr(<div id=foo class="bar baz" />) == '<div id="foo" class="bar baz">'
+
+
+    class El(Element):
+        pass
+
+    assert repr(<El />) == '<El>'
+    assert repr(<El id=foo />) == '<El id="foo">'
+    assert repr(<El class="bar baz" />) == '<El class="bar baz">'
+    assert repr(<El id=foo class="bar baz" />) == '<El id="foo" class="bar baz">'
