@@ -91,6 +91,23 @@ class Element(WithClass):
         AnElement
     ] = None  # render() output cached by _rendered_element()
 
+    def __repr__(self) -> str:
+        """Return a string representation of the element.
+
+        Returns
+        -------
+        str
+            The representation of the element.
+
+        """
+        obj_id = self.prop("id", None)
+        classes = self.get_class()
+        return "<{}{}{}>".format(
+            self.__display_name__,
+            (' id="{}"'.format(obj_id)) if obj_id else "",
+            (' class="{}"'.format(classes)) if classes else "",
+        )
+
     def _get_base_element(self) -> AnElement:
         """Return the element rendered with its children.
 
@@ -122,9 +139,9 @@ class Element(WithClass):
 
         return out
 
-    def get_id(self) -> str:
+    def get_id(self) -> Union[None, str]:
         """Return the ``id`` prop of the element."""
-        return self.prop("id")
+        return self.prop("id", default=None)
 
     def children(  # pylint: disable=arguments-differ
         self, selector: Optional[Union[str, Type[Base]]] = None, exclude: bool = False
@@ -656,13 +673,25 @@ class ElementProxy(Element, metaclass=ElementProxyMetaclass):
         super().__init__(**kwargs)
 
     @property
-    def proxied_props(self) -> Props:
-        """Get he props for the proxied element.
+    def declared_props(self) -> Props:
+        """Get the props that are declared in ``PropTypes`` (no ``data_*`` and ``aria_*``).
 
         Returns
         -------
         Props
-            The props limited to the one for the proxied element.
+            The props limited to the ones declared in ``PropTypes``.
+
+        """
+        return dict(self.own_props, **self.props_for(self.proxied))
+
+    @property
+    def proxied_props(self) -> Props:
+        """Get the props for the proxied element (with ``data_*`` and ``aria_*``).
+
+        Returns
+        -------
+        Props
+            The props limited to the ones for the proxied element and non declared ones.
 
         Examples
         --------
@@ -670,23 +699,23 @@ class ElementProxy(Element, metaclass=ElementProxyMetaclass):
         ...     class PropTypes:
         ...         val: int
         >>> ComponentForCanvas = Component.For(html.Canvas)
-        >>> obj = ComponentForCanvas(val=3, height=300)
+        >>> obj = ComponentForCanvas(val=3, height=300, data_foo=1)
         >>> obj.props
-        {'val': 3, 'height': 300}
+        {'val': 3, 'height': 300, 'data_foo': 1}
         >>> obj.proxied_props
-        {'height': 300}
+        {'height': 300, data_foo: 1}
 
         """
-        return self.props_for(self.proxied)
+        return dict(self.props_for(self.proxied), **self.non_declared_props)
 
     @property
     def own_props(self) -> Props:
-        """Get he props for the base proxy element.
+        """Get the props for the base proxy element (no ``data_*`` and ``aria_*``).
 
         Returns
         -------
         Props
-            The props limited to the one for the base proxy element.
+            The props limited to the ones for the base proxy element.
 
         Examples
         --------
@@ -694,9 +723,9 @@ class ElementProxy(Element, metaclass=ElementProxyMetaclass):
         ...     class PropTypes:
         ...         val: int
         >>> ComponentForCanvas = Component.For(html.Canvas)
-        >>> obj = ComponentForCanvas(val=3, height=300)
+        >>> obj = ComponentForCanvas(val=3, height=300, data_foo: 1)
         >>> obj.props
-        {'val': 3, 'height': 300}
+        {'val': 3, 'height': 300, data_foo: 1}
         >>> obj.own_props
         {'val': 3}
 

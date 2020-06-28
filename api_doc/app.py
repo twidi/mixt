@@ -51,6 +51,7 @@ PAGES = [
                 'methods': [
                     'prop', 'prop_name', 'has_prop', 'set_prop', 'unset_prop', 'prop_default',
                     'is_prop_default', 'prop_type', 'is_prop_required', 'set_props', 'props', 'props_for',
+                    'declared_props', 'non_declared_props', 'prefixed_props',
                     'to_string', 'children', 'append', 'prepend', 'remove', 'add_class', 'append_class',
                     'prepend_class', 'remove_class', 'has_class', 'classes', 'render', 'prerender',
                     'postrender', 'postrender_child_element', 'add_ref',
