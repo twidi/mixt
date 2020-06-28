@@ -245,6 +245,7 @@ class Base(metaclass=BaseMetaclass):
         self.__children__: ManyElements = []
         self.__parent__: Optional["Base"] = None
         self.context: OptionalContext = None
+        self._context_merged: bool = False
 
         ref = kwargs.pop("ref", None)
         if ref and ref is not NotProvided:
@@ -320,55 +321,6 @@ class Base(metaclass=BaseMetaclass):
         """
         return self.__children__
 
-    def _set_context(self, context: OptionalContext) -> None:
-        """Set the given `context` to the element and propagate it to children.
-
-        If the element already have a context, both are merged.
-
-        Parameters
-        ----------
-        context : OptionalContext
-            The context (or ``None``) to set.
-
-        """
-        if context is None:
-            return
-
-        # merge new context and existing context if not already done
-        if self.context is not None and not issubclass(
-            context.__class__, self.context.__class__
-        ):
-            # we create a new context class as a subclass having both as parents
-            context_class = type(
-                f"{context.__tag__}__{self.context.__tag__}",  # compose a name with both names
-                (
-                    context.__class__,
-                    self.context.__class__,
-                ),  # we inherit PropTypes of both
-                {},
-            )
-            # we can instantiate the new context class, passing props of both
-            # if some are defined many times, the lowest context in the tree wins, ie the actual one
-            context = context_class(**dict(context.props, **self.context.props))
-
-        self.context = context
-        self._propagate_context(self.__children__)
-
-    def _propagate_context(self, children: ManyElements) -> None:
-        """Propagate the context of the current element to all of the given children.
-
-        Parameters
-        ----------
-        children : ManyElements
-            The children for which to set the context.
-
-        """
-        if self.context is None:
-            return
-        for child in children:
-            if isinstance(child, Base):
-                child._set_context(self.context)
-
     def _attach_children(self, children: ManyElements) -> None:
         """Attach the given `children` to the current element.
 
@@ -383,7 +335,6 @@ class Base(metaclass=BaseMetaclass):
         for child in children:
             if isinstance(child, Base):
                 child._attach_to_parent(self)
-        self._propagate_context(children)
 
     def _attach_to_parent(self, parent: "Base") -> None:
         """Save the given `parent` as the parent of the current element.
@@ -1086,8 +1037,7 @@ class Base(metaclass=BaseMetaclass):
         for name, value in props.items():
             self.set_prop(name, value)
 
-    @classmethod
-    def _str_list_to_string(cls, str_list: List) -> str:
+    def _str_list_to_string(self, str_list: List) -> str:
         """Convert an accumulated list from ``_to_list`` to a string.
 
         It will resolve entries that are in fact callables by calling them.
@@ -1109,8 +1059,8 @@ class Base(metaclass=BaseMetaclass):
                 final_str_list.append(item)
                 continue
             str_sublist: List = []
-            cls._render_element_to_list(item(), str_sublist)
-            final_str_list.append(cls._str_list_to_string(str_sublist))
+            self._render_element_to_list(item(), str_sublist)
+            final_str_list.append(self._str_list_to_string(str_sublist))
 
         return "".join(final_str_list)
 
@@ -1168,8 +1118,29 @@ class Base(metaclass=BaseMetaclass):
         """
         return self.to_string()
 
-    @classmethod
-    def _render_element_to_list(cls, element: AnElement, acc: List) -> None:
+    def _use_context(self, context: OptionalContext) -> None:
+        """Make the element use the new context.
+
+        Parameters
+        ----------
+        context : OptionalContext
+            The context to use. Will be merged with the current one if any.
+
+        Notes
+        -----
+        Nothing will be done if this method was already called for the element.
+
+        """
+        if self._context_merged:
+            return
+        if context and context is not EmptyContext:
+            if self.context and self.context is not EmptyContext:
+                self.context = context.merge_with(self.context)
+            else:
+                self.context = context
+        self._context_merged = True
+
+    def _render_element_to_list(self, element: AnElement, acc: List) -> None:
         """Fill the list `acc` with html string part of the given element.
 
         Parameters
@@ -1181,6 +1152,7 @@ class Base(metaclass=BaseMetaclass):
 
         """
         if isinstance(element, Base):
+            element._use_context(self.context)
             element._to_list(acc)
         elif callable(element):
             acc.append(element)
@@ -1556,6 +1528,30 @@ class BaseContext(Base):
 
         """
         self._render_children_to_list(acc)
+
+    def merge_with(self, context: "BaseContext") -> "BaseContext":
+        """Merge the current context with the given one.
+
+        Parameters
+        ----------
+        context : OptionalContext
+            The context to merge with the current one.
+
+        Returns
+        -------
+        BaseContext
+            A new context with merged props.
+
+        """
+        # we create a new context class as a subclass having both as parents
+        name = f"{self.context.__tag__}MergedWith{context.__tag__}"
+        bases = {self.context.__class__, context.__class__}
+        context_class = type(
+            name, tuple(bases), {"__tag__": name, "__display_name__": name},
+        )
+        # we can instantiate the new context class, passing props of both
+        # if some are defined many times, the given context wins
+        return context_class(**dict(self.context.props, **context.props))
 
 
 EmptyContext = BaseContext()  # pylint: disable=invalid-name

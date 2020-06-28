@@ -94,7 +94,7 @@ class Element(WithClass):
     def _get_base_element(self) -> AnElement:
         """Return the element rendered with its children.
 
-        Manage css classes inheritance by concatening all the classes down to the the first
+        Manage context css classes inheritance by concatening all the classes down to the the first
         html tag.
 
         Returns
@@ -104,9 +104,12 @@ class Element(WithClass):
 
         """
         out = self._rendered_element()
+        context = self.context
         classes = self.classes
 
         while isinstance(out, Element):
+            out._use_context(context)
+            context = out.context
             new_out = out._rendered_element()
             classes = out.classes + classes
             out = new_out
@@ -204,7 +207,7 @@ class Element(WithClass):
         self._render_element_to_list(self._get_base_element(), acc)
 
     def _rendered_element(self) -> AnElement:
-        """Call prerender, render then postrender and return the rendered element.
+        """Call ``prerender``, ``render`` then ``postrender`` and return the rendered element.
 
         If ``render`` returns many elements, they are grouped in a ``Fragment``.
 
@@ -215,13 +218,11 @@ class Element(WithClass):
 
         """
         if self._element is None:
-            context = self.context if self.context is not None else EmptyContext
+            context = self.context or EmptyContext
 
             self.prerender(context)
 
-            element: Optional[OneOrManyElements] = self.render(
-                self.context or EmptyContext
-            )
+            element: Optional[OneOrManyElements] = self.render(context)
 
             if isinstance(element, (list, tuple)):
                 element = Fragment()(element)  # type: ignore
@@ -230,9 +231,6 @@ class Element(WithClass):
 
             if isinstance(self._element, Base):
                 self._element._attach_to_parent(self)
-                self._element._set_context(
-                    self.context  # pass None if context not defined, not EmptyContext
-                )
 
             self.postrender(self._element, context)  # type: ignore
 

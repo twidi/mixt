@@ -71,7 +71,7 @@ def test_context_via_functions():
     assert str(<Context title="foo"><Parent /></Context>) == '<div><span title="foo"></span></div>'
 
 
-def test_merge_context():
+def test_merge_context1():
     class ParentContext(BaseContext):
         class PropTypes:
             val1: str
@@ -97,6 +97,56 @@ def test_merge_context():
     assert str(
         <ParentContext val1="foo" val2="bar"><Parent /></ParentContext>
     ) == '<div data-val1="foo" data-val2="baz" data-val3="qux"></div>'
+
+def test_merge_context2():
+
+    class ParentContext(BaseContext):
+        class PropTypes:
+            parent_val: int
+
+    class ChildContext(BaseContext):
+        class PropTypes:
+            child_val: int
+
+    class Parent(Element):
+        def render(self, context):
+            return \
+                <div id="p">
+                    <ParentContext parent_val=1>
+                        {self.children()}
+                    </ParentContext>
+                </div>
+
+    class Child(Element):
+        def render(self, context):
+            return \
+                <div id="c">
+                    <ChildContext child_val=2>
+                        {self.children()}
+                    </ChildContext>
+                </div>
+
+    class Final(Element):
+        def render(self, context):
+            return <div id="f">ParentVal={context.parent_val}, ChildVal={context.child_val}</div>
+
+    class App(Element):
+        def render(self, context):
+            return \
+                <div id="a">
+                    <Parent>
+                        <Child>
+                            <Final />
+                        </Child>
+                    </Parent>
+                </div>
+
+    assert str(<App/>) == (
+        '<div id="a"><div id="p"><div id="c"><div id="f">'
+        'ParentVal=1, ChildVal=2'
+        '</div></div></div></div>'
+    )
+
 
 
 def test_no_context():
