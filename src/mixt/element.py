@@ -91,6 +91,23 @@ class Element(WithClass):
         AnElement
     ] = None  # render() output cached by _rendered_element()
 
+    def __repr__(self) -> str:
+        """Return a string representation of the element.
+
+        Returns
+        -------
+        str
+            The representation of the element.
+
+        """
+        obj_id = self.prop("id", None)
+        classes = self.get_class()
+        return "<{}{}{}>".format(
+            self.__display_name__,
+            (' id="{}"'.format(obj_id)) if obj_id else "",
+            (' class="{}"'.format(classes)) if classes else "",
+        )
+
     def _get_base_element(self) -> AnElement:
         """Return the element rendered with its children.
 
@@ -122,9 +139,9 @@ class Element(WithClass):
 
         return out
 
-    def get_id(self) -> str:
+    def get_id(self) -> Union[None, str]:
         """Return the ``id`` prop of the element."""
-        return self.prop("id")
+        return self.prop("id", default=None)
 
     def children(  # pylint: disable=arguments-differ
         self, selector: Optional[Union[str, Type[Base]]] = None, exclude: bool = False

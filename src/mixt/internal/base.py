@@ -232,6 +232,17 @@ class Base(metaclass=BaseMetaclass):
 
         ref: Ref
 
+    def __repr__(self) -> str:
+        """Return a string representation of the object.
+
+        Returns
+        -------
+        str
+            The representation of the object.
+
+        """
+        return "<{}>".format(self.__display_name__)
+
     def __init__(self, **kwargs: Any) -> None:
         """Create the element and validate then save props.
 
