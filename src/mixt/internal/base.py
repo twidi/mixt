@@ -1004,6 +1004,94 @@ class Base(metaclass=BaseMetaclass):
         """
         return dict(self.PropTypes.__default_props__, **self.__props__)
 
+    @property
+    def declared_props(self) -> Props:
+        """Get the props that are declared in ``PropTypes`` (no ``data_*`` and ``aria_*``).
+
+        Returns
+        -------
+        Props
+            The props limited to the ones declared in ``PropTypes``.
+
+        Examples
+        --------
+        >>> class Component(Element):
+        ...     class PropTypes:
+        ...         val: int
+        >>> obj = Component(val=3, data_foo="bar", aria_disabled="true")
+        >>> obj.props
+        {'val': 3, 'data_foo': 'bar', 'aria_disabled': 'true'}
+        >>> obj.declared_props
+        {'val': 3}
+
+        """
+        return {
+            name: value
+            for name, value in self.props.items()
+            if name in self.PropTypes.__types__
+        }
+
+    @property
+    def non_declared_props(self) -> Props:
+        """Get the props that are not declared in ``PropTypes`` (only ``data_*`` or ``aria_*``).
+
+        Returns
+        -------
+        Props
+            The props limited to the non declared ones.
+
+        Examples
+        --------
+        >>> class Component(Element):
+        ...     class PropTypes:
+        ...         val: int
+        ...         data_val: int
+        ...         aria_val: int
+        >>> obj = Component(val=3, data_val=1, data_foo="bar", aria_val=2, aria_disabled="true")
+        >>> obj.props
+        {'val': 3, 'data_val': 1, 'data_foo': 'bar', 'aria_val': 2, 'aria_disabled': 'true'}
+        >>> obj.non_declared_props
+        {'data_foo': 'bar', 'aria_disabled': 'true'}
+
+        """
+        declared_props = self.declared_props
+        return {
+            name: value
+            for name, value in self.props.items()
+            if name not in declared_props
+        }
+
+    def prefixed_props(self, prefix: str) -> Props:
+        """Get the props matching the given `prefix`.
+
+        Parameters
+        ----------
+        prefix : str
+            The prefix to match.
+
+        Returns
+        -------
+        Props
+            The props limited to the ones starting with `prefix`.
+
+        Examples
+        --------
+        >>> class Compoment(Element):
+        ...     class PropTypes:
+        ...         foo: str
+        ...         val1: int
+        ...         val2: int
+        >>> obj = Component(foo='bar', val1=11, val2=22)
+        >>> obj.props
+        {'foo': 'bar', 'val1': 11, 'val2': 22}
+        >>> obj.prefixed_props('val')
+        {'val1': 11, 'val2': 22}
+
+        """
+        return {
+            name: value for name, value in self.props.items() if name.startswith(prefix)
+        }
+
     def set_props(self, props: Props) -> None:
         """Set some props in addition/replacement to the already set ones.
 

@@ -121,6 +121,15 @@ def test_data_and_aria_are_not_validated():
     assert str(el) == '<div data-string="foo" aria-number="123" data-complex="{\'foo\': 123}"></div>'
 
 
+def test_props_kinds():
+    el = <div id=divid data-string="foo" aria-number={123} />
+    assert el.props == {'id': 'divid', 'data_string': 'foo', 'aria_number': 123}
+    assert el.declared_props == {'id': 'divid'}
+    assert el.non_declared_props == {'data_string': 'foo', 'aria_number': 123}
+    assert el.prefixed_props('data') == {'data_string': 'foo'}
+    assert el.prefixed_props('aria') == {'aria_number': 123}
+
+
 def test_ints_can_be_passed_unquoted_for_string_props():
     class Foo(DummyBase):
         class PropTypes:
