@@ -207,6 +207,14 @@ class HtmlBaseElement(WithClass, metaclass=HtmlElementMetaclass):
             (' class="{}"'.format(classes)) if classes else "",
         )
 
+    def __iter__(self):
+        """
+        Yields chars of the stringified html element
+
+        With this you can easily use mixt for a flask response
+        """
+        yield from str(self)
+
 
 class HtmlElement(HtmlBaseElement):
     """Base for all HTML tags accepting children."""
