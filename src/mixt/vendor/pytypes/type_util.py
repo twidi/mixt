@@ -482,7 +482,7 @@ def is_iterator(obj):
     it does not check w.r.t. (capital) Iterator class from
     typing.
     """
-    return isinstance(obj, collections.Iterator)
+    return isinstance(obj, collections.abc.Iterator)
 
 def is_Type(tp):
     """Python version independent check if an object is a type.
@@ -2247,7 +2247,7 @@ def _make_iterator_error_message(tp, itr, expected_tp, incomp_text,
             type_str(tp, bound_Generic=bound_Generic, bound_typevars=bound_typevars))
 
 
-class _typechecked_Iterable(collections.Iterable):
+class _typechecked_Iterable(collections.abc.Iterable):
     def __init__(self, iter_obj, cls, bound_Generic, bound_typevars,
                 bound_typevars_readonly, follow_fwd_refs, _recursion_check, force):
         if not hasattr(iter_obj, '__iter__'):
@@ -2272,7 +2272,7 @@ class _typechecked_Iterable(collections.Iterable):
         return getattr(self.iter_obj, name)
 
 
-class _typechecked_Iterator(collections.Iterator, _typechecked_Iterable):
+class _typechecked_Iterator(collections.abc.Iterator, _typechecked_Iterable):
     def __init__(self, iter_obj, cls, bound_Generic, bound_typevars,
                 bound_typevars_readonly, follow_fwd_refs, _recursion_check, force):
         if not hasattr(iter_obj, '__iter__'):
