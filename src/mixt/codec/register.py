@@ -11,7 +11,7 @@ def pyxl_transform(stream):
         traceback.print_exc()
         raise
 
-    return output.rstrip()
+    return output
 
 def pyxl_transform_string(input):
     stream = io.StringIO(bytes(input).decode('utf-8'))
